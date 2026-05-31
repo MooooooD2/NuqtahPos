@@ -48,8 +48,12 @@ use App\Http\Controllers\WhatsAppController;
 use App\Http\Middleware\CheckSubscriptionActive;
 use Illuminate\Support\Facades\Route;
 
+// ── SPA Auth (no auth middleware — these are public login endpoints) ─────────
+Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
+
 // #12 Rate Limiting: 60 طلب/دقيقة على كل APIs
-Route::middleware(['auth', 'throttle:60,1', CheckSubscriptionActive::class])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1', CheckSubscriptionActive::class])->group(function () {
 
     Route::get('/dashboard-data', [DashboardController::class, 'data'])->name('api.dashboard.data');
 
@@ -151,7 +155,8 @@ Route::middleware(['auth', 'throttle:60,1', CheckSubscriptionActive::class])->gr
         })->name('barcode.lookup')->middleware('throttle:60,1');
         Route::post('/offline/sync', [OfflineSyncController::class, 'sync'])->name('offline.sync');
         Route::post('/invoices', [InvoiceController::class, 'createInvoice'])->name('invoices.create');
-        Route::get('/invoices', [InvoiceController::class, 'getByNumber'])->name('invoices.by-number');
+        Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/search', [InvoiceController::class, 'getByNumber'])->name('invoices.by-number');
         Route::get('/invoices/{invoice}/returnable-items', [InvoiceController::class, 'returnableItems'])->name('invoices.returnable-items');
         Route::post('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->middleware('throttle:20,1')->name('invoices.cancel');
         Route::get('/invoices/eta-log', [InvoiceController::class, 'etaSubmissionLog'])->name('invoices.eta-log');

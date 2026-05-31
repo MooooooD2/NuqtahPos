@@ -110,6 +110,39 @@ class InvoiceController extends Controller
         }
     }
 
+    public function index(Request $request)
+    {
+        $query = Invoice::query()
+            ->with('user:id,username')
+            ->orderByDesc('created_at');
+
+        if ($request->filled('search')) {
+            $q = $request->string('search')->toString();
+            $query->where(function ($q2) use ($q) {
+                $q2->where('invoice_number', 'like', "%{$q}%")
+                   ->orWhere('customer_name', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+
+        $perPage = min((int) $request->input('per_page', 20), 100);
+        $invoices = $query->paginate($perPage);
+
+        return $this->success([
+            'invoices' => $invoices->items(),
+            'total'    => $invoices->total(),
+            'pages'    => $invoices->lastPage(),
+            'page'     => $invoices->currentPage(),
+        ]);
+    }
+
     public function getByNumber(Request $request)
     {
         $request->validate(['number' => 'required|string|max:50']);

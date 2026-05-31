@@ -5,6 +5,7 @@ use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\CheckUserIsActive;
 use App\Http\Middleware\EnforceTwoFactor;
 use App\Http\Middleware\InitializeTenancyBySession;
+use App\Http\Middleware\InitializeTenancyByToken;
 use App\Http\Middleware\IpWhitelist;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SessionSecurity;
@@ -56,6 +57,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // so they run BEFORE the default throttle:api and SubstituteBindings.
         $middleware->api(
             prepend: [
+                InitializeTenancyByToken::class,   // Bearer token → tenant DB first
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,

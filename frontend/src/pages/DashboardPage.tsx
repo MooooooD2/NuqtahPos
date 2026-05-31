@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/services/api'
-import type { DashboardStats } from '@/types'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -10,24 +9,28 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
 
+interface TopProduct { name: string; total_quantity: string | number; total_sales: string | number }
+interface RecentInvoice { invoice_number: string; final_total: string | number; payment_method: string; cashier_name: string; created_at: string }
+interface DashData {
+  today_sales_count: number; today_sales_total: string | number; total_revenue: number
+  low_stock_count: number; out_of_stock_count: number; total_products: number; total_suppliers: number
+  top_products: TopProduct[]; recent_invoices: RecentInvoice[]
+  sales_trend?: Array<{ date: string; amount: number }>
+  payment_breakdown?: Array<{ method: string; amount: number }>
+}
+
 export default function DashboardPage() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard'],
-    queryFn: () => apiGet<DashboardStats>('/api/dashboard-data'),
+    queryFn: () => apiGet<DashData>('/dashboard-data'),
     refetchInterval: 60_000,
   })
 
-  if (isLoading) return (
-    <div className="flex h-64 items-center justify-center">
-      <LoadingSpinner size="lg" />
-    </div>
+  if (isLoading || !stats) return (
+    <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
   )
 
-  const s = stats ?? {
-    today_sales: 0, today_invoices: 0, today_customers: 0,
-    low_stock_count: 0, pending_orders: 0,
-    top_products: [], sales_trend: [], payment_breakdown: [],
-  }
+  const todaySales = parseFloat(String(stats.today_sales_total ?? 0))
 
   return (
     <div className="space-y-6">
@@ -39,10 +42,10 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Today's Sales",    value: `$${s.today_sales.toLocaleString()}`, icon: TrendingUp,   color: 'blue' },
-          { label: 'Invoices',         value: s.today_invoices,                      icon: ShoppingCart, color: 'green' },
-          { label: 'New Customers',    value: s.today_customers,                     icon: Users,        color: 'purple' },
-          { label: 'Low Stock Items',  value: s.low_stock_count,                     icon: AlertTriangle,color: 'red' },
+          { label: "Today's Sales",   value: `${todaySales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, icon: TrendingUp,    color: 'blue' },
+          { label: 'Invoices Today',  value: stats.today_sales_count ?? 0,                                              icon: ShoppingCart,  color: 'green' },
+          { label: 'Total Products',  value: stats.total_products ?? 0,                                                 icon: Users,         color: 'purple' },
+          { label: 'Low Stock Items', value: stats.low_stock_count ?? 0,                                                icon: AlertTriangle, color: 'red' },
         ].map((card) => (
           <div key={card.label} className="card p-5">
             <div className="flex items-center justify-between">
@@ -59,60 +62,88 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Sales trend */}
-        <div className="card p-5 lg:col-span-2">
-          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Sales Trend (30 days)</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={s.sales_trend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Area type="monotone" dataKey="amount" stroke="#0ea5e9" fill="#e0f2fe" />
-            </AreaChart>
-          </ResponsiveContainer>
+      {((stats.sales_trend?.length ?? 0) > 0 || (stats.payment_breakdown?.length ?? 0) > 0) && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="card p-5 lg:col-span-2">
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Sales Trend (30 days)</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={stats.sales_trend ?? []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Area type="monotone" dataKey="amount" stroke="#0ea5e9" fill="#e0f2fe" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="card p-5">
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Payment Methods</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={stats.payment_breakdown ?? []} dataKey="amount" nameKey="method" cx="50%" cy="50%" outerRadius={80}>
+                  {(stats.payment_breakdown ?? []).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Legend />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
+      )}
 
-        {/* Payment methods */}
+      {/* Bottom row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Top products */}
         <div className="card p-5">
-          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Payment Methods</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={s.payment_breakdown} dataKey="amount" nameKey="method" cx="50%" cy="50%" outerRadius={80}>
-                {s.payment_breakdown.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Legend />
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Top products */}
-      <div className="card p-5">
-        <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Top Selling Products</h3>
-        <div className="overflow-x-auto">
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Top Selling Products</h3>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700">
                 <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">Product</th>
-                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Qty Sold</th>
-                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Revenue</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Qty</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Sales</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-              {s.top_products.slice(0, 8).map((row, i) => (
+              {(stats.top_products ?? []).slice(0, 8).map((row, i) => (
                 <tr key={i}>
-                  <td className="py-2.5 text-gray-900 dark:text-white">{row.product?.name ?? '—'}</td>
-                  <td className="py-2.5 text-right text-gray-600 dark:text-gray-400">{row.quantity}</td>
-                  <td className="py-2.5 text-right font-medium text-gray-900 dark:text-white">${row.revenue.toLocaleString()}</td>
+                  <td className="py-2.5 text-gray-900 dark:text-white">{row.name ?? '—'}</td>
+                  <td className="py-2.5 text-right text-gray-600 dark:text-gray-400">{row.total_quantity ?? 0}</td>
+                  <td className="py-2.5 text-right font-medium text-primary-600">
+                    {parseFloat(String(row.total_sales ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
                 </tr>
               ))}
-              {s.top_products.length === 0 && (
-                <tr><td colSpan={3} className="py-8 text-center text-gray-400">No data yet</td></tr>
+              {(stats.top_products ?? []).length === 0 && (
+                <tr><td colSpan={3} className="py-8 text-center text-gray-400">No sales yet today</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Recent invoices */}
+        <div className="card p-5">
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Recent Invoices</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-gray-700">
+                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">Invoice</th>
+                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">Cashier</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
+              {(stats.recent_invoices ?? []).slice(0, 8).map((inv, i) => (
+                <tr key={i}>
+                  <td className="py-2.5 font-mono text-xs text-primary-600">{inv.invoice_number}</td>
+                  <td className="py-2.5 text-gray-500 text-xs">{inv.cashier_name ?? '—'}</td>
+                  <td className="py-2.5 text-right font-medium text-gray-900 dark:text-white">
+                    {parseFloat(String(inv.final_total ?? 0)).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+              {(stats.recent_invoices ?? []).length === 0 && (
+                <tr><td colSpan={3} className="py-8 text-center text-gray-400">No invoices yet</td></tr>
               )}
             </tbody>
           </table>

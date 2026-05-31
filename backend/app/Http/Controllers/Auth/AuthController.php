@@ -69,8 +69,12 @@ class AuthController extends Controller
             'password' => $credentials['password'],
             'is_active' => true,
         ])) {
-            $request->session()->put('tenant_id', $tenant->id);
-            $request->session()->regenerate();
+            try {
+                $request->session()->put('tenant_id', $tenant->id);
+                $request->session()->regenerate();
+            } catch (Throwable) {
+                // Stateless API request — no session available
+            }
 
             RateLimiter::clear($lockKey);
 
@@ -83,7 +87,19 @@ class AuthController extends Controller
             } catch (Throwable) {
             }
 
-            return response()->json(['success' => true, 'redirect' => route('dashboard')]);
+            $token = $user->createToken('pos-spa', ['*'], now()->addHours(8))->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->full_name,
+                    'username' => $user->username,
+                    'role' => $user->role,
+                    'language' => $user->language,
+                ],
+            ]);
         }
 
         $user = User::where('username', $credentials['username'])->first();

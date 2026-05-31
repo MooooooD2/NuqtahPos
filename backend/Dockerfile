@@ -16,10 +16,14 @@ RUN docker-php-ext-install pdo_mysql bcmath gd zip opcache
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_RETRY=3 \
+    COMPOSER_PROCESS_TIMEOUT=2000
+
 WORKDIR /var/www/html
 
 COPY composer.* ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-source
 
 COPY . .
 

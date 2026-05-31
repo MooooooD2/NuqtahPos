@@ -94,7 +94,12 @@ else
 fi
 
 # Source env vars
-export $(grep -v '^#' .env | xargs 2>/dev/null) || true
+if [ -f ".env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
 
 # ─── Step 2: Backend .env setup ───────────────────────────────────────────────
 step "Configuring backend"

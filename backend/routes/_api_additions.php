@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // Phase 2 — Shift Management API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth', 'throttle:60,1'])->prefix('shifts')->name('api.shifts.')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('shifts')->name('api.shifts.')->group(function () {
     Route::get('/current', [App\Http\Controllers\ShiftController::class, 'current'])->name('current');
     Route::get('/history', [App\Http\Controllers\ShiftController::class, 'history'])->name('history');
     Route::post('/clock-in', [App\Http\Controllers\ShiftController::class, 'clockIn'])->name('clock-in');
@@ -16,7 +16,7 @@ Route::middleware(['auth', 'throttle:60,1'])->prefix('shifts')->name('api.shifts
 // ═══════════════════════════════════════════════════════════════════════════
 // Phase 4 — White Label API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth', 'permission:manage_white_label', 'throttle:30,1'])->prefix('white-label')->name('api.wl.')->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage_white_label', 'throttle:30,1'])->prefix('white-label')->name('api.wl.')->group(function () {
     Route::post('/', [App\Http\Controllers\WhiteLabelController::class, 'update'])->name('update');
     Route::put('/', [App\Http\Controllers\WhiteLabelController::class, 'update'])->name('update.put');
     Route::post('/domain', [App\Http\Controllers\WhiteLabelController::class, 'setCustomDomain'])->name('domain');
@@ -27,7 +27,7 @@ Route::middleware(['auth', 'permission:manage_white_label', 'throttle:30,1'])->p
 // ═══════════════════════════════════════════════════════════════════════════
 // Phase 9 — Push Notifications API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth', 'throttle:30,1'])->prefix('notifications')->name('api.notifications.')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:30,1'])->prefix('notifications')->name('api.notifications.')->group(function () {
     Route::get('/', fn () => response()->json(auth()->user()->notifications()->latest()->take(30)->get()))->name('index');
     Route::post('/push-token', [App\Http\Controllers\Mobile\MobileAuthController::class, 'updatePushToken'])->name('push-token');
     Route::post('/read-all', function () {
@@ -51,7 +51,7 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('notifications')->name('api
 // ═══════════════════════════════════════════════════════════════════════════
 // Phase 10 — HR API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth', 'throttle:60,1'])->prefix('hr')->name('api.hr.')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr.')->group(function () {
 
     // ── Employees ─────────────────────────────────────────────────────────
     Route::middleware('permission:manage_settings')->group(function () {
@@ -568,7 +568,7 @@ Route::middleware(['auth', 'throttle:60,1'])->prefix('hr')->name('api.hr.')->gro
 // ═══════════════════════════════════════════════════════════════════════════
 // Phase 10 — Multi-Currency API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth', 'throttle:60,1'])->prefix('currencies')->name('api.currencies.')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('currencies')->name('api.currencies.')->group(function () {
     Route::get('/', fn () => response()->json(['currencies' => app(App\Services\CurrencyService::class)->all()]))->name('index');
 
     Route::middleware('permission:manage_settings')->group(function () {
@@ -637,7 +637,7 @@ Route::middleware(['auth', 'throttle:60,1'])->prefix('currencies')->name('api.cu
 // ═══════════════════════════════════════════════════════════════════════════
 // Phase 10 — Franchise Royalties API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth', 'permission:view_reports', 'throttle:30,1'])->prefix('franchise')->name('api.franchise.')->group(function () {
+Route::middleware(['auth:sanctum', 'permission:view_reports', 'throttle:30,1'])->prefix('franchise')->name('api.franchise.')->group(function () {
 
     Route::get('/agreements', function () {
         $rows = DB::table('franchise_agreements')
