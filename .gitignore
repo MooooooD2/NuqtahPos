@@ -1,0 +1,28 @@
+# Environment
+.env
+!.env.example
+
+# Node
+node_modules/
+frontend/dist/
+desktop/dist/
+
+# Rust / Tauri
+desktop/src-tauri/target/
+
+# Laravel
+backend/vendor/
+backend/storage/logs/
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/.phpunit.result.cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,35 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    phpVersion: 80200
+    paths:
+        - app
+    level: 6
+
+    # Allow mixed types in certain situations
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+
+    # Ignore common Laravel magic patterns
+    treatPhpDocTypesAsCertain: false
+
+    excludePaths:
+        - app/Http/Middleware/EncryptCookies.php
+        - app/Console/Kernel.php
+
+    ignoreErrors:
+        # Laravel magic methods / dynamic properties
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+        - '#Call to an undefined method Illuminate\\Database\\Query\\Builder#'
+        - '#Access to an undefined property App\\Models#'
+
+        # Stancl Tenancy dynamic DB switching
+        - '#Call to an undefined method Stancl\\Tenancy#'
+
+        # Spatie Permission dynamic roles
+        - '#Call to an undefined method Spatie\\Permission#'
+
+    universalObjectCratesClasses:
+        - Illuminate\Http\Request
+        - Illuminate\Database\Eloquent\Model

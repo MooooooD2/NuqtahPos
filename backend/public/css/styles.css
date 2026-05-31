@@ -1,0 +1,1020 @@
+/* styles.css — Nuqtah brand: navy #12244E + green #00B04E */
+
+:root {
+    --primary: #12244E;
+    --primary-dark: #0D1B3A;
+    --primary-light: #E8F0FC;
+    --accent: #00B04E;
+    --accent-dark: #008A3C;
+    --sidebar-width: 260px;
+    --sidebar-compact-width: 68px;
+    --sidebar-bg: #0B1830;
+    --sidebar-text: #8BAFD0;
+    --sidebar-active: #00B04E;
+
+    /* Light theme tokens */
+    --body-bg: #f8fafc;
+    --body-color: #1e293b;
+    --topbar-bg: #ffffff;
+    --topbar-border: #e2e8f0;
+    --card-bg: #ffffff;
+    --card-header-bg: #ffffff;
+    --card-border: #f1f5f9;
+    --card-shadow: 0 1px 3px rgba(0,0,0,.08);
+    --input-bg: #ffffff;
+    --input-color: #1e293b;
+    --input-border: #dee2e6;
+    --table-bg: transparent;
+    --table-head-bg: #f8fafc;
+    --table-border: #dee2e6;
+    --table-striped: rgba(0,0,0,.03);
+    --dropdown-bg: #ffffff;
+    --dropdown-border: rgba(0,0,0,.15);
+    --dropdown-item-hover: #f0f9ff;
+    --modal-bg: #ffffff;
+    --search-result-bg: #ffffff;
+    --search-item-hover: #f0f9ff;
+    --muted-color: #64748b;
+    --border-color: #e2e8f0;
+    --badge-low-bg: #fef3c7;
+    --badge-low-color: #92400e;
+    --badge-out-bg: #fee2e2;
+    --badge-out-color: #991b1b;
+    --badge-in-bg: #d1fae5;
+    --badge-in-color: #065f46;
+}
+
+/* ── Dark Mode ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+    /* Our custom tokens */
+    --body-bg: #0f172a;
+    --body-color: #e2e8f0;
+    --topbar-bg: #1e293b;
+    --topbar-border: #334155;
+    --card-bg: #1e293b;
+    --card-header-bg: #1e293b;
+    --card-border: #334155;
+    --card-shadow: 0 1px 3px rgba(0,0,0,.3);
+    --input-bg: #0f172a;
+    --input-color: #e2e8f0;
+    --input-border: #475569;
+    --table-bg: transparent;
+    --table-head-bg: #0f172a;
+    --table-border: #334155;
+    --table-striped: rgba(255,255,255,.03);
+    --dropdown-bg: #1e293b;
+    --dropdown-border: #475569;
+    --dropdown-item-hover: #334155;
+    --modal-bg: #1e293b;
+    --search-result-bg: #1e293b;
+    --search-item-hover: #334155;
+    --muted-color: #94a3b8;
+    --border-color: #334155;
+    --badge-low-bg: #451a03;
+    --badge-low-color: #fcd34d;
+    --badge-out-bg: #450a0a;
+    --badge-out-color: #fca5a5;
+    --badge-in-bg: #052e16;
+    --badge-in-color: #6ee7b7;
+
+    /* ── Bootstrap 5 CSS variable overrides (fixes ALL Bootstrap components) ── */
+    --bs-body-color:        #e2e8f0;
+    --bs-body-bg:           #0f172a;
+    --bs-secondary-color:   #94a3b8;
+    --bs-tertiary-color:    #64748b;
+    --bs-secondary-bg:      #1e293b;
+    --bs-tertiary-bg:       #0f172a;
+    --bs-border-color:      #334155;
+    --bs-border-color-translucent: rgba(255,255,255,.1);
+    --bs-heading-color:     #f1f5f9;
+    --bs-link-color:        #60a5fa;
+    --bs-link-hover-color:  #93c5fd;
+    --bs-emphasis-color:    #f8fafc;
+    --bs-card-bg:           #1e293b;
+    --bs-card-border-color: #334155;
+    --bs-card-cap-bg:       #1e293b;
+    --bs-table-color:       #e2e8f0;
+    --bs-table-bg:          transparent;
+    --bs-table-border-color:#334155;
+    --bs-table-striped-bg:  rgba(255,255,255,.03);
+    --bs-table-hover-bg:    rgba(255,255,255,.05);
+    --bs-input-bg:          #0f172a;
+    --bs-input-color:       #e2e8f0;
+    --bs-input-border-color:#475569;
+    --bs-dropdown-bg:       #1e293b;
+    --bs-dropdown-border-color: #475569;
+    --bs-dropdown-link-color:   #e2e8f0;
+    --bs-dropdown-link-hover-bg:#334155;
+    --bs-dropdown-link-hover-color: #f8fafc;
+    --bs-modal-bg:          #1e293b;
+    --bs-modal-color:       #e2e8f0;
+    --bs-modal-header-border-color: #334155;
+    --bs-modal-footer-border-color: #334155;
+    --bs-nav-link-color:    #94a3b8;
+    --bs-nav-tabs-border-color: #334155;
+    --bs-nav-tabs-link-active-bg: #1e293b;
+    --bs-nav-tabs-link-active-color: #e2e8f0;
+    --bs-nav-tabs-link-active-border-color: #334155 #334155 #1e293b;
+    --bs-list-group-color:  #e2e8f0;
+    --bs-list-group-bg:     #1e293b;
+    --bs-list-group-border-color: #334155;
+    --bs-list-group-action-color: #94a3b8;
+    --bs-list-group-action-hover-bg: #334155;
+    --bs-pagination-bg:     #1e293b;
+    --bs-pagination-border-color: #334155;
+    --bs-pagination-color:  #94a3b8;
+    --bs-pagination-hover-bg: #334155;
+    --bs-pagination-disabled-bg: #1e293b;
+    --bs-form-check-bg:     #0f172a;
+
+    color-scheme: dark;
+}
+
+/* Theme toggle icon */
+#themeToggleBtn .icon-sun  { display: none; }
+#themeToggleBtn .icon-moon { display: inline; }
+[data-theme="dark"] #themeToggleBtn .icon-sun  { display: inline; }
+[data-theme="dark"] #themeToggleBtn .icon-moon { display: none; }
+
+/* Apply tokens — Bootstrap reads --bs-body-color/bg automatically,
+   but we also set our custom vars so non-Bootstrap elements stay correct */
+body {
+    background-color: var(--bs-body-bg, var(--body-bg));
+    color: var(--bs-body-color, var(--body-color));
+    transition: background-color .25s, color .25s;
+}
+
+/* Base RTL/LTR support - will be toggled by adding 'rtl' or 'ltr' class to body */
+body {
+    font-family: 'Cairo', 'Tajawal', 'Segoe UI', 'Tahoma', sans-serif;
+}
+
+/* ── Dark-mode component overrides ─────────────────────────────────────────── */
+#topbar {
+    background: var(--topbar-bg) !important;
+    border-bottom-color: var(--topbar-border) !important;
+    transition: background .25s, border-color .25s;
+}
+
+.card {
+    background: var(--card-bg) !important;
+    box-shadow: var(--card-shadow) !important;
+}
+
+.card-header {
+    background: var(--card-header-bg) !important;
+    border-bottom-color: var(--card-border) !important;
+}
+
+.form-control, .form-select {
+    background-color: var(--input-bg) !important;
+    color: var(--input-color) !important;
+    border-color: var(--input-border) !important;
+}
+
+.form-control::placeholder { color: var(--muted-color) !important; }
+
+.table {
+    --bs-table-bg: var(--table-bg);
+    --bs-table-striped-bg: var(--table-striped);
+    --bs-table-border-color: var(--table-border);
+}
+
+[data-theme="dark"] .table thead th {
+    background: var(--table-head-bg) !important;
+    color: var(--body-color) !important;
+    border-color: var(--table-border) !important;
+}
+
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+    color: var(--body-color) !important;
+    border-color: var(--table-border) !important;
+}
+
+.dropdown-menu {
+    background-color: var(--dropdown-bg) !important;
+    border-color: var(--dropdown-border) !important;
+}
+
+.dropdown-item {
+    color: var(--body-color) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--dropdown-item-hover) !important;
+    color: var(--body-color) !important;
+}
+
+.dropdown-divider { border-color: var(--border-color) !important; }
+
+.modal-content {
+    background-color: var(--modal-bg) !important;
+    color: var(--body-color) !important;
+}
+
+.modal-header, .modal-footer {
+    border-color: var(--border-color) !important;
+}
+
+.text-muted { color: var(--muted-color) !important; }
+
+.border, .border-bottom, .border-top, .border-start, .border-end {
+    border-color: var(--border-color) !important;
+}
+
+/* Badges */
+.badge-low-stock {
+    background: var(--badge-low-bg) !important;
+    color: var(--badge-low-color) !important;
+}
+
+.badge-out-stock {
+    background: var(--badge-out-bg) !important;
+    color: var(--badge-out-color) !important;
+}
+
+.badge-in-stock {
+    background: var(--badge-in-bg) !important;
+    color: var(--badge-in-color) !important;
+}
+
+/* POS search results */
+.search-results {
+    background: var(--search-result-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+.search-item:hover {
+    background: var(--search-item-hover) !important;
+}
+
+.search-item {
+    border-bottom-color: var(--border-color) !important;
+}
+
+/* Input groups in dark mode */
+.input-group-text {
+    background-color: var(--table-head-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--body-color) !important;
+}
+
+/* Alerts */
+[data-theme="dark"] .alert-warning { background: #451a03; border-color: #78350f; color: #fcd34d; }
+[data-theme="dark"] .alert-danger  { background: #450a0a; border-color: #7f1d1d; color: #fca5a5; }
+[data-theme="dark"] .alert-success { background: #052e16; border-color: #14532d; color: #6ee7b7; }
+[data-theme="dark"] .alert-info    { background: #0c1a2e; border-color: #1e3a5f; color: #7dd3fc; }
+
+/* Nav pills / tabs in dark mode */
+[data-theme="dark"] .nav-pills .nav-link:not(.active) { color: var(--muted-color); }
+[data-theme="dark"] .nav-tabs .nav-link:not(.active)  { color: var(--muted-color); }
+[data-theme="dark"] .nav-tabs { border-bottom-color: var(--border-color); }
+[data-theme="dark"] .nav-tabs .nav-link.active {
+    background: var(--card-bg);
+    border-color: var(--border-color) var(--border-color) var(--card-bg);
+    color: var(--body-color);
+}
+
+/* List groups */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--body-color) !important;
+}
+
+/* btn-outline variants in dark */
+[data-theme="dark"] .btn-outline-secondary {
+    color: #94a3b8;
+    border-color: #475569;
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background: #334155;
+    color: #e2e8f0;
+}
+[data-theme="dark"] .btn-outline-primary {
+    color: #8BAFD0;
+    border-color: #4A7FB5;
+}
+[data-theme="dark"] .btn-outline-primary:hover {
+    background: #12244E;
+    color: #fff;
+}
+
+/* Form labels & check labels */
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .form-check-label,
+[data-theme="dark"] .col-form-label {
+    color: var(--body-color) !important;
+}
+
+[data-theme="dark"] .form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* table-dark thead override — Bootstrap hardcodes #212529 bg and #fff text */
+[data-theme="dark"] .table-dark {
+    --bs-table-bg: #0f172a;
+    --bs-table-color: #e2e8f0;
+    --bs-table-border-color: #334155;
+}
+
+/* table-light override — Bootstrap hardcodes #f8f9fa bg */
+[data-theme="dark"] .table-light,
+[data-theme="dark"] thead.table-light th,
+[data-theme="dark"] .table-light > * {
+    --bs-table-bg:           #0f172a !important;
+    --bs-table-striped-bg:   rgba(255,255,255,.03) !important;
+    --bs-table-color:        #e2e8f0 !important;
+    --bs-table-border-color: #334155 !important;
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+    border-color: #334155 !important;
+}
+
+/* Generic tbody rows across all pages */
+[data-theme="dark"] .table tbody tr {
+    background-color: var(--card-bg);
+    color: var(--body-color);
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover > * {
+    background-color: rgba(255,255,255,.05) !important;
+    color: var(--body-color) !important;
+}
+
+/* Strong/bold text inside cards */
+[data-theme="dark"] strong,
+[data-theme="dark"] b {
+    color: var(--body-color);
+}
+
+/* HR dividers */
+[data-theme="dark"] hr {
+    border-color: var(--border-color);
+    opacity: 1;
+}
+
+/* Permissions grid category headings */
+[data-theme="dark"] #permissionsGrid strong {
+    color: #94a3b8;
+}
+
+/* Select elements */
+[data-theme="dark"] select.form-select option {
+    background-color: var(--input-bg);
+    color: var(--input-color);
+}
+
+/* Tab nav links */
+[data-theme="dark"] .nav-link {
+    color: var(--muted-color);
+}
+[data-theme="dark"] .nav-link.active,
+[data-theme="dark"] .nav-link:hover {
+    color: var(--body-color);
+}
+
+/* Settings sidebar nav */
+[data-theme="dark"] .settings-nav .nav-link {
+    color: var(--muted-color) !important;
+}
+[data-theme="dark"] .settings-nav .nav-link.active {
+    background-color: var(--primary) !important;
+    color: #fff !important;
+}
+
+/* Badge overrides in dark — Bootstrap bg-secondary/info use hardcoded colors */
+[data-theme="dark"] .badge.bg-secondary { background-color: #334155 !important; color: #e2e8f0 !important; }
+[data-theme="dark"] .badge.bg-info      { background-color: #1e3a5f !important; color: #7dd3fc !important; }
+
+/* bg-light utility in dark mode */
+[data-theme="dark"] .bg-light {
+    background-color: var(--table-head-bg) !important;
+    color: var(--body-color) !important;
+}
+
+/* table-warning in dark mode */
+[data-theme="dark"] .table-warning,
+[data-theme="dark"] tr.table-warning > th,
+[data-theme="dark"] tr.table-warning > td {
+    --bs-table-bg: #451a03 !important;
+    --bs-table-color: #fcd34d !important;
+    background-color: #451a03 !important;
+    color: #fcd34d !important;
+}
+
+/* table-secondary in dark mode (used by tfoot totals rows) */
+[data-theme="dark"] .table-secondary,
+[data-theme="dark"] tfoot.table-secondary > tr > th,
+[data-theme="dark"] tfoot.table-secondary > tr > td,
+[data-theme="dark"] tr.table-secondary > th,
+[data-theme="dark"] tr.table-secondary > td {
+    --bs-table-bg:           #1e293b !important;
+    --bs-table-color:        #e2e8f0 !important;
+    --bs-table-border-color: #334155 !important;
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    border-color: #334155 !important;
+}
+
+/* table-success in dark mode */
+[data-theme="dark"] .table-success,
+[data-theme="dark"] tr.table-success > td {
+    --bs-table-bg: #052e16 !important;
+    --bs-table-color: #6ee7b7 !important;
+    background-color: #052e16 !important;
+    color: #6ee7b7 !important;
+}
+
+/* table-danger in dark mode */
+[data-theme="dark"] .table-danger,
+[data-theme="dark"] tr.table-danger > td {
+    --bs-table-bg: #450a0a !important;
+    --bs-table-color: #fca5a5 !important;
+    background-color: #450a0a !important;
+    color: #fca5a5 !important;
+}
+
+/* ── Settings page dark overrides (inline styles in settings/index.blade.php) ─ */
+[data-theme="dark"] .setting-card {
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .setting-card-header {
+    background: var(--table-head-bg) !important;
+    border-bottom-color: var(--border-color) !important;
+    color: var(--body-color) !important;
+}
+
+[data-theme="dark"] .setting-row {
+    border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .label-text {
+    color: var(--body-color) !important;
+}
+
+/* Smooth transitions */
+.card, .modal-content, .dropdown-menu, .form-control, .form-select,
+.table, #topbar, .input-group-text, .list-group-item {
+    transition: background-color .25s, border-color .25s, color .25s;
+}
+
+/* RTL Support for Arabic */
+body.rtl {
+    direction: rtl;
+}
+
+/* LTR Support for English */
+body.ltr {
+    direction: ltr;
+}
+
+/* Arabic font for all elements EXCEPT icons - when RTL class is present */
+body.rtl,
+body.rtl div:not(.fa):not(.fas):not(.far):not(.fab),
+body.rtl span:not(.fa):not(.fas):not(.far):not(.fab),
+body.rtl p,
+body.rtl h1,
+body.rtl h2,
+body.rtl h3,
+body.rtl h4,
+body.rtl h5,
+body.rtl h6,
+body.rtl a,
+body.rtl button,
+body.rtl input,
+body.rtl select,
+body.rtl textarea,
+body.rtl .card,
+body.rtl .sidebar-menu a,
+body.rtl .dropdown-menu,
+body.rtl .modal-content,
+body.rtl .form-control,
+body.rtl .btn {
+    font-family: 'Cairo', 'Tajawal', 'Segoe UI', 'Tahoma', sans-serif !important;
+}
+
+/* Keep icons with their default font */
+i,
+.fa,
+.fas,
+.far,
+.fab,
+.fal,
+.fad,
+[class*=" fa-"],
+[class^="fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+}
+
+/* For solid icons */
+.fas,
+.fa-solid {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* For regular icons */
+.far,
+.fa-regular {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+/* For brands */
+.fab,
+.fa-brands {
+    font-family: "Font Awesome 6 Brands" !important;
+    font-weight: 400 !important;
+}
+
+/* Sidebar - LTR (default) */
+#sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    height: 100dvh;
+    background: var(--sidebar-bg);
+    position: fixed;
+    left: 0;
+    top: 0;
+    /* Must be ABOVE the backdrop (1039) so links are tappable on mobile */
+    z-index: 1050;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.25s ease,
+                box-shadow 0.3s ease;
+    -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Compact sidebar (icon-only mode, desktop) ──────────────────────────────── */
+#sidebar.compact {
+    width: var(--sidebar-compact-width);
+    /* Keep sidebar itself hidden-overflow so it doesn't spill on desktop layout.
+       Bootstrap tooltips are appended to <body> so they are never clipped. */
+    overflow: hidden;
+}
+/* Brand: center the logo, hide text */
+#sidebar.compact .sidebar-brand {
+    justify-content: center;
+    padding: 1.1rem 0.5rem;
+    gap: 0;
+}
+#sidebar.compact .sidebar-brand .brand-logo { margin: 0; }
+#sidebar.compact .brand-text              { display: none; }
+
+/* Compact button stays at bottom of brand row, centered */
+#sidebar.compact .sidebar-compact-btn { margin: 0; }
+
+/* Menu links: icon only, centered */
+#sidebar.compact .sidebar-menu a {
+    justify-content: center;
+    padding: 0.78rem 0;
+    margin: 0.15rem 0.5rem;
+}
+#sidebar.compact .sidebar-menu a i  { width: auto; margin: 0; }
+#sidebar.compact .sidebar-menu a .nav-label { display: none; }
+
+/* Bootstrap tooltip skin for compact sidebar — dark navy to match sidebar theme */
+.sidebar-nav-tooltip .tooltip-inner {
+    background: #0B1830;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    white-space: nowrap;
+}
+.sidebar-nav-tooltip .tooltip-arrow::before {
+    border-right-color: #0B1830 !important; /* LTR — arrow from left side */
+}
+body.rtl .sidebar-nav-tooltip .tooltip-arrow::before {
+    border-left-color:  #0B1830 !important; /* RTL — arrow from right side */
+    border-right-color: transparent !important;
+}
+
+/* Compact button chevron rotation */
+.sidebar-compact-icon {
+    transition: transform 0.25s ease;
+    display: inline-block;
+    color: rgba(255,255,255,0.55);
+}
+/* LTR expanded → chevron points left; compact → flip right */
+#sidebar.compact .sidebar-compact-icon       { transform: rotate(180deg); }
+/* RTL expanded → chevron points right (flip); compact → back to normal */
+body.rtl .sidebar-compact-icon               { transform: rotate(180deg); }
+body.rtl #sidebar.compact .sidebar-compact-icon { transform: rotate(0deg); }
+
+/* Compact button hover style */
+.sidebar-compact-btn {
+    color: rgba(255,255,255,0.55);
+    border: none !important;
+    background: none !important;
+    padding: 0.25rem 0.4rem;
+    line-height: 1;
+}
+.sidebar-compact-btn:hover { color: #fff !important; background: rgba(255,255,255,0.08) !important; }
+
+/* Main content adjusts when sidebar is compact */
+body.sidebar-compact #main-content            { margin-left:  var(--sidebar-compact-width); }
+body.rtl.sidebar-compact #main-content        { margin-left: 0; margin-right: var(--sidebar-compact-width); }
+#main-content { transition: margin 0.25s ease; }
+
+/* Sidebar - RTL */
+body.rtl #sidebar {
+    left: auto;
+    right: 0;
+}
+
+.sidebar-brand {
+    flex-shrink: 0;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+/* Scrollable menu area */
+.sidebar-menu {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    /* smooth momentum scroll on iOS */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Thin custom scrollbar */
+.sidebar-menu::-webkit-scrollbar {
+    width: 3px;
+}
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile backdrop overlay — sits BEHIND the sidebar (z-index must be < sidebar's 1050) */
+#sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1039;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    /* Ensure taps on backdrop close the sidebar, not pass through */
+    touch-action: none;
+}
+#sidebar-backdrop.show {
+    display: block;
+    opacity: 1;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: all 0.2s;
+    border-radius: 0.375rem;
+    margin: 0.15rem 0.5rem;
+}
+
+.sidebar-menu a:hover {
+    background: rgba(0, 176, 78, 0.14);
+    color: #fff;
+}
+.sidebar-menu a.active {
+    background: var(--sidebar-active);
+    color: #fff;
+    font-weight: 600;
+}
+
+.sidebar-menu a i {
+    width: 22px;
+    text-align: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    opacity: .85;
+}
+.sidebar-menu a.active i,
+.sidebar-menu a:hover i {
+    opacity: 1;
+}
+
+/* Main content - LTR (default) */
+#main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+}
+
+/* Main content - RTL */
+body.rtl #main-content {
+    margin-left: 0;
+    margin-right: var(--sidebar-width);
+}
+
+/* Top navbar */
+#topbar {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+/* Page header title bar */
+.page-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+}
+
+.page-header-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--body-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 0.75rem 1rem;
+    }
+    .page-header-title {
+        font-size: 1rem;
+    }
+}
+
+.page-content {
+    padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .page-content {
+        padding: 1rem;
+    }
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+
+.card-header {
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+/* Stats cards */
+.stat-card {
+    border-radius: 0.75rem;
+    color: #fff;
+    padding: 1.25rem;
+}
+
+.stat-card.blue {
+    background: linear-gradient(135deg, #1a3166, #12244E);
+}
+
+.stat-card.green {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.stat-card.orange {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-card.red {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.stat-card.purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+/* Badges */
+.badge-low-stock {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-out-stock {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-in-stock {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* ── Barcode scanner modal ──────────────────────────────────────────────────── */
+.scanner-reader-box {
+    min-height: 220px;
+    background: #000;
+    overflow: hidden;
+    border-radius: 0;
+}
+/* html5-qrcode injects a video + canvas; ensure they fill the container */
+.scanner-reader-box video,
+.scanner-reader-box canvas {
+    width: 100% !important;
+    max-width: 100%;
+    display: block;
+}
+/* The scan-region overlay border color */
+.scanner-reader-box #barcodeScannerReader__scan_region > img {
+    display: none; /* hide the default QR icon — we scan barcodes, not QR only */
+}
+
+/* ── CSP-safe utility classes (replaces forbidden inline style= attributes) ── */
+.table-scroll-400 {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.input-w-180 {
+    width: 180px;
+}
+
+/* Responsive - mobile sidebar */
+@media (max-width: 768px) {
+    #sidebar {
+        transform: translateX(-100%);
+        -webkit-transform: translateX(-100%);
+        box-shadow: none;
+    }
+
+    body.rtl #sidebar {
+        transform: translateX(100%);
+        -webkit-transform: translateX(100%);
+    }
+
+    #sidebar.show {
+        transform: translateX(0) !important;
+        -webkit-transform: translateX(0) !important;
+        box-shadow: 6px 0 32px rgba(0, 0, 0, 0.45);
+    }
+
+    body.rtl #sidebar.show {
+        box-shadow: -6px 0 32px rgba(0, 0, 0, 0.45);
+    }
+
+    #main-content,
+    body.rtl #main-content {
+        margin: 0 !important;
+    }
+}
+
+/* Toast notifications - LTR (default) */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1090;
+}
+
+/* Toast notifications - RTL */
+body.rtl .toast-container {
+    right: auto;
+    left: 1rem;
+}
+
+/* Stock alert notification classes (CSP: replaces inline styles) */
+.stock-bell-badge  { font-size: 0.6rem; }
+.stock-alert-meta  { font-size: 0.72rem; }
+.stock-alert-badge { font-size: 0.65rem; }
+
+/* Stock alert dropdown panel */
+.stock-alert-dropdown {
+    min-width: 320px;
+    max-width: 380px;
+    max-height: 420px;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+/* Sidebar section divider & section label */
+.sidebar-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    margin: 0.6rem 1rem 0.2rem;
+}
+.sidebar-section-label {
+    padding: 0.45rem 1.25rem 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #6fa8d0;
+    opacity: 1;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Hide section labels & thin dividers in compact mode (icon-only) */
+#sidebar.compact .sidebar-section-label { display: none; }
+#sidebar.compact .sidebar-divider { margin: 0.35rem 0.5rem; }
+
+/* ── Nuqtah Sidebar Brand Logo ─────────────────────────────────────────── */
+.brand-logo {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #00B04E, #008A3C);
+    border-radius: .55rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: .95rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,176,78,.35);
+}
+.sidebar-brand .brand-text { font-weight: 800; letter-spacing: -.01em; }
+
+/* ── Bootstrap primary — Nuqtah navy override ──────────────────────────── */
+.btn-primary {
+    --bs-btn-bg: #12244E;
+    --bs-btn-border-color: #12244E;
+    --bs-btn-hover-bg: #0D1B3A;
+    --bs-btn-hover-border-color: #0D1B3A;
+    --bs-btn-active-bg: #0D1B3A;
+    --bs-btn-active-border-color: #0D1B3A;
+    --bs-btn-disabled-bg: #12244E;
+    --bs-btn-focus-shadow-rgb: 18, 36, 78;
+}
+.btn-outline-primary {
+    --bs-btn-color: #12244E;
+    --bs-btn-border-color: #12244E;
+    --bs-btn-hover-bg: #12244E;
+    --bs-btn-hover-border-color: #12244E;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: #0D1B3A;
+    --bs-btn-active-color: #fff;
+    --bs-btn-focus-shadow-rgb: 18, 36, 78;
+}
+.text-primary { color: #12244E !important; }
+.bg-primary   { background-color: #12244E !important; }
+.border-primary { border-color: #12244E !important; }
+.badge.bg-primary { background-color: #12244E !important; }
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link { background-color: #12244E !important; }
+
+/* ── SweetAlert2 Nuqtah theme tweaks ─────────────────────────────────── */
+.swal2-confirm { background: #12244E !important; }
+.swal2-confirm:hover { background: #0D1B3A !important; }
+.swal2-styled:focus { box-shadow: 0 0 0 3px rgba(18,36,78,.3) !important; }
+.swal2-popup { border-radius: 1rem !important; }
+.swal2-toast { border-radius: .75rem !important; }
+.swal2-title { font-family: 'Cairo','Tajawal',sans-serif !important; }
+
+/* ── CSP inline-style migration utilities ───────────────────────────────────
+   Extracted from Blade templates as part of removing style-src-attr unsafe-inline.
+   Use these classes instead of inline style="" attributes.                    */
+.u-hidden          { display: none; }
+.u-hidden-imp      { display: none !important; }
+.u-mw-200          { max-width: 200px; }
+.u-mw-260          { max-width: 260px; }
+.u-mw-480          { max-width: 480px; }
+.u-cursor-pointer  { cursor: pointer; }
+.u-font-cairo      { font-family: 'Cairo', sans-serif; }
+.u-font-sm         { font-size: .9rem; }
+.u-empty-state     { text-align: center; color: #94a3b8; padding: 12px; }
+.swal2-html-container { font-family: 'Cairo','Tajawal',sans-serif !important; }

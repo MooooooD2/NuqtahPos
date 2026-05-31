@@ -1,0 +1,28 @@
+node_modules
+vendor
+
+# SECURITY: never bake secrets into the image
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+
+# Laravel caches (rebuilt inside container)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*.php
+
+# Test artefacts
+tests
+.phpunit.result.cache
+coverage/
+
+# IDE / OS noise
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db

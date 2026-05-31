@@ -1,0 +1,4 @@
+{
+    "private": true,
+    "_note": "This project does not use a JavaScript build step. All frontend assets are loaded from CDN. This file is kept as a placeholder only."
+}

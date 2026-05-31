@@ -1,0 +1,56 @@
+{
+    "_note": "Static fallback — the dynamic route at /site.webmanifest takes precedence on new deployments.",
+    "name": "NuqtahPOS — نظام نقطة البيع",
+    "short_name": "NuqtahPOS",
+    "description": "Offline-capable Point of Sale with AI forecasting",
+    "start_url": "./pos?pwa=1",
+    "scope": "./",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay", "standalone", "browser"],
+    "background_color": "#1e293b",
+    "theme_color": "#1e293b",
+    "orientation": "landscape-primary",
+    "lang": "ar",
+    "dir": "rtl",
+    "categories": ["business", "productivity"],
+    "shortcuts": [
+        {
+            "name": "نقطة البيع",
+            "short_name": "POS",
+            "description": "افتح شاشة البيع",
+            "url": "./pos?pwa=1",
+            "icons": [{ "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+        },
+        {
+            "name": "المخزون",
+            "short_name": "Stock",
+            "description": "إدارة المخزون",
+            "url": "./warehouses?pwa=1",
+            "icons": [{ "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+        },
+        {
+            "name": "شاشة المطبخ",
+            "short_name": "Kitchen",
+            "description": "Kitchen Display System",
+            "url": "./kitchen?pwa=1",
+            "icons": [{ "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+        }
+    ],
+    "icons": [
+        {
+            "src": "./icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "./icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "protocol_handlers": [{ "protocol": "web+pos", "url": "./pos?barcode=%s" }]
+}
