@@ -80,7 +80,7 @@ class AccountingController extends Controller
         ]);
         $entries = $this->journalRepo->paginate($request->only(['start_date', 'end_date']));
 
-        return $this->success(['entries' => $entries]);
+        return $this->success(['data' => $entries->items(), 'total' => $entries->total()]);
     }
 
     public function storeJournalEntry(StoreJournalEntryRequest $request)

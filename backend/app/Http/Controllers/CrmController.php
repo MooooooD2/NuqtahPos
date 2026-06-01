@@ -119,9 +119,17 @@ class CrmController extends Controller
             ->with('customer:id,name,phone')
             ->where('scheduled_at', '<=', now()->addDays(7))
             ->orderBy('scheduled_at')
-            ->get();
+            ->get()
+            ->map(fn ($a) => [
+                'id'            => $a->id,
+                'customer_name' => $a->customer?->name,
+                'due_date'      => $a->scheduled_at?->toDateString(),
+                'notes'         => $a->notes,
+                'status'        => $a->status ?? 'pending',
+                'activity_type' => $a->type,
+            ]);
 
-        return response()->json($followUps);
+        return response()->json(['success' => true, 'data' => $followUps]);
     }
 
     /**
@@ -129,7 +137,7 @@ class CrmController extends Controller
      */
     public function stats(): JsonResponse
     {
-        return response()->json($this->buildStats());
+        return response()->json(['success' => true, 'data' => $this->buildStats()]);
     }
 
     /**
@@ -191,7 +199,9 @@ class CrmController extends Controller
     private function buildStats(): array
     {
         $totalCustomers = Customer::count();
+        $activeCustomers = Customer::where('is_active', true)->count();
         $newThisMonth = Customer::whereMonth('created_at', now()->month)->count();
+        $totalActivities = CrmActivity::count();
         $pendingFollowUps = CrmActivity::pendingFollowUps()
             ->where('scheduled_at', '<=', now()->addDays(7))
             ->count();
@@ -207,11 +217,13 @@ class CrmController extends Controller
             ->get();
 
         return [
-            'total_customers' => $totalCustomers,
-            'new_this_month' => $newThisMonth,
+            'total_customers'  => $totalCustomers,
+            'active_customers' => $activeCustomers,
+            'total_activities' => $totalActivities,
+            'new_this_month'   => $newThisMonth,
             'pending_followups' => $pendingFollowUps,
-            'by_lifecycle' => $byLifecycle,
-            'top_customers' => $topCustomers,
+            'by_lifecycle'     => $byLifecycle,
+            'top_customers'    => $topCustomers,
         ];
     }
 

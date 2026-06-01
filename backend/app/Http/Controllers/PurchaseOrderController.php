@@ -35,9 +35,13 @@ class PurchaseOrderController extends Controller
             'status' => 'nullable|in:draft,pending,approved,partial,received,cancelled,rejected',
         ]);
 
-        return $this->success(['purchase_orders' => $this->poRepo->paginate(
+        $paginated = $this->poRepo->paginate(
             $request->only(['supplier_id', 'status']),
-        )]);
+        );
+        return $this->success([
+            'data'  => $paginated->items(),
+            'total' => $paginated->total(),
+        ]);
     }
 
     public function store(StorePurchaseOrderRequest $request)

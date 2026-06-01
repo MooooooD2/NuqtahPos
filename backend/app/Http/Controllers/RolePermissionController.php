@@ -19,12 +19,12 @@ class RolePermissionController extends Controller
 
     public function getRoles()
     {
-        return $this->success(['roles' => $this->roleService->allWithPermissions()]);
+        return $this->success(['data' => $this->roleService->allWithPermissions()]);
     }
 
     public function getPermissions()
     {
-        return $this->success(['permissions' => $this->roleService->allPermissions()]);
+        return $this->success(['data' => $this->roleService->allPermissions()]);
     }
 
     public function storeRole(Request $request)

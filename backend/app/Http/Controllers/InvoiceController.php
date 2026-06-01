@@ -136,10 +136,10 @@ class InvoiceController extends Controller
         $invoices = $query->paginate($perPage);
 
         return $this->success([
-            'invoices' => $invoices->items(),
-            'total'    => $invoices->total(),
-            'pages'    => $invoices->lastPage(),
-            'page'     => $invoices->currentPage(),
+            'data'  => $invoices->items(),
+            'total' => $invoices->total(),
+            'pages' => $invoices->lastPage(),
+            'page'  => $invoices->currentPage(),
         ]);
     }
 

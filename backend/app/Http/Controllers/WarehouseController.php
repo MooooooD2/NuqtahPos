@@ -22,7 +22,7 @@ class WarehouseController extends Controller
 
     public function index(): JsonResponse
     {
-        return response()->json($this->service->all());
+        return response()->json(['success' => true, 'data' => $this->service->all()]);
     }
 
     public function allProducts(Request $request): JsonResponse

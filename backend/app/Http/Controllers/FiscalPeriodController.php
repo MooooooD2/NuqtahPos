@@ -18,7 +18,7 @@ class FiscalPeriodController extends Controller
             ->orderByDesc('start_date')
             ->get();
 
-        return response()->json($periods);
+        return response()->json(['success' => true, 'data' => $periods]);
     }
 
     public function current(): JsonResponse
