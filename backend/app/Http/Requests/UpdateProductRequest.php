@@ -22,6 +22,7 @@ class UpdateProductRequest extends FormRequest
             'vip_price' => 'nullable|numeric|min:0|max:9999999',
             'cost_price' => 'nullable|numeric|min:0|max:9999999',
             'min_stock' => 'nullable|integer|min:0|max:999999',
+            'quantity' => 'nullable|integer|min:0|max:999999',
             'reorder_point' => 'nullable|integer|min:0|max:999999',
             'reorder_qty' => 'nullable|integer|min:0|max:999999',
             'barcode' => 'nullable|string|max:100|unique:products,barcode,' . $productId,

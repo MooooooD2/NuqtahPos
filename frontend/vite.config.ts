@@ -37,6 +37,12 @@ export default defineConfig(({ mode }) => {
       minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
       sourcemap: !!process.env.TAURI_DEBUG,
       outDir: isDesktop ? '../desktop/dist' : 'dist',
+      rollupOptions: {
+        // Tauri APIs are injected by the Tauri runtime — never bundle them
+        external: isDesktop ? [] : [
+          /^@tauri-apps\//,
+        ],
+      },
     },
   }
 })

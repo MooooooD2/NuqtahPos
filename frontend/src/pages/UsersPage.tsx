@@ -1,108 +1,210 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import { apiGet, apiPost, apiDelete } from '@/services/api'
-import { api } from '@/services/api'
-import { UserCog, Plus, X, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
+import { usePermission } from '@/hooks/usePermission'
+import Modal from '@/components/common/Modal'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { UserCog, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Shield } from 'lucide-react'
+import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 
-interface User { id: number; username: string; full_name: string; role: string; is_active: boolean; created_at: string }
-interface UsersResponse { success: boolean; users: User[] }
-interface AddForm { username: string; full_name: string; password: string; role: string }
+interface AppUser { id: number; username: string; full_name?: string; email?: string; role: string; is_active: boolean; created_at: string; permissions?: string[] }
+interface Role { id: number; name: string; permissions?: string[] }
 
-const roleClass: Record<string, string> = { admin: 'badge-danger', cashier: 'badge-info', warehouse: 'badge-warning' }
+const emptyForm = { username: '', name: '', email: '', password: '', role: 'cashier', branch_id: '' }
 
 export default function UsersPage() {
+  const { hasPermission, isAdmin } = usePermission()
   const qc = useQueryClient()
-  const [showModal, setShowModal] = useState(false)
+  const [tab, setTab] = useState<'users' | 'roles'>('users')
+  const [modal, setModal] = useState<'add' | 'edit' | 'permissions' | null>(null)
+  const [editId, setEditId] = useState<number | null>(null)
+  const [form, setForm] = useState({ ...emptyForm })
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
 
-  const { data, isLoading } = useQuery({ queryKey: ['users'], queryFn: () => apiGet<UsersResponse>('/users'), staleTime: 60_000 })
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<AddForm>({ defaultValues: { username: '', full_name: '', password: '', role: 'cashier' } })
-
-  const addMutation = useMutation({
-    mutationFn: (payload: object) => apiPost('/users', payload),
-    onSuccess: () => { toast.success('User added'); qc.invalidateQueries({ queryKey: ['users'] }); setShowModal(false); reset() },
-    onError: (err: unknown) => toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed'),
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => apiGet<{ success: boolean; data: AppUser[] }>('/users'),
+    staleTime: 60_000,
+  })
+  const { data: rolesData, isLoading: rolesLoading } = useQuery({
+    queryKey: ['roles'],
+    queryFn: () => apiGet<{ success: boolean; data: Role[] }>('/roles'),
+    staleTime: 120_000,
+    enabled: tab === 'roles',
+  })
+  const { data: permsData } = useQuery({
+    queryKey: ['all-permissions'],
+    queryFn: () => apiGet<{ success: boolean; data: string[] }>('/permissions'),
+    staleTime: 300_000,
+    enabled: modal === 'permissions',
   })
 
-  const toggleMutation = useMutation({
-    mutationFn: (id: number) => api.patch(`/users/${id}/toggle-active`),
-    onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries({ queryKey: ['users'] }) },
-    onError: () => toast.error('Failed to update status'),
+  const users = usersData?.data ?? []
+  const roles = rolesData?.data ?? []
+  const allPerms = permsData?.data ?? []
+
+  const canManage = hasPermission('manage_roles') || isAdmin
+
+  const f = (field: keyof typeof form) => ({
+    value: form[field],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((p) => ({ ...p, [field]: e.target.value })),
+  })
+
+  const openAdd = () => { setForm({ ...emptyForm }); setEditId(null); setModal('add') }
+  const openEdit = (u: AppUser) => {
+    setForm({ username: u.username, name: u.full_name ?? '', email: u.email ?? '', password: '', role: u.role, branch_id: '' })
+    setEditId(u.id); setModal('edit')
+  }
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: object) => editId ? apiPut(`/users/${editId}`, payload) : apiPost('/users', payload),
+    onSuccess: () => { toast.success(editId ? 'User updated' : 'User created'); qc.invalidateQueries({ queryKey: ['users'] }); setModal(null) },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to save user'
+      toast.error(msg)
+    },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/users/${id}`),
-    onSuccess: () => { toast.success('User deleted'); qc.invalidateQueries({ queryKey: ['users'] }) },
-    onError: () => toast.error('Cannot delete user'),
+    onSuccess: () => { toast.success('User deleted'); qc.invalidateQueries({ queryKey: ['users'] }); setDeleteId(null) },
+    onError: () => toast.error('Failed to delete'),
   })
 
-  const users = data?.users ?? []
+  const toggleActive = useMutation({
+    mutationFn: (id: number) => apiPost(`/users/${id}/toggle-active`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }) },
+    onError: () => toast.error('Failed to toggle status'),
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editId && (!form.username || !form.name)) return toast.error('Username and full name are required')
+    if (!editId && !form.password) return toast.error('Password required')
+    const payload: Record<string, unknown> = { full_name: form.name, role: form.role }
+    if (!editId) payload.username = form.username
+    if (form.password) payload.password = form.password
+    saveMutation.mutate(payload)
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><UserCog className="h-6 w-6 text-primary-500" /> Users</h1>
-        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> Add User</button>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><UserCog className="h-6 w-6 text-primary-500" /> Users & Roles</h1>
+        {canManage && tab === 'users' && <button onClick={openAdd} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> Add User</button>}
       </div>
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
-      ) : (
+      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
+        {(['users', 'roles'] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === t ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{t}</button>
+        ))}
+      </div>
+
+      {tab === 'users' && (
         <div className="card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>{['Username', 'Full Name', 'Role', 'Status', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {users.map(u => (
-                <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="px-4 py-3 font-mono text-sm font-medium text-gray-900 dark:text-white">{u.username}</td>
-                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{u.full_name}</td>
-                  <td className="px-4 py-3"><span className={`badge ${roleClass[u.role] ?? 'badge-gray'} capitalize`}>{u.role}</span></td>
-                  <td className="px-4 py-3"><span className={`badge ${u.is_active ? 'badge-success' : 'badge-gray'}`}>{u.is_active ? 'Active' : 'Inactive'}</span></td>
-                  <td className="px-4 py-3 flex items-center gap-3">
-                    <button onClick={() => toggleMutation.mutate(u.id)} className="text-gray-400 hover:text-primary-600" title="Toggle active">
-                      {u.is_active ? <ToggleRight className="h-5 w-5 text-green-500" /> : <ToggleLeft className="h-5 w-5" />}
-                    </button>
-                    <button onClick={() => { if (confirm(`Delete user ${u.username}?`)) deleteMutation.mutate(u.id) }} className="text-red-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {usersLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>{['Username', 'Full Name', 'Role', 'Status', 'Created', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {users.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No users found</td></tr>
+                    : users.map((u) => (
+                      <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white font-mono text-sm">{u.username}</td>
+                        <td className="px-4 py-3 text-gray-500">{u.full_name ?? '—'}</td>
+                        <td className="px-4 py-3"><span className="badge badge-info capitalize">{u.role}</span></td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => canManage && toggleActive.mutate(u.id)}
+                            className={clsx('flex items-center gap-1.5 text-sm font-medium', u.is_active ? 'text-green-600' : 'text-gray-400', canManage && 'hover:opacity-70 cursor-pointer')}>
+                            {u.is_active ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
+                            {u.is_active ? 'Active' : 'Inactive'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">{u.created_at?.slice(0, 10)}</td>
+                        <td className="px-4 py-3">
+                          {canManage && (
+                            <div className="flex gap-1 justify-end">
+                              <button onClick={() => openEdit(u)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>
+                              <button onClick={() => setDeleteId(u.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-800 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add User</h2>
-              <button onClick={() => { setShowModal(false); reset() }} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
-            </div>
-            <form onSubmit={handleSubmit(d => addMutation.mutate(d))} className="p-6 space-y-4">
-              <div><label className="label">Username *</label><input {...register('username', { required: 'Required' })} className="input" />{errors.username && <p className="mt-1 text-xs text-red-500">{errors.username.message}</p>}</div>
-              <div><label className="label">Full Name *</label><input {...register('full_name', { required: 'Required' })} className="input" />{errors.full_name && <p className="mt-1 text-xs text-red-500">{errors.full_name.message}</p>}</div>
-              <div><label className="label">Password *</label><input {...register('password', { required: 'Required', minLength: { value: 8, message: 'Min 8 characters' } })} type="password" className="input" />{errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}</div>
-              <div>
-                <label className="label">Role *</label>
-                <select {...register('role', { required: 'Required' })} className="input">
-                  <option value="admin">Admin</option>
-                  <option value="cashier">Cashier</option>
-                  <option value="warehouse">Warehouse</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowModal(false); reset() }} className="btn-secondary">Cancel</button>
-                <button type="submit" disabled={addMutation.isPending} className="btn-primary">{addMutation.isPending ? 'Saving…' : 'Add User'}</button>
-              </div>
-            </form>
-          </div>
+      {tab === 'roles' && (
+        <div className="card overflow-hidden">
+          {rolesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{['Role Name', 'Permissions Count', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {roles.length === 0 ? <tr><td colSpan={3} className="px-4 py-10 text-center text-gray-400">No roles</td></tr>
+                  : roles.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white capitalize">{r.name}</td>
+                      <td className="px-4 py-3 text-gray-500">{r.permissions?.length ?? '—'} permissions</td>
+                      <td className="px-4 py-3">
+                        {canManage && (
+                          <button onClick={() => { setSelectedRole(r); setModal('permissions') }} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded flex items-center gap-1 text-xs">
+                            <Shield className="h-4 w-4" /> Permissions
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
+
+      {/* Add/Edit User Modal */}
+      <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? 'Edit User' : 'Add User'} size="md"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}</button></>}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!editId && <div><label className="label">Username *</label><input {...f('username')} className="input w-full font-mono" placeholder="e.g. john.doe" required /></div>}
+          <div><label className="label">Full Name *</label><input {...f('name')} className="input w-full" required /></div>
+          <div><label className="label">{editId ? 'New Password (leave blank to keep)' : 'Password *'}</label><input {...f('password')} type="password" className="input w-full" placeholder={editId ? 'Leave blank to keep current' : 'Min 8 chars with upper, lower, number, symbol'} /></div>
+          <div>
+            <label className="label">Role</label>
+            <select {...f('role')} className="input w-full">
+              <option value="cashier">Cashier</option>
+              <option value="warehouse">Warehouse</option>
+              <option value="accountant">Accountant</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Permissions Modal */}
+      <Modal open={modal === 'permissions'} onClose={() => setModal(null)} title={`Permissions — ${selectedRole?.name ?? ''}`} size="xl">
+        <div className="grid grid-cols-2 gap-1.5">
+          {allPerms.map((perm) => {
+            const hasIt = selectedRole?.permissions?.includes(perm) ?? false
+            return (
+              <div key={perm} className={clsx('flex items-center gap-2 p-2 rounded text-xs', hasIt ? 'bg-primary-50 dark:bg-primary-900/20' : 'bg-gray-50 dark:bg-gray-700')}>
+                <div className={clsx('h-2 w-2 rounded-full flex-shrink-0', hasIt ? 'bg-primary-500' : 'bg-gray-300')} />
+                <span className={clsx('font-mono', hasIt ? 'text-primary-700 dark:text-primary-300' : 'text-gray-400')}>{perm}</span>
+              </div>
+            )
+          })}
+          {allPerms.length === 0 && <p className="col-span-2 text-center text-gray-400 py-4">No permissions data</p>}
+        </div>
+      </Modal>
+
+      <ConfirmDialog open={deleteId !== null} title="Delete User" message="Delete this user account?" loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
     </div>
   )
 }

@@ -20,7 +20,7 @@ class PromotionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $promotions = Promotion::query()
-            ->when($request->search, fn ($q, $s) => $q->where('name', 'like', '%' . Str::escapeLike($s) . '%'))
+            ->when($request->search, fn ($q, $s) => $q->where('name', 'like', '%' . addcslashes($s, '\%_') . '%'))
             ->when(! $request->boolean('with_inactive'), fn ($q) => $q->where('is_active', true))
             ->with('product:id,name')
             ->orderBy('is_active', 'desc')

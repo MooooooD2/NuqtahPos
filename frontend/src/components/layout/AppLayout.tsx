@@ -5,20 +5,12 @@ import { useUIStore } from '@/stores/uiStore'
 import { clsx } from 'clsx'
 
 export default function AppLayout() {
-  const { sidebarCollapsed, sidebarMobileOpen } = useUIStore()
+  const { sidebarCollapsed } = useUIStore()
 
   return (
     <div className="flex h-full bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
       <Sidebar />
-
-      {/* Mobile overlay */}
-      {sidebarMobileOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
-          onClick={() => useUIStore.getState().setSidebarMobileOpen(false)}
-        />
-      )}
 
       {/* Main content */}
       <div

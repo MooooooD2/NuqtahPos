@@ -1,23 +1,45 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
 import { apiGet, apiPost } from '@/services/api'
-import { Settings, Save } from 'lucide-react'
+import { usePermission } from '@/hooks/usePermission'
+import { useUIStore } from '@/stores/uiStore'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { Settings, Save, Monitor, Sun, Moon, Info } from 'lucide-react'
+import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import { invokeTauri, isTauriApp } from '@/lib/tauri'
 
-interface SettingsData {
-  store_name?: string; store_phone?: string; store_address?: string; currency?: string
-  allow_negative_stock?: boolean; allow_cashier_price_change?: boolean; auto_print?: boolean
-  tax_rate?: number; receipt_footer?: string
-}
+interface SettingValue { key: string; value: string; group: string; type?: string; label?: string }
 
 export default function SettingsPage() {
-  const { data, isLoading } = useQuery({ queryKey: ['settings'], queryFn: () => apiGet<SettingsData>('/settings'), staleTime: 300_000 })
+  const { hasPermission } = usePermission()
+  const { theme, setTheme, language, setLanguage } = useUIStore()
+  const [activeGroup, setActiveGroup] = useState('store')
+  const [form, setForm] = useState<Record<string, string>>({})
+  const [sysInfo, setSysInfo] = useState<Record<string, string> | null>(null)
 
-  const { register, handleSubmit, reset } = useForm<SettingsData>()
+  const canManage = hasPermission('manage_settings')
 
-  useEffect(() => { if (data) reset(data) }, [data, reset])
+  const { data, isLoading } = useQuery({
+    queryKey: ['settings', activeGroup],
+    queryFn: () => apiGet<{ success: boolean; data: SettingValue[] }>(`/settings/group/${activeGroup}`),
+    staleTime: 60_000,
+    enabled: activeGroup !== 'appearance' && activeGroup !== 'desktop',
+  })
+
+  useEffect(() => {
+    if (data?.data) {
+      const vals: Record<string, string> = {}
+      data.data.forEach((s) => { vals[s.key] = s.value })
+      setForm(vals)
+    }
+  }, [data])
+
+  useEffect(() => {
+    if (activeGroup === 'desktop' && isTauriApp()) {
+      invokeTauri<Record<string, string>>('get_system_info').then((info) => { if (info) setSysInfo(info) })
+    }
+  }, [activeGroup])
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/settings', payload),
@@ -25,54 +47,175 @@ export default function SettingsPage() {
     onError: () => toast.error('Failed to save settings'),
   })
 
-  if (isLoading) return <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
+  const handleSave = () => {
+    const entries = Object.entries(form).map(([key, value]) => ({ key, value }))
+    saveMutation.mutate({ settings: entries })
+  }
+
+  const groups = [
+    { key: 'store', label: 'Store Info' },
+    { key: 'sales', label: 'Sales' },
+    { key: 'tax', label: 'Tax' },
+    { key: 'receipt', label: 'Receipt' },
+    { key: 'appearance', label: 'Appearance' },
+    { key: 'desktop', label: 'Desktop Info' },
+  ]
+
+  const storeFields = [
+    { key: 'store_name', label: 'Store Name', type: 'text' },
+    { key: 'store_phone', label: 'Phone', type: 'text' },
+    { key: 'store_address', label: 'Address', type: 'text' },
+    { key: 'store_email', label: 'Email', type: 'email' },
+    { key: 'currency', label: 'Currency Symbol', type: 'text' },
+    { key: 'timezone', label: 'Timezone', type: 'text' },
+  ]
+  const salesFields = [
+    { key: 'allow_negative_stock', label: 'Allow Negative Stock', type: 'checkbox' },
+    { key: 'allow_cashier_price_change', label: 'Allow Cashier Price Change', type: 'checkbox' },
+    { key: 'auto_print_receipt', label: 'Auto Print Receipt', type: 'checkbox' },
+    { key: 'require_customer', label: 'Require Customer on Sale', type: 'checkbox' },
+    { key: 'default_payment_method', label: 'Default Payment Method', type: 'select', options: ['cash', 'card', 'wallet'] },
+  ]
+  const taxFields = [
+    { key: 'tax_rate', label: 'Default Tax Rate (%)', type: 'number' },
+    { key: 'tax_included', label: 'Tax Included in Price', type: 'checkbox' },
+    { key: 'tax_name', label: 'Tax Name', type: 'text' },
+    { key: 'tax_number', label: 'Business Tax Number', type: 'text' },
+  ]
+  const receiptFields = [
+    { key: 'receipt_header', label: 'Receipt Header', type: 'text' },
+    { key: 'receipt_footer', label: 'Receipt Footer', type: 'text' },
+    { key: 'show_logo', label: 'Show Logo on Receipt', type: 'checkbox' },
+    { key: 'show_cashier', label: 'Show Cashier Name', type: 'checkbox' },
+  ]
+
+  const fieldSets: Record<string, typeof storeFields> = {
+    store: storeFields, sales: salesFields, tax: taxFields, receipt: receiptFields,
+  }
+
+  const fields = fieldSets[activeGroup] ?? []
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Settings className="h-6 w-6 text-primary-500" /> Settings</h1>
-
-      <form onSubmit={handleSubmit(d => saveMutation.mutate(d))} className="space-y-6">
-        <div className="card p-6 space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-700 pb-2">Store Information</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="label">Store Name</label><input {...register('store_name')} className="input" /></div>
-            <div><label className="label">Phone</label><input {...register('store_phone')} className="input" /></div>
-            <div><label className="label">Currency</label><input {...register('currency')} className="input" placeholder="EGP" /></div>
-          </div>
-          <div><label className="label">Address</label><input {...register('store_address')} className="input" /></div>
-          <div><label className="label">Receipt Footer</label><input {...register('receipt_footer')} className="input" /></div>
-        </div>
-
-        <div className="card p-6 space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-700 pb-2">Sales Settings</h2>
-          <div className="space-y-3">
-            {[
-              { key: 'allow_negative_stock' as const, label: 'Allow selling when stock reaches zero' },
-              { key: 'allow_cashier_price_change' as const, label: 'Allow cashier to change item price' },
-              { key: 'auto_print' as const, label: 'Auto-print receipt after sale' },
-            ].map(({ key, label }) => (
-              <label key={key} className="flex items-center gap-3 cursor-pointer">
-                <input {...register(key)} type="checkbox" className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="card p-6 space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-700 pb-2">Tax</h2>
-          <div className="max-w-xs">
-            <label className="label">Default Tax Rate (%)</label>
-            <input {...register('tax_rate', { valueAsNumber: true })} type="number" step="0.01" min="0" max="100" className="input" />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button type="submit" disabled={saveMutation.isPending} className="btn-primary flex items-center gap-2">
-            <Save className="h-4 w-4" />{saveMutation.isPending ? 'Saving…' : 'Save Settings'}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Settings className="h-6 w-6 text-primary-500" /> Settings</h1>
+        {canManage && activeGroup !== 'appearance' && activeGroup !== 'desktop' && (
+          <button onClick={handleSave} disabled={saveMutation.isPending} className="btn btn-primary flex items-center gap-2">
+            <Save className="h-4 w-4" />{saveMutation.isPending ? 'Saving…' : 'Save Changes'}
           </button>
+        )}
+      </div>
+
+      <div className="flex gap-6">
+        {/* Groups list */}
+        <div className="w-44 flex-shrink-0 space-y-1">
+          {groups.map((g) => (
+            <button key={g.key} onClick={() => setActiveGroup(g.key)}
+              className={clsx('w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors', activeGroup === g.key ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white')}>
+              {g.label}
+            </button>
+          ))}
         </div>
-      </form>
+
+        {/* Settings content */}
+        <div className="flex-1 card p-6">
+          {activeGroup === 'appearance' ? (
+            <div className="space-y-6">
+              <h2 className="font-semibold text-gray-900 dark:text-white">Appearance</h2>
+
+              <div className="space-y-3">
+                <label className="label">Theme</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {([
+                    { key: 'light', label: 'Light', icon: Sun },
+                    { key: 'dark', label: 'Dark', icon: Moon },
+                    { key: 'system', label: 'System', icon: Monitor },
+                  ] as const).map(({ key, label, icon: Icon }) => (
+                    <button key={key} onClick={() => setTheme(key)}
+                      className={clsx('flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-sm font-medium', theme === key ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-300')}>
+                      <Icon className="h-6 w-6" />{label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="label">Language</label>
+                <div className="grid grid-cols-2 gap-3 max-w-xs">
+                  {([{ key: 'en', label: 'English', flag: '🇺🇸' }, { key: 'ar', label: 'العربية', flag: '🇸🇦' }] as const).map(({ key, label, flag }) => (
+                    <button key={key} onClick={() => setLanguage(key)}
+                      className={clsx('flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-sm font-medium', language === key ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 text-gray-600 hover:border-gray-300')}>
+                      <span>{flag}</span>{label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : activeGroup === 'desktop' ? (
+            <div className="space-y-4">
+              <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Info className="h-5 w-5" /> Desktop App Info</h2>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {[
+                  { label: 'Platform', value: isTauriApp() ? 'Tauri Desktop' : 'Web Browser' },
+                  { label: 'App Version', value: sysInfo?.app_version ?? '1.0.0' },
+                  { label: 'OS', value: sysInfo?.os ?? navigator.platform },
+                  { label: 'Architecture', value: sysInfo?.arch ?? '—' },
+                  { label: 'Tauri', value: isTauriApp() ? 'Yes' : 'No' },
+                  { label: 'Offline Support', value: 'Yes — IndexedDB / SQLite' },
+                  { label: 'Barcode Scanner', value: 'USB + Camera (jsQR)' },
+                  { label: 'Auto Updates', value: isTauriApp() ? 'Enabled' : 'N/A' },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p className="text-xs text-gray-500">{label}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white mt-0.5">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              {isLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
+                <div className="space-y-4">
+                  <h2 className="font-semibold text-gray-900 dark:text-white capitalize">{activeGroup} Settings</h2>
+                  <div className="grid grid-cols-1 gap-4 max-w-2xl">
+                    {fields.map((field) => (
+                      <div key={field.key}>
+                        <label className="label">{field.label}</label>
+                        {field.type === 'checkbox' ? (
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" checked={form[field.key] === 'true' || form[field.key] === '1'}
+                              onChange={(e) => setForm((p) => ({ ...p, [field.key]: e.target.checked ? 'true' : 'false' }))}
+                              className="h-5 w-5 rounded border-gray-300 text-primary-600" disabled={!canManage} />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Enable {field.label}</span>
+                          </label>
+                        ) : field.type === 'select' && field.options ? (
+                          <select value={form[field.key] ?? ''} onChange={(e) => setForm((p) => ({ ...p, [field.key]: e.target.value }))} className="input w-full" disabled={!canManage}>
+                            {field.options.map((o) => <option key={o} value={o} className="capitalize">{o}</option>)}
+                          </select>
+                        ) : (
+                          <input type={field.type} value={form[field.key] ?? ''} onChange={(e) => setForm((p) => ({ ...p, [field.key]: e.target.value }))}
+                            className="input w-full" disabled={!canManage} />
+                        )}
+                      </div>
+                    ))}
+                    {fields.length === 0 && data?.data && (
+                      <div className="space-y-4">
+                        {data.data.map((s) => (
+                          <div key={s.key}>
+                            <label className="label">{s.label ?? s.key.replace(/_/g, ' ')}</label>
+                            <input value={form[s.key] ?? s.value} onChange={(e) => setForm((p) => ({ ...p, [s.key]: e.target.value }))}
+                              className="input w-full" disabled={!canManage} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

@@ -28,7 +28,8 @@ class StockController extends Controller
         private StockAlertService $alertService,
         private StockReservationService $reservationService,
         private BatchService $batchService,
-    ) {}
+    ) {
+    }
 
     // ── Health & Alerts ──────────────────────────────────────────────────────
 
@@ -46,7 +47,22 @@ class StockController extends Controller
         $request->validate(['warehouse_id' => 'nullable|integer|exists:warehouses,id']);
         $wid = $request->warehouse_id ? (int) $request->warehouse_id : null;
 
-        return $this->success($this->alertService->getStockHealth($wid));
+        $fullHealth = $this->alertService->getStockHealth($wid);
+        $summary = $fullHealth['summary'];
+
+        // Calculate total products and in-stock count
+        $totalProducts = Product::count();
+        $inStock = max(0, $totalProducts - $summary['out_of_stock_count']);
+
+        // Return wrapped in 'data' key so ApiResponse merges correctly
+        return $this->success([
+            'data' => [
+                'total_products' => $totalProducts,
+                'in_stock' => $inStock,
+                'low_stock' => $summary['low_stock_count'],
+                'out_of_stock' => $summary['out_of_stock_count'],
+            ]
+        ]);
     }
 
     /**
@@ -63,7 +79,8 @@ class StockController extends Controller
         $wid = $request->warehouse_id ? (int) $request->warehouse_id : null;
         $items = $this->alertService->getLowStock($wid);
 
-        return $this->success(['items' => $items->values(), 'count' => $items->count()]);
+        // Return wrapped in 'data' key so ApiResponse merges correctly
+        return $this->success(['data' => $items->values()]);
     }
 
     /**
@@ -75,7 +92,8 @@ class StockController extends Controller
 
         $items = $this->alertService->getOutOfStock();
 
-        return $this->success(['items' => $items->values(), 'count' => $items->count()]);
+        // Return wrapped in 'data' key so ApiResponse merges correctly
+        return $this->success(['data' => $items->values()]);
     }
 
     /**
@@ -97,11 +115,8 @@ class StockController extends Controller
         $wid = $request->warehouse_id ? (int) $request->warehouse_id : null;
         $items = $this->alertService->getNearExpiryBatches($days, $wid);
 
-        return $this->success([
-            'items' => $items->values(),
-            'count' => $items->count(),
-            'days_threshold' => $days,
-        ]);
+        // Return wrapped in 'data' key so ApiResponse merges correctly
+        return $this->success(['data' => $items->values()]);
     }
 
     /**
@@ -340,5 +355,46 @@ class StockController extends Controller
         return $this->success([
             'available_qty' => $this->reservationService->getAvailableStock($product, $wid),
         ]);
+    }
+
+    /**
+     * POST /api/stock/adjustment
+     *
+     * Simple single-product stock quantity adjustment.
+     */
+    public function adjustSingle(Request $request): JsonResponse
+    {
+        $this->authorize('add_stock');
+
+        $data = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'quantity' => 'required|integer',
+            'reason' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        /** @var Product $product */
+        $product = Product::findOrFail($data['product_id']);
+        $qty = (int) $data['quantity'];
+
+        // Update the product stock quantity directly
+        $before = $product->quantity;
+        $product->increment('quantity', $qty);
+        $after = $product->fresh()->quantity;
+
+        $this->audit('stock.adjusted', Product::class, $product->id, [
+            'before' => $before,
+            'after' => $after,
+            'delta' => $qty,
+            'reason' => $data['reason'] ?? 'manual',
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        return $this->success([
+            'product_id' => $product->id,
+            'before' => $before,
+            'after' => $after,
+            'delta' => $qty,
+        ], 'Stock adjusted');
     }
 }

@@ -1,94 +1,184 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '@/services/api'
-import { Search, FileText } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost } from '@/services/api'
+import { usePermission } from '@/hooks/usePermission'
+import Modal from '@/components/common/Modal'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { FileText, Search, Eye, RotateCcw, Printer } from 'lucide-react'
+import { clsx } from 'clsx'
+import toast from 'react-hot-toast'
 
-interface Invoice {
-  id: number
-  invoice_number: string
-  customer_name: string | null
-  final_total: string
-  payment_method: string
-  status: string
-  created_at: string
-  user?: { username: string }
-}
-interface InvoicesResponse { success: boolean; invoices: Invoice[]; total: number; pages: number; page: number }
+interface Invoice { id: number; invoice_number: string; customer_name?: string; cashier_name?: string; payment_method?: string; final_total?: string; status?: string; created_at: string; type?: string }
+interface ReturnableItem { id: number; product_id: number; product_name: string; quantity: number; returnable_quantity: number; unit_price: string }
+interface InvoiceDetail extends Invoice { items?: ReturnableItem[] }
 
-const statusClass: Record<string, string> = { completed: 'badge-success', cancelled: 'badge-danger', refunded: 'badge-warning', partial_refund: 'badge-warning' }
+const statusBadge: Record<string, string> = { paid: 'badge-success', completed: 'badge-success', partial: 'badge-warning', cancelled: 'badge-danger', refunded: 'badge-info', draft: 'badge-gray' }
 
 export default function InvoicesPage() {
-  const [search, setSearch] = useState('')
-  const [dateFrom, setDateFrom] = useState(() => { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10) })
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().slice(0, 10))
+  const { hasPermission } = usePermission()
+  const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [viewInvoice, setViewInvoice] = useState<InvoiceDetail | null>(null)
+  const [returnModal, setReturnModal] = useState(false)
+  const [returnItems, setReturnItems] = useState<Array<{ item_id: number; quantity: number }>>([])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['invoices', search, dateFrom, dateTo, page],
-    queryFn: () => apiGet<InvoicesResponse>('/invoices', { search: search || undefined, date_from: dateFrom, date_to: dateTo, per_page: 20, page }),
+    queryKey: ['invoices', page, search, dateFrom, dateTo],
+    queryFn: () => apiGet<{ success: boolean; data: Invoice[]; total?: number }>('/invoices', {
+      page, per_page: 20, search: search || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined,
+    }),
     staleTime: 30_000,
   })
 
-  const invoices = data?.invoices ?? []
+  const { data: returnableData } = useQuery({
+    queryKey: ['returnable', viewInvoice?.id],
+    queryFn: () => apiGet<{ success: boolean; items: ReturnableItem[] }>(`/invoices/${viewInvoice!.id}/returnable-items`),
+    enabled: !!viewInvoice?.id,
+  })
+
+  const invoices = data?.data ?? []
+  const returnableItems = returnableData?.items ?? []
+  const canReturn = hasPermission('create_returns', 'view_pos')
+
+  const returnMutation = useMutation({
+    mutationFn: (payload: object) => apiPost('/returns', payload),
+    onSuccess: () => { toast.success('Return processed'); qc.invalidateQueries({ queryKey: ['invoices'] }); setReturnModal(false); setViewInvoice(null) },
+    onError: () => toast.error('Failed to process return'),
+  })
+
+  const handleReturn = () => {
+    const items = returnItems.filter((i) => i.quantity > 0)
+    if (items.length === 0) return toast.error('Select items to return')
+    returnMutation.mutate({ invoice_id: viewInvoice?.id, items })
+  }
+
+  const openView = (inv: Invoice) => {
+    setViewInvoice(inv)
+    setReturnItems([])
+  }
+
+  const handlePrint = () => window.print()
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-6 w-6 text-primary-500" /> Invoices</h1>
-        <span className="text-sm text-gray-500">{data?.total ?? 0} total</span>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-6 w-6 text-primary-500" /> Invoices</h1>
 
-      <div className="card p-4 flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-48">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input type="text" placeholder="Search invoice # or customer…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="input pl-9" />
+          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Invoice # or customer…" className="input pl-9 w-56" />
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">From</span>
-          <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1) }} className="input w-36" />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">To</span>
-          <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1) }} className="input w-36" />
-        </div>
+        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="input" placeholder="From date" />
+        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="input" placeholder="To date" />
+        {(dateFrom || dateTo || search) && (
+          <button onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); }} className="btn btn-secondary text-sm">Clear</button>
+        )}
       </div>
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
-      ) : (
-        <div className="card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>{['Invoice #', 'Customer', 'Cashier', 'Method', 'Total', 'Status', 'Date'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {invoices.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">No invoices found for this period.</td></tr>
-              ) : invoices.map(inv => (
-                <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="px-4 py-3 font-mono text-xs font-semibold text-primary-600">{inv.invoice_number}</td>
-                  <td className="px-4 py-3 text-gray-900 dark:text-white">{inv.customer_name ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{inv.user?.username ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 capitalize">{inv.payment_method}</td>
-                  <td className="px-4 py-3 font-semibold">{parseFloat(inv.final_total).toFixed(2)}</td>
-                  <td className="px-4 py-3"><span className={`badge ${statusClass[inv.status] ?? 'badge-gray'} capitalize`}>{inv.status.replace('_', ' ')}</span></td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{inv.created_at?.slice(0, 10)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {(data?.pages ?? 1) > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 px-4 py-3">
-              <span className="text-sm text-gray-500">Page {data?.page} of {data?.pages}</span>
-              <div className="flex gap-2">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary py-1 px-3 text-xs disabled:opacity-40">Prev</button>
-                <button onClick={() => setPage(p => p + 1)} disabled={page === (data?.pages ?? 1)} className="btn-secondary py-1 px-3 text-xs disabled:opacity-40">Next</button>
-              </div>
+      <div className="card overflow-hidden">
+        {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>{['Invoice #', 'Customer', 'Cashier', 'Method', 'Total', 'Status', 'Date', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {invoices.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No invoices found</td></tr>
+                  : invoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-mono text-xs text-primary-600">{inv.invoice_number}</td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{inv.customer_name ?? 'Walk-in'}</td>
+                      <td className="px-4 py-3 text-gray-500">{inv.cashier_name ?? '—'}</td>
+                      <td className="px-4 py-3"><span className="badge badge-gray capitalize">{inv.payment_method ?? '—'}</span></td>
+                      <td className="px-4 py-3 font-semibold">{parseFloat(inv.final_total ?? '0').toFixed(2)}</td>
+                      <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[inv.status ?? ''] ?? 'badge-gray')}>{inv.status ?? 'paid'}</span></td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{inv.created_at?.slice(0, 10)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          <button onClick={() => openView(inv)} className="p-1 text-gray-400 hover:text-primary-600 rounded"><Eye className="h-4 w-4" /></button>
+                          <button onClick={() => handlePrint()} className="p-1 text-gray-400 hover:text-gray-600 rounded"><Printer className="h-4 w-4" /></button>
+                          {canReturn && (inv.status === 'paid' || inv.status === 'completed') && (
+                            <button onClick={() => { openView(inv); setReturnModal(true) }} title="Process Return" className="p-1 text-gray-400 hover:text-orange-600 rounded"><RotateCcw className="h-4 w-4" /></button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {(data?.total ?? 0) > 20 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+            <span className="text-sm text-gray-500">Page {page} · {data?.total} total</span>
+            <div className="flex gap-2">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={invoices.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* View Invoice Modal */}
+      <Modal open={!!viewInvoice && !returnModal} onClose={() => setViewInvoice(null)} title={`Invoice #${viewInvoice?.invoice_number ?? ''}`} size="lg"
+        footer={<>
+          <button onClick={() => setViewInvoice(null)} className="btn btn-secondary">Close</button>
+          <button onClick={handlePrint} className="btn btn-secondary flex items-center gap-2"><Printer className="h-4 w-4" />Print</button>
+          {canReturn && (viewInvoice?.status === 'paid' || viewInvoice?.status === 'completed') && (
+            <button onClick={() => setReturnModal(true)} className="btn bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"><RotateCcw className="h-4 w-4" />Return</button>
           )}
+        </>}>
+        {viewInvoice && (
+          <div className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{viewInvoice.customer_name ?? 'Walk-in'}</span></div>
+              <div><span className="text-gray-500">Status:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[viewInvoice.status ?? ''] ?? 'badge-gray')}>{viewInvoice.status}</span></div>
+              <div><span className="text-gray-500">Payment:</span> <span className="capitalize">{viewInvoice.payment_method}</span></div>
+              <div><span className="text-gray-500">Total:</span> <span className="font-bold text-primary-600">{parseFloat(viewInvoice.final_total ?? '0').toFixed(2)}</span></div>
+              <div><span className="text-gray-500">Date:</span> <span>{viewInvoice.created_at?.slice(0, 16)}</span></div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Return Modal */}
+      <Modal open={returnModal && !!viewInvoice} onClose={() => { setReturnModal(false) }} title={`Return — Invoice #${viewInvoice?.invoice_number ?? ''}`} size="lg"
+        footer={<>
+          <button onClick={() => setReturnModal(false)} className="btn btn-secondary">Cancel</button>
+          <button onClick={handleReturn} disabled={returnMutation.isPending} className="btn bg-orange-500 hover:bg-orange-600 text-white">{returnMutation.isPending ? 'Processing…' : 'Process Return'}</button>
+        </>}>
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500">Select quantities to return:</p>
+          {returnableItems.length === 0 ? <p className="text-center text-gray-400 py-4">No returnable items</p>
+            : returnableItems.map((item) => {
+              const ri = returnItems.find((x) => x.item_id === item.id)
+              const qty = ri?.quantity ?? 0
+              return (
+                <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{item.product_name}</p>
+                    <p className="text-xs text-gray-400">Max returnable: {item.returnable_quantity} · Price: {parseFloat(item.unit_price).toFixed(2)}</p>
+                  </div>
+                  <input type="number" min="0" max={item.returnable_quantity} value={qty}
+                    onChange={(e) => {
+                      const v = Math.min(parseInt(e.target.value) || 0, item.returnable_quantity)
+                      setReturnItems((prev) => {
+                        const exists = prev.find((x) => x.item_id === item.id)
+                        if (exists) return prev.map((x) => x.item_id === item.id ? { ...x, quantity: v } : x)
+                        return [...prev, { item_id: item.id, quantity: v }]
+                      })
+                    }}
+                    className="input w-20 text-center"
+                  />
+                </div>
+              )
+            })}
         </div>
-      )}
+      </Modal>
     </div>
   )
 }

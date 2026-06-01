@@ -1,114 +1,190 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import { apiGet, apiPost, apiDelete } from '@/services/api'
-import { Users, Plus, X, Search, Trash2 } from 'lucide-react'
+import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
+import { usePermission } from '@/hooks/usePermission'
+import Modal from '@/components/common/Modal'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { Users, Plus, Pencil, Trash2, Search, Star, CreditCard } from 'lucide-react'
+import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 
-interface Customer { id: number; code: string; name: string; phone: string | null; email: string | null; balance: string; credit_limit: string; city: string | null; created_at: string }
-interface CustomersResponse { success: boolean; data: Customer[]; total: number }
-interface AddForm { name: string; phone: string; email: string; address: string; city: string; credit_limit: string }
+interface Customer { id: number; name: string; phone?: string; email?: string; address?: string; city?: string; credit_limit?: string; outstanding_balance?: string; loyalty_points?: number; customer_group_id?: number }
+interface Group { id: number; name: string; discount_percent?: string }
+
+const emptyForm = { name: '', phone: '', email: '', address: '', city: '', credit_limit: '0', customer_group_id: '' }
 
 export default function CustomersPage() {
+  const { hasPermission } = usePermission()
   const qc = useQueryClient()
+  const [tab, setTab] = useState<'customers' | 'groups'>('customers')
+  const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [showModal, setShowModal] = useState(false)
+  const [modal, setModal] = useState<'add' | 'edit' | 'group' | null>(null)
+  const [editId, setEditId] = useState<number | null>(null)
+  const [form, setForm] = useState({ ...emptyForm })
+  const [groupForm, setGroupForm] = useState({ name: '', discount_percent: '0' })
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['customers', search],
-    queryFn: () => apiGet<CustomersResponse>('/customers', { search: search || undefined, per_page: 50 }),
+    queryKey: ['customers', page, search],
+    queryFn: () => apiGet<{ success: boolean; data: Customer[]; total?: number }>('/customers', { page, per_page: 20, search: search || undefined }),
     staleTime: 30_000,
   })
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<AddForm>({ defaultValues: { name: '', phone: '', email: '', address: '', city: '', credit_limit: '0' } })
-
-  const addMutation = useMutation({
-    mutationFn: (payload: object) => apiPost('/customers', payload),
-    onSuccess: () => { toast.success('Customer added'); qc.invalidateQueries({ queryKey: ['customers'] }); setShowModal(false); reset() },
-    onError: (err: unknown) => toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed'),
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiDelete(`/customers/${id}`),
-    onSuccess: () => { toast.success('Customer deleted'); qc.invalidateQueries({ queryKey: ['customers'] }) },
-    onError: () => toast.error('Cannot delete customer'),
+  const { data: groupsData } = useQuery({
+    queryKey: ['customer-groups'],
+    queryFn: () => apiGet<{ success: boolean; data: Group[] }>('/customer-groups'),
+    staleTime: 120_000,
   })
 
   const customers = data?.data ?? []
+  const groups = groupsData?.data ?? []
+  const canCreate = hasPermission('create_customers', 'manage_customers')
+  const canEdit   = hasPermission('edit_customers', 'manage_customers')
+  const canDelete = hasPermission('delete_customers', 'manage_customers')
+
+  const f = (field: keyof typeof form) => ({
+    value: form[field],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((p) => ({ ...p, [field]: e.target.value })),
+  })
+
+  const openAdd = () => { setForm({ ...emptyForm }); setEditId(null); setModal('add') }
+  const openEdit = (c: Customer) => {
+    setForm({ name: c.name, phone: c.phone ?? '', email: c.email ?? '', address: c.address ?? '', city: c.city ?? '', credit_limit: c.credit_limit ?? '0', customer_group_id: String(c.customer_group_id ?? '') })
+    setEditId(c.id); setModal('edit')
+  }
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: object) => editId ? apiPut(`/customers/${editId}`, payload) : apiPost('/customers', payload),
+    onSuccess: () => { toast.success(editId ? 'Customer updated' : 'Customer created'); qc.invalidateQueries({ queryKey: ['customers'] }); setModal(null) },
+    onError: () => toast.error('Failed to save'),
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiDelete(`/customers/${id}`),
+    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['customers'] }); setDeleteId(null) },
+    onError: () => toast.error('Failed to delete'),
+  })
+  const saveGroupMutation = useMutation({
+    mutationFn: (payload: object) => apiPost('/customer-groups', payload),
+    onSuccess: () => { toast.success('Group created'); qc.invalidateQueries({ queryKey: ['customer-groups'] }); setModal(null) },
+    onError: () => toast.error('Failed'),
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.name) return toast.error('Name required')
+    saveMutation.mutate({ name: form.name, phone: form.phone || undefined, email: form.email || undefined, address: form.address || undefined, city: form.city || undefined, credit_limit: parseFloat(form.credit_limit) || 0, customer_group_id: form.customer_group_id ? parseInt(form.customer_group_id) : undefined })
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Users className="h-6 w-6 text-primary-500" /> Customers</h1>
-        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> Add Customer</button>
+        {canCreate && (
+          <div className="flex gap-2">
+            <button onClick={() => { setGroupForm({ name: '', discount_percent: '0' }); setModal('group') }} className="btn btn-secondary text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Group</button>
+            <button onClick={openAdd} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> Add Customer</button>
+          </div>
+        )}
       </div>
 
-      <div className="card p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input type="text" placeholder="Search by name or phone…" value={search} onChange={e => setSearch(e.target.value)} className="input pl-9" />
-        </div>
+      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
+        {(['customers', 'groups'] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === t ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{t}</button>
+        ))}
       </div>
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
-      ) : (
+      {tab === 'customers' && (
+        <>
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Search…" className="input pl-9 w-full" />
+          </div>
+          <div className="card overflow-hidden">
+            {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{['Name', 'Phone', 'Email', 'Group', 'Points', 'Balance', 'Credit', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {customers.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No customers found</td></tr>
+                      : customers.map((c) => (
+                        <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{c.name}</td>
+                          <td className="px-4 py-3 text-gray-500">{c.phone ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">{c.email ?? '—'}</td>
+                          <td className="px-4 py-3">{c.customer_group_id ? <span className="badge badge-info text-xs">{groups.find((g) => g.id === c.customer_group_id)?.name ?? 'Group'}</span> : <span className="text-gray-400">—</span>}</td>
+                          <td className="px-4 py-3">{(c.loyalty_points ?? 0) > 0 ? <span className="flex items-center gap-1 text-amber-600 font-semibold"><Star className="h-3.5 w-3.5" />{c.loyalty_points}</span> : <span className="text-gray-400">0</span>}</td>
+                          <td className="px-4 py-3"><span className={clsx('font-semibold', parseFloat(c.outstanding_balance ?? '0') > 0 ? 'text-red-600' : 'text-gray-500')}>{parseFloat(c.outstanding_balance ?? '0').toFixed(2)}</span></td>
+                          <td className="px-4 py-3 text-gray-500 flex items-center gap-1"><CreditCard className="h-3.5 w-3.5 text-gray-400" />{parseFloat(c.credit_limit ?? '0').toFixed(2)}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-1 justify-end">
+                              {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>}
+                              {canDelete && <button onClick={() => setDeleteId(c.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {(data?.total ?? 0) > 20 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+                <span className="text-sm text-gray-500">Page {page} · {data?.total} total</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
+                  <button onClick={() => setPage((p) => p + 1)} disabled={customers.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {tab === 'groups' && (
         <div className="card overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>{['Code', 'Name', 'Phone', 'Email', 'City', 'Balance', 'Credit Limit', ''].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-            </thead>
+            <thead className="bg-gray-50 dark:bg-gray-700"><tr>{['Group Name', 'Discount %', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {customers.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">No customers yet.</td></tr>
-              ) : customers.map(c => (
-                <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500">{c.code}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{c.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.phone ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.email ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.city ?? '—'}</td>
-                  <td className="px-4 py-3 font-semibold text-primary-600">{parseFloat(c.balance).toFixed(2)}</td>
-                  <td className="px-4 py-3 text-gray-500">{parseFloat(c.credit_limit).toFixed(2)}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => { if (confirm('Delete this customer?')) deleteMutation.mutate(c.id) }} className="text-red-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
-                  </td>
-                </tr>
-              ))}
+              {groups.length === 0 ? <tr><td colSpan={3} className="px-4 py-12 text-center text-gray-400">No groups yet</td></tr>
+                : groups.map((g) => (
+                  <tr key={g.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{g.name}</td>
+                    <td className="px-4 py-3 text-primary-600 font-semibold">{g.discount_percent ?? '0'}%</td>
+                    <td className="px-4 py-3">{canDelete && <button onClick={() => apiDelete(`/customer-groups/${g.id}`).then(() => { qc.invalidateQueries({ queryKey: ['customer-groups'] }); toast.success('Deleted') })} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="h-4 w-4" /></button>}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-gray-800 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add Customer</h2>
-              <button onClick={() => { setShowModal(false); reset() }} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
-            </div>
-            <form onSubmit={handleSubmit(d => addMutation.mutate(d))} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="label">Name *</label>
-                  <input {...register('name', { required: 'Required' })} className="input" />
-                  {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
-                </div>
-                <div><label className="label">Phone</label><input {...register('phone')} className="input" /></div>
-                <div><label className="label">Email</label><input {...register('email')} type="email" className="input" /></div>
-                <div><label className="label">City</label><input {...register('city')} className="input" /></div>
-                <div><label className="label">Credit Limit</label><input {...register('credit_limit')} type="number" min="0" step="0.01" className="input" /></div>
-                <div className="col-span-2"><label className="label">Address</label><input {...register('address')} className="input" /></div>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowModal(false); reset() }} className="btn-secondary">Cancel</button>
-                <button type="submit" disabled={addMutation.isPending} className="btn-primary">{addMutation.isPending ? 'Saving…' : 'Add Customer'}</button>
-              </div>
-            </form>
+      <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? 'Edit Customer' : 'Add Customer'} size="lg"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}</button></>}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2"><label className="label">Full Name *</label><input {...f('name')} className="input w-full" required /></div>
+            <div><label className="label">Phone</label><input {...f('phone')} className="input w-full" /></div>
+            <div><label className="label">Email</label><input {...f('email')} type="email" className="input w-full" /></div>
+            <div><label className="label">City</label><input {...f('city')} className="input w-full" /></div>
+            <div><label className="label">Credit Limit</label><input {...f('credit_limit')} type="number" min="0" step="0.01" className="input w-full" /></div>
+            <div className="col-span-2"><label className="label">Address</label><input {...f('address')} className="input w-full" /></div>
+            <div><label className="label">Customer Group</label><select {...f('customer_group_id')} className="input w-full"><option value="">— No group —</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></div>
           </div>
+        </form>
+      </Modal>
+
+      <Modal open={modal === 'group'} onClose={() => setModal(null)} title="Add Customer Group" size="sm"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={() => { if (!groupForm.name) return toast.error('Name required'); saveGroupMutation.mutate({ name: groupForm.name, discount_percent: parseFloat(groupForm.discount_percent) || 0 }) }} disabled={saveGroupMutation.isPending} className="btn btn-primary">{saveGroupMutation.isPending ? 'Saving…' : 'Create'}</button></>}>
+        <div className="space-y-4">
+          <div><label className="label">Group Name *</label><input value={groupForm.name} onChange={(e) => setGroupForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" placeholder="VIP, Wholesale…" /></div>
+          <div><label className="label">Discount %</label><input value={groupForm.discount_percent} type="number" min="0" max="100" onChange={(e) => setGroupForm((p) => ({ ...p, discount_percent: e.target.value }))} className="input w-full" /></div>
         </div>
-      )}
+      </Modal>
+
+      <ConfirmDialog open={deleteId !== null} title="Delete Customer" message="Delete this customer?" loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
     </div>
   )
 }

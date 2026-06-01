@@ -42,7 +42,7 @@ class ReturnController extends Controller
 
         $query = SalesReturn::with('items')
             ->when($request->search, function ($q, $s) {
-                $safe = Str::escapeLike($s);
+                $safe = addcslashes($s, '\%_');
                 $q->where('return_number', 'like', "%{$safe}%")
                     ->orWhere('invoice_number', 'like', "%{$safe}%")
                     ->orWhere('customer_name', 'like', "%{$safe}%");

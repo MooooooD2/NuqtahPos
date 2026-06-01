@@ -16,7 +16,9 @@ class SupplierController extends Controller
     use ApiResponse;
     use AuditLog;
 
-    public function __construct(private SupplierService $supplierService) {}
+    public function __construct(private SupplierService $supplierService)
+    {
+    }
 
     public function index()
     {
@@ -32,10 +34,10 @@ class SupplierController extends Controller
         $result = $this->supplierService->all($filters, $fetchAll);
 
         if ($fetchAll) {
-            return $this->success(['suppliers' => $result]);
+            return $this->success(['data' => $result]);
         }
 
-        return $this->success(['suppliers' => SupplierResource::collection($result)]);
+        return $this->success(['data' => SupplierResource::collection($result)]);
     }
 
     public function store(StoreSupplierRequest $request)

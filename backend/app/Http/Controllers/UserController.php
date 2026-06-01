@@ -16,13 +16,15 @@ class UserController extends Controller
     use ApiResponse;
     use AuditLog;
 
-    public function __construct(private UserService $userService) {}
+    public function __construct(private UserService $userService)
+    {
+    }
 
     public function all()
     {
         $this->authorize('viewAny', User::class);
 
-        return $this->success(['users' => $this->userService->all()]);
+        return $this->success(['data' => $this->userService->all()]);
     }
 
     public function store(StoreUserRequest $request)

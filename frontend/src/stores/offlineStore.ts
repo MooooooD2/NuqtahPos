@@ -1,10 +1,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { nanoid } from 'nanoid' // we'll polyfill this
 import type { SyncQueueItem } from '@/types'
 
-// Simple nanoid polyfill if not installed
 const genId = () => Math.random().toString(36).slice(2, 10)
 
 interface OfflineStore {

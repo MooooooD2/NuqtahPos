@@ -114,7 +114,7 @@ class ReportService
         }
         if (! empty($filters['search'])) {
             // FIX: escape LIKE wildcards to prevent injection via user-supplied % or _
-            $s = '%' . Str::escapeLike($filters['search']) . '%';
+            $s = '%' . addcslashes($filters['search'], '\%_') . '%';
             $query->where(
                 fn ($q) => $q
                     ->where('stock_movements.product_name', 'like', $s)

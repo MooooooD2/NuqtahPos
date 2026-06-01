@@ -18,6 +18,7 @@ use App\Http\Controllers\FiscalPeriodController;
 use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\FraudDetectionController;
 use App\Http\Controllers\HeldInvoiceController;
+use App\Http\Controllers\HrController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KitchenDisplayController;
 use App\Http\Controllers\OfflineSyncController;
@@ -517,6 +518,37 @@ Route::middleware(['auth', 'permission:view_warehouse', 'throttle:60,1'])->prefi
     Route::delete('/activities/{id}', [CrmController::class, 'deleteActivity'])->name('api.crm.delete');
     Route::get('/follow-ups', [CrmController::class, 'followUps'])->name('api.crm.followups');
     Route::get('/stats', [CrmController::class, 'stats'])->name('api.crm.stats');
+});
+
+// ── HR Module API ─────────────────────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/hr/employees', [HrController::class, 'index'])->name('hr.employees.index');
+    Route::post('/hr/employees', [HrController::class, 'store'])->name('hr.employees.store');
+    Route::put('/hr/employees/{user}', [HrController::class, 'update'])->name('hr.employees.update');
+    Route::delete('/hr/employees/{user}', [HrController::class, 'destroy'])->name('hr.employees.destroy');
+    Route::get('/shifts', [HrController::class, 'shifts'])->name('hr.shifts.index');
+});
+
+// ── CRM Follow-up store (missing from main CRM group) ────────────────────
+Route::middleware(['auth:sanctum', 'permission:view_warehouse', 'throttle:60,1'])->group(function () {
+    Route::post('/crm/follow-ups', [CrmController::class, 'storeFollowUp'])->name('api.crm.followup.store');
+    Route::get('/crm/activities', [CrmController::class, 'allActivities'])->name('api.crm.activities.all');
+});
+
+// ── Stock adjustment (single product) ─────────────────────────────────────
+Route::middleware(['auth:sanctum', 'permission:add_stock', 'throttle:30,1'])->group(function () {
+    Route::post('/stock/adjustment', [StockController::class, 'adjustSingle'])->name('stock.adjust-single');
+});
+
+// ── Customers search endpoint ─────────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
+});
+
+// ── Warehouse lock/unlock aliases ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'permission:view_warehouse', 'throttle:30,1'])->group(function () {
+    Route::put('/warehouses/{warehouse}/lock', [WarehouseController::class, 'toggleLock'])->name('warehouses.lock');
+    Route::put('/warehouses/{warehouse}/unlock', [WarehouseController::class, 'toggleLock'])->name('warehouses.unlock');
 });
 
 require __DIR__ . '/_api_additions.php';

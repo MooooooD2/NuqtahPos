@@ -15,7 +15,7 @@ class CustomerGroupController extends Controller
     public function index(Request $request): JsonResponse
     {
         $groups = CustomerGroup::query()
-            ->when($request->search, fn ($q, $s) => $q->where('name', 'like', '%' . Str::escapeLike($s) . '%'))
+            ->when($request->search, fn ($q, $s) => $q->where('name', 'like', '%' . addcslashes($s, '\%_') . '%'))
             ->when(! $request->boolean('with_inactive'), fn ($q) => $q->where('is_active', true))
             ->withCount('customers')
             ->orderBy('name')

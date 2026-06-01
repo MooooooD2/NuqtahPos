@@ -175,7 +175,7 @@ class AccountingController extends Controller
         ]);
 
         $logs = AuditLogModel::query()
-            ->when($data['action'] ?? null, fn ($q, $v) => $q->where('action', 'like', '%' . Str::escapeLike($v) . '%'))
+            ->when($data['action'] ?? null, fn ($q, $v) => $q->where('action', 'like', '%' . addcslashes($v, '\%_') . '%'))
             ->when($data['model'] ?? null, fn ($q, $v) => $q->where('model', $v))
             ->when($data['user_id'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
             ->when($data['start_date'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))

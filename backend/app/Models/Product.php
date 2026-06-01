@@ -39,8 +39,7 @@ class Product extends Model
     use HasFactory;
     use SoftDeletes;
 
-    // #7 fillable صريح — quantity محذوف (يتعدل عبر StockService فقط)
-    protected $fillable = ['name', 'price', 'wholesale_price', 'vip_price', 'cost_price', 'avg_cost', 'last_cost', 'min_stock', 'reorder_point', 'reorder_qty', 'track_batches', 'barcode', 'category', 'image', 'description', 'is_active', 'supplier', 'unit_id', 'tax_category_id'];
+    protected $fillable = ['name', 'price', 'wholesale_price', 'vip_price', 'cost_price', 'avg_cost', 'last_cost', 'min_stock', 'quantity', 'reorder_point', 'reorder_qty', 'track_batches', 'barcode', 'category', 'image', 'description', 'is_active', 'supplier', 'unit_id', 'tax_category_id'];
 
     protected $hidden = ['deleted_at'];
 

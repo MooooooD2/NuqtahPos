@@ -132,6 +132,51 @@ class CrmController extends Controller
         return response()->json($this->buildStats());
     }
 
+    /**
+     * All activities (not filtered by customer) for the CRM list view.
+     */
+    public function allActivities(Request $request): JsonResponse
+    {
+        $activities = CrmActivity::with('customer:id,name')
+            ->latest()
+            ->paginate(30);
+
+        $data = $activities->map(fn ($a) => [
+            'id'            => $a->id,
+            'customer_name' => $a->customer?->name,
+            'type'          => $a->type,
+            'notes'         => $a->notes,
+            'created_at'    => $a->created_at,
+            'status'        => $a->status ?? 'done',
+        ]);
+
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    /**
+     * Schedule a follow-up (stored as a pending CrmActivity).
+     */
+    public function storeFollowUp(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'customer_id'   => 'required|integer|exists:customers,id',
+            'due_date'      => 'required|date',
+            'notes'         => 'nullable|string|max:5000',
+            'activity_type' => 'nullable|in:call,email,meeting,note,task,other',
+        ]);
+
+        $activity = CrmActivity::create([
+            'customer_id'  => $data['customer_id'],
+            'type'         => $data['activity_type'] ?? 'call',
+            'notes'        => $data['notes'] ?? null,
+            'user_id'      => Auth::id(),
+            'scheduled_at' => $data['due_date'],
+            'status'       => 'pending',
+        ]);
+
+        return response()->json(['success' => true, 'data' => $activity], 201);
+    }
+
     /* ─── Segments ───────────────────────────────────────────────────── */
 
     public function syncSegments(): JsonResponse

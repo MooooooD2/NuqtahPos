@@ -113,7 +113,7 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $query = Invoice::query()
-            ->with('user:id,username')
+            ->with('cashier:id,username,full_name')
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
