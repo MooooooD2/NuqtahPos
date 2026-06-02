@@ -7,6 +7,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { ShoppingBag, Plus, Search, CheckCircle, XCircle, Package, Send, Eye } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import ProductSelect from '@/components/common/ProductSelect'
 
 interface PO {
   id: number; po_number: string; supplier_id: number; supplier?: { name: string }
@@ -18,7 +19,7 @@ interface Supplier { id: number; name: string }
 
 const statusBadge: Record<string, string> = { draft: 'badge-gray', sent: 'badge-info', received: 'badge-success', partial: 'badge-warning', cancelled: 'badge-danger', approved: 'badge-success' }
 
-const emptyPO = { supplier_id: '', expected_date: '', notes: '', items: [{ product_id: '', quantity: '1', unit_cost: '' }] }
+const emptyPO = { supplier_id: '', expected_date: '', notes: '', items: [{ product_id: '', product_name: '', quantity: '1', unit_cost: '' }] }
 
 export default function PurchasesPage() {
   const { hasPermission } = usePermission()
@@ -57,7 +58,7 @@ export default function PurchasesPage() {
     onError: () => toast.error('Action failed'),
   })
 
-  const addItem = () => setForm((p) => ({ ...p, items: [...p.items, { product_id: '', quantity: '1', unit_cost: '' }] }))
+  const addItem = () => setForm((p) => ({ ...p, items: [...p.items, { product_id: '', product_name: '', quantity: '1', unit_cost: '' }] }))
   const removeItem = (i: number) => setForm((p) => ({ ...p, items: p.items.filter((_, idx) => idx !== i) }))
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -162,7 +163,11 @@ export default function PurchasesPage() {
             <div className="space-y-2">
               {form.items.map((item, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <input value={item.product_id} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, product_id: e.target.value } : x) }))} className="input flex-1" placeholder="Product ID" type="number" />
+                  <ProductSelect
+                    value={item.product_id}
+                    onChange={(id, name) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, product_id: id, product_name: name } : x) }))}
+                    className="flex-1"
+                  />
                   <input value={item.quantity} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, quantity: e.target.value } : x) }))} className="input w-20" placeholder="Qty" type="number" min="1" />
                   <input value={item.unit_cost} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, unit_cost: e.target.value } : x) }))} className="input w-28" placeholder="Unit Cost" type="number" step="0.01" />
                   {form.items.length > 1 && <button type="button" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600"><XCircle className="h-4 w-4" /></button>}

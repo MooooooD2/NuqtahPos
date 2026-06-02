@@ -8,22 +8,42 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { useEffect } from 'react'
 
 // Lazy-loaded pages
-const LoginPage         = lazy(() => import('@/pages/LoginPage'))
-const DashboardPage     = lazy(() => import('@/pages/DashboardPage'))
-const PosPage           = lazy(() => import('@/pages/PosPage'))
-const ProductsPage      = lazy(() => import('@/pages/ProductsPage'))
-const InventoryPage     = lazy(() => import('@/pages/InventoryPage'))
-const CustomersPage     = lazy(() => import('@/pages/CustomersPage'))
-const SuppliersPage     = lazy(() => import('@/pages/SuppliersPage'))
-const PurchasesPage     = lazy(() => import('@/pages/PurchasesPage'))
-const InvoicesPage      = lazy(() => import('@/pages/InvoicesPage'))
-const ReportsPage       = lazy(() => import('@/pages/ReportsPage'))
-const SettingsPage      = lazy(() => import('@/pages/SettingsPage'))
-const UsersPage         = lazy(() => import('@/pages/UsersPage'))
-const AccountingPage    = lazy(() => import('@/pages/AccountingPage'))
-const CrmPage           = lazy(() => import('@/pages/CrmPage'))
-const HrPage            = lazy(() => import('@/pages/HrPage'))
-const WarehousePage     = lazy(() => import('@/pages/WarehousePage'))
+const LoginPage              = lazy(() => import('@/pages/LoginPage'))
+const DashboardPage          = lazy(() => import('@/pages/DashboardPage'))
+const PosPage                = lazy(() => import('@/pages/PosPage'))
+const ProductsPage           = lazy(() => import('@/pages/ProductsPage'))
+const InventoryPage          = lazy(() => import('@/pages/InventoryPage'))
+const CustomersPage          = lazy(() => import('@/pages/CustomersPage'))
+const SuppliersPage          = lazy(() => import('@/pages/SuppliersPage'))
+const PurchasesPage          = lazy(() => import('@/pages/PurchasesPage'))
+const InvoicesPage           = lazy(() => import('@/pages/InvoicesPage'))
+const ReportsPage            = lazy(() => import('@/pages/ReportsPage'))
+const SettingsPage           = lazy(() => import('@/pages/SettingsPage'))
+const UsersPage              = lazy(() => import('@/pages/UsersPage'))
+const AccountingPage         = lazy(() => import('@/pages/AccountingPage'))
+const CrmPage                = lazy(() => import('@/pages/CrmPage'))
+const HrPage                 = lazy(() => import('@/pages/HrPage'))
+const WarehousePage          = lazy(() => import('@/pages/WarehousePage'))
+const ExpensesPage           = lazy(() => import('@/pages/ExpensesPage'))
+const ReturnsPage            = lazy(() => import('@/pages/ReturnsPage'))
+const CashRegisterPage       = lazy(() => import('@/pages/CashRegisterPage'))
+const PromotionsPage         = lazy(() => import('@/pages/PromotionsPage'))
+const PurchaseReturnsPage    = lazy(() => import('@/pages/PurchaseReturnsPage'))
+const PricingRulesPage       = lazy(() => import('@/pages/PricingRulesPage'))
+const CashbackPage           = lazy(() => import('@/pages/CashbackPage'))
+const SupplierPaymentsPage   = lazy(() => import('@/pages/SupplierPaymentsPage'))
+const SupplierAccountsPage   = lazy(() => import('@/pages/SupplierAccountsPage'))
+const ProfitReportsPage      = lazy(() => import('@/pages/ProfitReportsPage'))
+const BranchesPage           = lazy(() => import('@/pages/BranchesPage'))
+const ForecastingPage        = lazy(() => import('@/pages/ForecastingPage'))
+const DeviceSessionsPage     = lazy(() => import('@/pages/DeviceSessionsPage'))
+const WhatsAppPage           = lazy(() => import('@/pages/WhatsAppPage'))
+const CurrenciesPage         = lazy(() => import('@/pages/CurrenciesPage'))
+const WastePage              = lazy(() => import('@/pages/WastePage'))
+const FinancialReportsPage   = lazy(() => import('@/pages/FinancialReportsPage'))
+const KitchenPage            = lazy(() => import('@/pages/KitchenPage'))
+const QrManagePage           = lazy(() => import('@/pages/QrManagePage'))
+const MyShiftPage            = lazy(() => import('@/pages/MyShiftPage'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -98,6 +118,26 @@ export default function App() {
             <Route path="reports/*" element={<ReportsPage />} />
             <Route path="users/*" element={<UsersPage />} />
             <Route path="settings/*" element={<SettingsPage />} />
+            <Route path="expenses/*" element={<ExpensesPage />} />
+            <Route path="returns/*" element={<ReturnsPage />} />
+            <Route path="cash-register/*" element={<CashRegisterPage />} />
+            <Route path="promotions/*" element={<PromotionsPage />} />
+            <Route path="purchase-returns/*" element={<PurchaseReturnsPage />} />
+            <Route path="pricing-rules/*" element={<PricingRulesPage />} />
+            <Route path="cashback/*" element={<CashbackPage />} />
+            <Route path="supplier-payments/*" element={<SupplierPaymentsPage />} />
+            <Route path="supplier-accounts/*" element={<SupplierAccountsPage />} />
+            <Route path="profit-reports/*" element={<ProfitReportsPage />} />
+            <Route path="branches/*" element={<BranchesPage />} />
+            <Route path="forecasting/*" element={<ForecastingPage />} />
+            <Route path="device-sessions/*" element={<DeviceSessionsPage />} />
+            <Route path="whatsapp/*" element={<WhatsAppPage />} />
+            <Route path="currencies/*" element={<CurrenciesPage />} />
+            <Route path="waste/*" element={<WastePage />} />
+            <Route path="financial-reports/*" element={<FinancialReportsPage />} />
+            <Route path="kitchen/*" element={<KitchenPage />} />
+            <Route path="qr/*" element={<QrManagePage />} />
+            <Route path="my-shift/*" element={<MyShiftPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

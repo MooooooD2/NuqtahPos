@@ -4,6 +4,7 @@ import { apiGet, apiPost } from "@/services/api";
 import { usePermission } from "@/hooks/usePermission";
 import Modal from "@/components/common/Modal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import ProductSelect from "@/components/common/ProductSelect";
 import {
   Package,
   AlertTriangle,
@@ -41,6 +42,7 @@ interface BatchItem {
 
 const adjForm = {
   product_id: "",
+  product_name: "",
   quantity: "",
   reason: "adjustment",
   notes: "",
@@ -453,15 +455,13 @@ export default function InventoryPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Product ID</label>
-            <input
+            <label className="label">Product</label>
+            <ProductSelect
               value={form.product_id}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, product_id: e.target.value }))
+              onChange={(id, name) =>
+                setForm((p) => ({ ...p, product_id: id, product_name: name }))
               }
-              type="number"
-              className="input w-full"
-              placeholder="Enter product ID"
+              className="w-full"
             />
           </div>
           <div>

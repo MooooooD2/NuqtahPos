@@ -52,7 +52,7 @@ class HrController extends Controller
     {
         $data = $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email',
+            'email'      => 'nullable|email|unique:users,email',
             'phone'      => 'nullable|string|max:30',
             'position'   => 'nullable|string|max:100',
             'department' => 'nullable|string|max:100',
@@ -74,7 +74,7 @@ class HrController extends Controller
             'full_name' => $data['name'],
             'email'     => $data['email'],
             'password'  => Hash::make('ChangeMe123!'),
-            'role'      => $data['position'] ?? 'cashier',
+            'role'      => in_array($data['position'] ?? '', ['admin', 'cashier', 'warehouse']) ? $data['position'] : 'cashier',
             'is_active' => ($data['status'] ?? 'active') === 'active',
         ]);
 
@@ -96,7 +96,7 @@ class HrController extends Controller
     {
         $data = $request->validate([
             'name'       => 'sometimes|string|max:255',
-            'email'      => 'sometimes|email|unique:users,email,' . $user->id,
+            'email'      => 'sometimes|nullable|email|unique:users,email,' . $user->id,
             'position'   => 'nullable|string|max:100',
             'department' => 'nullable|string|max:100',
             'salary'     => 'nullable|numeric|min:0',

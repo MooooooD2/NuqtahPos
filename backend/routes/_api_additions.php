@@ -101,9 +101,20 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr
                     ->orWhere('users.username', 'like', '%' . $req->search . '%'));
             }
 
-            $employees = $q->orderBy('users.full_name')->get();
+            $employees = $q->orderBy('users.full_name')->get()->map(fn ($u) => [
+                'id'           => $u->id,
+                'name'         => $u->full_name ?: $u->username,
+                'email'        => $u->email ?? null,
+                'phone'        => null,
+                'position'     => $u->role,
+                'department'   => match ($u->role) { 'admin' => 'Management', 'cashier' => 'Sales', default => 'Operations' },
+                'salary'       => $u->basic_salary ? number_format((float) $u->basic_salary, 2, '.', '') : '0.00',
+                'status'       => $u->is_active ? 'active' : 'inactive',
+                'hire_date'    => $u->effective_from ?? null,
+                'branch_name'  => $u->branch_name ?? null,
+            ]);
 
-            return response()->json(['employees' => $employees]);
+            return response()->json(['success' => true, 'data' => $employees]);
         })->name('employees.index');
 
         // Get one employee's leave summary
@@ -409,7 +420,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr
 
     // Shift templates list
     Route::get('/shifts/templates', function () {
-        $templates = DB::table('shift_templates')->where('is_active', true)->orderBy('name')->get();
+        $templates = DB::table('shift_templates')->where('is_active', true)->orderBy('table_name')->get();
 
         return response()->json(['templates' => $templates]);
     })->name('shifts.templates');
@@ -749,4 +760,33 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/notifications/{id}/read', [App\Http\Controllers\Mobile\CustomerMobileController::class, 'markRead'])->name('notification.read');
         });
     });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QR Table Management API
+// ═══════════════════════════════════════════════════════════════════════════
+Route::middleware(['auth:sanctum', 'permission:manage_qr_orders', 'throttle:60,1'])->prefix('qr-tables')->name('api.qr-tables.')->group(function () {
+    Route::get('/', function () {
+        $today = now()->toDateString();
+        $tables = \App\Models\QrTable::withCount(['orders as today_orders' => fn ($q) => $q->whereDate('created_at', $today)])->orderBy('table_name')->get();
+        return response()->json(['success' => true, 'data' => $tables]);
+    })->name('index');
+
+    Route::post('/', function (Illuminate\Http\Request $req) {
+        $data = $req->validate(['table_name' => 'required|string|max:100', 'capacity' => 'required|integer|min:1']);
+        $token = \Illuminate\Support\Str::random(32);
+        $table = \App\Models\QrTable::create(array_merge($data, ['token' => $token, 'is_active' => true]));
+        return response()->json(['success' => true, 'data' => $table], 201);
+    })->name('store');
+
+    Route::post('/{id}/toggle', function (int $id) {
+        $table = \App\Models\QrTable::findOrFail($id);
+        $table->update(['is_active' => !$table->is_active]);
+        return response()->json(['success' => true, 'is_active' => $table->is_active]);
+    })->name('toggle');
+
+    Route::delete('/{id}', function (int $id) {
+        \App\Models\QrTable::findOrFail($id)->delete();
+        return response()->json(['success' => true]);
+    })->name('destroy');
 });

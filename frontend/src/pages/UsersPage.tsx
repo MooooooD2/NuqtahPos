@@ -33,7 +33,6 @@ export default function UsersPage() {
     queryKey: ['roles'],
     queryFn: () => apiGet<{ success: boolean; data: Role[] }>('/roles'),
     staleTime: 120_000,
-    enabled: tab === 'roles',
   })
   const { data: permsData } = useQuery({
     queryKey: ['all-permissions'],

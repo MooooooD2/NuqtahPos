@@ -7,12 +7,13 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { Warehouse, Plus, ArrowLeftRight, Lock, Unlock } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import ProductSelect from '@/components/common/ProductSelect'
 
 interface WarehouseItem { id: number; name: string; code: string; address?: string; keeper_name?: string; type?: string; is_active?: boolean; is_locked?: boolean }
 interface Transfer { id: number; from_warehouse?: { name: string }; to_warehouse?: { name: string }; status: string; created_at: string; items_count?: number }
 
 const emptyWh = { name: '', code: '', address: '', keeper_name: '' }
-const emptyTransfer = { from_warehouse_id: '', to_warehouse_id: '', notes: '', items: [{ product_id: '', quantity: '' }] }
+const emptyTransfer = { from_warehouse_id: '', to_warehouse_id: '', notes: '', items: [{ product_id: '', product_name: '', quantity: '' }] }
 
 export default function WarehousePage() {
   const { hasPermission } = usePermission()
@@ -51,10 +52,10 @@ export default function WarehousePage() {
   const createTransfer = useMutation({
     mutationFn: (payload: object) => apiPost('/warehouse-transfers', payload),
     onSuccess: () => { toast.success('Transfer created'); qc.invalidateQueries({ queryKey: ['warehouse-transfers'] }); setModal(null) },
-    onError: () => toast.error('Failed to create transfer'),
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Failed to create transfer'),
   })
 
-  const addTransferItem = () => setTransferForm((p) => ({ ...p, items: [...p.items, { product_id: '', quantity: '' }] }))
+  const addTransferItem = () => setTransferForm((p) => ({ ...p, items: [...p.items, { product_id: '', product_name: '', quantity: '' }] }))
 
   const handleCreateWh = (e: React.FormEvent) => {
     e.preventDefault()
@@ -193,7 +194,11 @@ export default function WarehousePage() {
             </div>
             {transferForm.items.map((item, i) => (
               <div key={i} className="flex gap-2 mb-2">
-                <input value={item.product_id} type="number" onChange={(e) => setTransferForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, product_id: e.target.value } : x) }))} className="input flex-1" placeholder="Product ID" />
+                <ProductSelect
+                    value={item.product_id}
+                    onChange={(id, name) => setTransferForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, product_id: id, product_name: name } : x) }))}
+                    className="flex-1"
+                  />
                 <input value={item.quantity} type="number" min="1" onChange={(e) => setTransferForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, quantity: e.target.value } : x) }))} className="input w-24" placeholder="Qty" />
               </div>
             ))}

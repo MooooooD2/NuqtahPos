@@ -239,21 +239,33 @@ class WarehouseController extends Controller
             'items.*.batch_id' => 'nullable|exists:product_batches,id',
         ]);
 
-        $transfer = $this->service->createTransfer($data);
+        try {
+            $transfer = $this->service->createTransfer($data);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['success' => true, 'transfer' => $transfer], 201);
     }
 
     public function receiveTransfer(WarehouseTransfer $transfer): JsonResponse
     {
-        $transfer = $this->service->receiveTransfer($transfer);
+        try {
+            $transfer = $this->service->receiveTransfer($transfer);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['success' => true, 'transfer' => $transfer]);
     }
 
     public function cancelTransfer(WarehouseTransfer $transfer): JsonResponse
     {
-        $this->service->cancelTransfer($transfer);
+        try {
+            $this->service->cancelTransfer($transfer);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['success' => true, 'message' => __('pos.transfer_cancelled')]);
     }

@@ -70,7 +70,7 @@ class CrmController extends Controller
     {
         $data = $request->validate([
             'customer_id' => 'required|integer|exists:customers,id',
-            'type' => 'required|in:call,email,visit,whatsapp,note,complaint,follow_up,sale,return',
+            'type' => 'required|in:call,email,visit,meeting,whatsapp,note,complaint,task,follow_up,sale,return,other',
             'subject' => 'nullable|string|max:200',
             'notes' => 'nullable|string|max:2000',
             'outcome' => 'nullable|in:positive,neutral,negative,pending',
