@@ -110,10 +110,10 @@ export default function ExpensesPage() {
     saveMutation.mutate({
       title: form.title,
       amount: parseFloat(form.amount),
-      date: form.date,
+      expense_date: form.date,
       category_id: form.category_id ? parseInt(form.category_id) : undefined,
       payment_method: form.payment_method,
-      reference_no: form.reference_no || undefined,
+      reference: form.reference_no || undefined,
       notes: form.notes || undefined,
     })
   }
@@ -126,7 +126,7 @@ export default function ExpensesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <Receipt className="h-6 w-6 text-primary-500" /> Expenses
-          {data?.expenses?.total !== undefined && <span className="text-sm font-normal text-gray-400">({data.total})</span>}
+          {data?.expenses?.total !== undefined && <span className="text-sm font-normal text-gray-400">({data?.expenses?.total})</span>}
         </h1>
         {canCreate && (
           <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">

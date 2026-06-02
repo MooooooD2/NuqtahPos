@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
+import { api, apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
@@ -132,7 +132,7 @@ export default function PricingRulesPage() {
   })
 
   const toggleMutation = useMutation({
-    mutationFn: (id: number) => apiPost(`/pricing-rules/${id}/toggle`, {}),
+    mutationFn: (id: number) => api.patch(`/pricing-rules/${id}/toggle`).then((r) => r.data),
     onSuccess: () => { toast.success('Toggled'); qc.invalidateQueries({ queryKey: ['pricing-rules'] }) },
     onError: () => toast.error('Failed to toggle'),
   })

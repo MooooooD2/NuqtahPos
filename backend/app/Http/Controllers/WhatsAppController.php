@@ -120,17 +120,13 @@ class WhatsAppController extends Controller
 
     public function stats(): JsonResponse
     {
-        $stats = WhatsAppMessage::selectRaw('status, count(*) as count')
-            ->where('direction', 'outbound')
-            ->whereDate('created_at', today())
-            ->groupBy('status')
-            ->pluck('count', 'status');
-
         return $this->success([
-            'today' => $stats,
-            'total' => WhatsAppMessage::count(),
-            'inbound' => WhatsAppMessage::where('direction', 'inbound')->whereDate('created_at', today())->count(),
-            'failed' => WhatsAppMessage::where('status', 'failed')->whereDate('created_at', today())->count(),
+            'data' => [
+                'total_messages' => WhatsAppMessage::count(),
+                'sent_today'     => WhatsAppMessage::where('direction', 'outbound')->whereDate('created_at', today())->count(),
+                'inbound_today'  => WhatsAppMessage::where('direction', 'inbound')->whereDate('created_at', today())->count(),
+                'failed_today'   => WhatsAppMessage::where('status', 'failed')->whereDate('created_at', today())->count(),
+            ],
         ]);
     }
 }

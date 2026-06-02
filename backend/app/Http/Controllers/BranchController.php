@@ -4,16 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Services\BranchService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private BranchService $service) {}
 
     public function index(): JsonResponse
     {
-        return response()->json($this->service->all());
+        return $this->success(['data' => $this->service->all()]);
     }
 
     public function page()

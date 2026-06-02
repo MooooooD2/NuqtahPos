@@ -6,6 +6,7 @@ use App\Models\CrmActivity;
 use App\Models\Customer;
 use App\Models\CustomerSegment;
 use App\Models\Invoice;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ use Throwable;
 
 class CrmController extends Controller
 {
+    use ApiResponse;
     /* ─── Web Views ──────────────────────────────────────────────────── */
 
     public function index(): \Illuminate\View\View

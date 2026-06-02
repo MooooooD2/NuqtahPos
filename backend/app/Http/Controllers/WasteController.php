@@ -35,39 +35,43 @@ class WasteController extends Controller
             return $this->error(__('pos.insufficient_stock', ['name' => $product->name]), 422);
         }
 
-        $record = DB::transaction(function () use ($data) {
-            $product = Product::lockForUpdate()->findOrFail($data['product_id']);
-            $unitCost = $product->avg_cost > 0 ? $product->avg_cost : $product->cost_price;
-            $qty = (float) $data['quantity'];
+        try {
+            $record = DB::transaction(function () use ($data) {
+                $product = Product::lockForUpdate()->findOrFail($data['product_id']);
+                $unitCost = $product->avg_cost > 0 ? $product->avg_cost : $product->cost_price;
+                $qty = (float) $data['quantity'];
 
-            if ($product->quantity < $qty) {
-                throw new Exception(__('pos.insufficient_stock', ['name' => $product->name]));
-            }
+                if ($product->quantity < $qty) {
+                    throw new Exception(__('pos.insufficient_stock', ['name' => $product->name]));
+                }
 
-            $waste = WasteRecord::create([
-                'product_id' => $product->id,
-                'warehouse_id' => $data['warehouse_id'] ?? null,
-                'batch_id' => $data['batch_id'] ?? null,
-                'quantity' => $qty,
-                'unit_cost' => $unitCost,
-                'total_value' => round($unitCost * $qty, 2),
-                'reason' => $data['reason'],
-                'notes' => $data['notes'] ?? null,
-                'recorded_by' => auth()->id(),
-            ]);
+                $waste = WasteRecord::create([
+                    'product_id' => $product->id,
+                    'warehouse_id' => $data['warehouse_id'] ?? null,
+                    'batch_id' => $data['batch_id'] ?? null,
+                    'quantity' => $qty,
+                    'unit_cost' => $unitCost,
+                    'total_value' => round($unitCost * $qty, 2),
+                    'reason' => $data['reason'],
+                    'notes' => $data['notes'] ?? null,
+                    'recorded_by' => auth()->id(),
+                ]);
 
-            $this->stockService->deductLockedStock(
-                $product,
-                (int) ceil($qty),
-                'waste',
-                __('pos.waste_reason_' . $data['reason']),
-                $waste->id,
-                'waste',
-                $data['warehouse_id'] ?? null,
-            );
+                $this->stockService->deductLockedStock(
+                    $product,
+                    (int) ceil($qty),
+                    'waste',
+                    __('pos.waste_reason_' . $data['reason']),
+                    $waste->id,
+                    'waste',
+                    $data['warehouse_id'] ?? null,
+                );
 
-            return $waste;
-        });
+                return $waste;
+            });
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), 422);
+        }
 
         $this->audit('waste.recorded', 'WasteRecord', $record->id, [
             'product_id' => $record->product_id,
@@ -90,13 +94,25 @@ class WasteController extends Controller
             'product_id' => 'nullable|exists:products,id',
         ]);
 
-        $query = WasteRecord::with(['product:id,name', 'recorder:id,full_name'])
+        $paginator = WasteRecord::with(['product:id,name', 'recorder:id,full_name'])
             ->when($request->start_date, fn ($q) => $q->whereDate('created_at', '>=', $request->start_date))
             ->when($request->end_date, fn ($q) => $q->whereDate('created_at', '<=', $request->end_date))
             ->when($request->product_id, fn ($q) => $q->where('product_id', $request->product_id))
             ->orderByDesc('created_at')
-            ->paginate(50);
+            ->paginate($request->per_page ?? 50);
 
-        return $this->success($query);
+        return $this->success([
+            'data'  => $paginator->map(fn ($r) => [
+                'id'               => $r->id,
+                'product_name'     => $r->product?->name ?? '—',
+                'quantity'         => $r->quantity,
+                'reason'           => $r->reason,
+                'waste_value'      => $r->total_value !== null ? number_format((float) $r->total_value, 2, '.', '') : null,
+                'notes'            => $r->notes,
+                'created_by_name'  => $r->recorder?->full_name ?? null,
+                'created_at'       => $r->created_at,
+            ]),
+            'total' => $paginator->total(),
+        ]);
     }
 }

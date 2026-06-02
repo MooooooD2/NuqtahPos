@@ -522,10 +522,12 @@ Route::middleware(['auth', 'permission:view_warehouse', 'throttle:60,1'])->prefi
 
 // ── HR Module API ─────────────────────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
-    Route::get('/hr/employees', [HrController::class, 'index'])->name('hr.employees.index');
-    Route::post('/hr/employees', [HrController::class, 'store'])->name('hr.employees.store');
-    Route::put('/hr/employees/{user}', [HrController::class, 'update'])->name('hr.employees.update');
-    Route::delete('/hr/employees/{user}', [HrController::class, 'destroy'])->name('hr.employees.destroy');
+    Route::middleware('permission:manage_hr')->group(function () {
+        Route::get('/hr/employees', [HrController::class, 'index'])->name('hr.employees.index');
+        Route::post('/hr/employees', [HrController::class, 'store'])->name('hr.employees.store');
+        Route::put('/hr/employees/{user}', [HrController::class, 'update'])->name('hr.employees.update');
+        Route::delete('/hr/employees/{user}', [HrController::class, 'destroy'])->name('hr.employees.destroy');
+    });
     Route::get('/shifts', [HrController::class, 'shifts'])->name('hr.shifts.index');
 });
 

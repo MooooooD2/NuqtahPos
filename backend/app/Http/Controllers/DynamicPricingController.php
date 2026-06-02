@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PriceRule;
 use App\Services\DynamicPricingService;
+use App\Traits\ApiResponse;
 use BadMethodCallException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 
 class DynamicPricingController extends Controller
 {
+    use ApiResponse;
     public function __construct(private DynamicPricingService $pricing) {}
 
     /* ─── Web View ───────────────────────────────────────────────────── */
@@ -24,7 +26,7 @@ class DynamicPricingController extends Controller
 
     public function all(): JsonResponse
     {
-        return response()->json($this->pricing->getAllRulesWithStatus());
+        return $this->success(['data' => $this->pricing->getAllRulesWithStatus()]);
     }
 
     public function store(Request $request): JsonResponse

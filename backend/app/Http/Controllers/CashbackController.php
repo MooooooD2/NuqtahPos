@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\CashbackRule;
 use App\Models\CashbackTransaction;
 use App\Services\CashbackService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CashbackController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private CashbackService $cashback) {}
 
     /**
@@ -77,18 +80,34 @@ class CashbackController extends Controller
 
     /**
      * Cashback transaction history.
+     * When customer_id is omitted returns recent global transactions (for admin view).
      */
     public function history(Request $request): JsonResponse
     {
         $customerId = $request->integer('customer_id');
+        $perPage = min((int) $request->input('per_page', 20), 100);
 
-        if (! $customerId) {
-            return response()->json(['error' => 'customer_id required'], 422);
+        if ($customerId) {
+            return response()->json([
+                'transactions' => $this->cashback->getHistory($customerId),
+                'balance' => $this->cashback->getBalance($customerId),
+            ]);
         }
 
-        return response()->json([
-            'transactions' => $this->cashback->getHistory($customerId),
-            'balance' => $this->cashback->getBalance($customerId),
+        $paginator = CashbackTransaction::with('customer:id,name')
+            ->latest()
+            ->paginate($perPage);
+
+        return $this->success([
+            'data'  => $paginator->map(fn ($t) => [
+                'id'            => $t->id,
+                'customer_name' => $t->customer?->name ?? null,
+                'type'          => $t->type,
+                'amount'        => $t->amount,
+                'balance_after' => $t->balance_after ?? '0',
+                'created_at'    => $t->created_at,
+            ]),
+            'total' => $paginator->total(),
         ]);
     }
 
@@ -96,7 +115,9 @@ class CashbackController extends Controller
 
     public function rules(): JsonResponse
     {
-        return response()->json(CashbackRule::orderByDesc('is_active')->get());
+        return $this->success([
+            'data' => CashbackRule::orderByDesc('is_active')->orderByDesc('created_at')->get(),
+        ]);
     }
 
     public function storeRule(Request $request): JsonResponse

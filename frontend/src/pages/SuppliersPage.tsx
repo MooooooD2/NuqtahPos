@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 interface Supplier { id: number; name: string; phone?: string; email?: string; address?: string; tax_number?: string; payment_terms?: number; outstanding_balance?: string; is_active?: boolean }
 
 const emptyForm = { name: '', phone: '', email: '', address: '', tax_number: '', payment_terms: '30' }
-const emptyPayment = { amount: '', notes: '', payment_date: new Date().toISOString().slice(0, 10) }
+const emptyPayment = { amount: '', notes: '', payment_date: new Date().toISOString().slice(0, 10), payment_method: 'cash' }
 
 export default function SuppliersPage() {
   const { hasPermission } = usePermission()
@@ -75,7 +75,7 @@ export default function SuppliersPage() {
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault()
     if (!paymentForm.amount) return toast.error('Amount required')
-    paymentMutation.mutate({ supplier_id: paymentSupplierId, amount: parseFloat(paymentForm.amount), notes: paymentForm.notes || undefined, payment_date: paymentForm.payment_date })
+    paymentMutation.mutate({ supplier_id: paymentSupplierId, amount: parseFloat(paymentForm.amount), payment_method: paymentForm.payment_method, notes: paymentForm.notes || undefined, payment_date: paymentForm.payment_date })
   }
 
   return (
@@ -149,6 +149,7 @@ export default function SuppliersPage() {
         footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handlePayment} disabled={paymentMutation.isPending} className="btn btn-primary">{paymentMutation.isPending ? 'Saving…' : 'Record Payment'}</button></>}>
         <form onSubmit={handlePayment} className="space-y-4">
           <div><label className="label">Amount *</label><input value={paymentForm.amount} type="number" min="0" step="0.01" onChange={(e) => setPaymentForm((p) => ({ ...p, amount: e.target.value }))} className="input w-full" required /></div>
+          <div><label className="label">Payment Method *</label><select value={paymentForm.payment_method} onChange={(e) => setPaymentForm((p) => ({ ...p, payment_method: e.target.value }))} className="input w-full"><option value="cash">Cash</option><option value="card">Card</option><option value="transfer">Transfer</option><option value="check">Check</option></select></div>
           <div><label className="label">Payment Date</label><input value={paymentForm.payment_date} type="date" onChange={(e) => setPaymentForm((p) => ({ ...p, payment_date: e.target.value }))} className="input w-full" /></div>
           <div><label className="label">Notes</label><input value={paymentForm.notes} onChange={(e) => setPaymentForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" placeholder="Optional notes" /></div>
         </form>

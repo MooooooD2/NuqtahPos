@@ -33,8 +33,8 @@ interface KitchenStats {
   avg_prep_time: number
 }
 interface KitchenResponse {
-  success: boolean
-  data: { orders: Order[]; stats: KitchenStats }
+  orders: Order[]
+  stats: KitchenStats
 }
 
 interface NewItemRow { name: string; quantity: number; notes: string }
@@ -90,8 +90,8 @@ export default function KitchenPage() {
     staleTime: 5_000,
   })
 
-  const orders = data?.data?.orders ?? []
-  const stats = data?.data?.stats ?? { pending: 0, cooking: 0, ready: 0, avg_prep_time: 0 }
+  const orders = data?.orders ?? []
+  const stats = data?.stats ?? { pending: 0, cooking: 0, ready: 0, avg_prep_time: 0 }
 
   const canView = hasPermission('view_kitchen')
 
@@ -124,10 +124,10 @@ export default function KitchenPage() {
     const validItems = items.filter((i) => i.name.trim())
     if (validItems.length === 0) return toast.error('Add at least one item')
     createMutation.mutate({
-      table_no: form.table_no || undefined,
+      table_number: form.table_no || undefined,
       order_type: form.order_type,
       notes: form.notes || undefined,
-      items: validItems.map((i) => ({ name: i.name, quantity: i.quantity, notes: i.notes || undefined })),
+      items: validItems.map((i) => ({ product_name: i.name, quantity: i.quantity, notes: i.notes || undefined })),
     })
   }
 
@@ -196,7 +196,7 @@ export default function KitchenPage() {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4">
-              {orders.map((order) => (
+              {orders.map((order: Order) => (
                 <OrderCard
                   key={order.id}
                   order={order}

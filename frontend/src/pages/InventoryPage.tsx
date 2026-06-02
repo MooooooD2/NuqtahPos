@@ -106,7 +106,7 @@ export default function InventoryPage() {
   const outItems = outData?.data ?? [];
   const expiryItems = expiryData?.data ?? [];
 
-  const canAdjust = hasPermission("manage_stock", "view_warehouse");
+  const canAdjust = hasPermission("add_stock", "manage_roles");
 
   const adjMutation = useMutation({
     mutationFn: (payload: object) => apiPost("/stock/adjustment", payload),

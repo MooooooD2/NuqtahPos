@@ -24,6 +24,7 @@ export default function InvoicesPage() {
   const [viewInvoice, setViewInvoice] = useState<InvoiceDetail | null>(null)
   const [returnModal, setReturnModal] = useState(false)
   const [returnItems, setReturnItems] = useState<Array<{ item_id: number; quantity: number }>>([])
+  const [refundMethod, setRefundMethod] = useState<'cash' | 'store_credit' | 'exchange'>('cash')
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoices', page, search, dateFrom, dateTo],
@@ -50,14 +51,19 @@ export default function InvoicesPage() {
   })
 
   const handleReturn = () => {
-    const items = returnItems.filter((i) => i.quantity > 0)
-    if (items.length === 0) return toast.error('Select items to return')
-    returnMutation.mutate({ invoice_id: viewInvoice?.id, items })
+    const filtered = returnItems.filter((i) => i.quantity > 0)
+    if (filtered.length === 0) return toast.error('Select items to return')
+    const items = filtered.map((ri) => {
+      const item = returnableItems.find((x) => x.id === ri.item_id)
+      return { product_id: item?.product_id, quantity: ri.quantity }
+    }).filter((i) => i.product_id != null)
+    returnMutation.mutate({ invoice_id: viewInvoice?.id, items, refund_method: refundMethod })
   }
 
   const openView = (inv: Invoice) => {
     setViewInvoice(inv)
     setReturnItems([])
+    setRefundMethod('cash')
   }
 
   const handlePrint = () => window.print()
@@ -152,6 +158,14 @@ export default function InvoicesPage() {
           <button onClick={handleReturn} disabled={returnMutation.isPending} className="btn bg-orange-500 hover:bg-orange-600 text-white">{returnMutation.isPending ? 'Processing…' : 'Process Return'}</button>
         </>}>
         <div className="space-y-3">
+          <div className="flex items-center gap-3 mb-1">
+            <label className="text-sm text-gray-500 font-medium">Refund Method:</label>
+            <select value={refundMethod} onChange={(e) => setRefundMethod(e.target.value as typeof refundMethod)} className="input py-1 text-sm">
+              <option value="cash">Cash</option>
+              <option value="store_credit">Store Credit</option>
+              <option value="exchange">Exchange</option>
+            </select>
+          </div>
           <p className="text-sm text-gray-500">Select quantities to return:</p>
           {returnableItems.length === 0 ? <p className="text-center text-gray-400 py-4">No returnable items</p>
             : returnableItems.map((item) => {

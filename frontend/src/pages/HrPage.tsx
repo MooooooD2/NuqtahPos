@@ -55,6 +55,7 @@ export default function HrPage() {
   const [markPaidRunId, setMarkPaidRunId] = useState<number | null>(null)
 
   const canManage = hasPermission('manage_hr')
+  const canManagePayroll = hasPermission('manage_settings', 'manage_roles')
 
   // ── Employees queries / mutations ──
   const { data: empData, isLoading: empLoading, isError: empError } = useQuery({
@@ -201,7 +202,7 @@ export default function HrPage() {
     queryKey: ['hr-payroll-runs'],
     queryFn: () => apiGet<{ runs: PayrollRun[] }>('/hr/payroll/runs'),
     staleTime: 60_000,
-    enabled: tab === 'payroll',
+    enabled: tab === 'payroll' && canManagePayroll,
     retry: false,
   })
 
@@ -521,7 +522,7 @@ export default function HrPage() {
                 {months.map((m) => <option key={m.v} value={m.v}>{m.l}</option>)}
               </select>
             </div>
-            {canManage && (
+            {canManagePayroll && (
               <button
                 onClick={() => generatePayrollMutation.mutate({ year: payYear, month: payMonth })}
                 disabled={generatePayrollMutation.isPending}
@@ -552,7 +553,7 @@ export default function HrPage() {
                           <td className="px-4 py-3 font-semibold text-primary-600">{parseFloat(run.net_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                           <td className="px-4 py-3"><span className={clsx('badge capitalize', payrollStatusBadge(run.status))}>{run.status}</span></td>
                           <td className="px-4 py-3">
-                            {canManage && (
+                            {canManagePayroll && (
                               <div className="flex gap-1">
                                 {run.status === 'draft' && (
                                   <button onClick={() => setApproveRunId(run.id)} className="btn btn-secondary text-xs py-1 px-2">Approve</button>

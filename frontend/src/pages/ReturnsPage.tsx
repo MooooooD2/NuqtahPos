@@ -99,7 +99,7 @@ export default function ReturnsPage() {
     if (!foundInvoice) return
     const items = returnableItems
       .filter((item) => (itemQtys[item.id] ?? 0) > 0)
-      .map((item) => ({ item_id: item.id, quantity: itemQtys[item.id] }))
+      .map((item) => ({ product_id: item.product_id, quantity: itemQtys[item.id] }))
     if (items.length === 0) return toast.error('Select at least one item to return')
     processMutation.mutate({
       invoice_id: foundInvoice.id,

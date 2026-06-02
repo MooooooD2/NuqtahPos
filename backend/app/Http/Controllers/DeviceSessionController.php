@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Services\DeviceSessionService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DeviceSessionController extends Controller
 {
+    use ApiResponse;
     public function __construct(private DeviceSessionService $service) {}
 
     /* ─── Web Page ───────────────────────────────────────────────────── */
@@ -25,16 +27,18 @@ class DeviceSessionController extends Controller
     {
         $sessions = $this->service->getActiveSessions($request->user()->id);
 
-        return response()->json($sessions->map(fn ($s) => [
-            'id' => $s->id,
-            'device_name' => $s->device_name,
-            'device_type' => $s->device_type,
-            'browser' => $s->browser,
-            'os' => $s->os,
-            'ip_address' => $s->ip_address,
-            'last_active_at' => $s->last_active_at?->diffForHumans(),
-            'is_current' => $s->is_current,
-        ]));
+        return $this->success([
+            'data' => $sessions->map(fn ($s) => [
+                'id'             => $s->id,
+                'device_name'    => $s->device_name,
+                'device_type'    => $s->device_type,
+                'browser'        => $s->browser,
+                'os'             => $s->os,
+                'ip_address'     => $s->ip_address,
+                'last_active_at' => $s->last_active_at?->diffForHumans(),
+                'is_current'     => $s->is_current,
+            ]),
+        ]);
     }
 
     public function revoke(Request $request, int $id): JsonResponse

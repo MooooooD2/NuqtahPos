@@ -36,6 +36,7 @@ interface PO {
 
 interface ReturnableItem {
   id: number
+  product_id: number
   product_name: string
   quantity: number
   returnable_quantity: number
@@ -114,7 +115,7 @@ export default function PurchaseReturnsPage() {
     if (!selectedPO) return toast.error('No PO selected')
     const items = returnableItems
       .filter((i) => parseInt(returnQtys[i.id] ?? '0') > 0)
-      .map((i) => ({ item_id: i.id, quantity: parseInt(returnQtys[i.id]) }))
+      .map((i) => ({ product_id: i.product_id, quantity: parseInt(returnQtys[i.id]) }))
     if (items.length === 0) return toast.error('Select at least one item to return')
     createMutation.mutate({ purchase_order_id: selectedPO.id, items, refund_method: refundMethod, reason: reason || undefined })
   }

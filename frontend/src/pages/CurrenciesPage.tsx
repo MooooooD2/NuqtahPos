@@ -277,8 +277,8 @@ export default function CurrenciesPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Code * <span className="text-xs text-gray-400">(max 10)</span></label>
-              <input {...f('code')} maxLength={10} className="input w-full uppercase" placeholder="USD" required />
+              <label className="label">Code * <span className="text-xs text-gray-400">(3 chars)</span></label>
+              <input {...f('code')} maxLength={3} className="input w-full uppercase" placeholder="USD" required />
             </div>
             <div>
               <label className="label">Symbol * <span className="text-xs text-gray-400">(max 5)</span></label>

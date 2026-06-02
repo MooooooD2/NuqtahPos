@@ -53,7 +53,7 @@ export default function WastePage() {
   })
 
   const records = data?.data ?? []
-  const canManage = hasPermission('manage_waste')
+  const canManage = hasPermission('add_stock', 'manage_roles')
 
   const recordMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/waste', payload),

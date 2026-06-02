@@ -64,14 +64,18 @@ export default function PurchasesPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.supplier_id) return toast.error('Supplier required')
+    const validItems = form.items.filter((item) => item.product_id && item.quantity)
+    if (validItems.length === 0) return toast.error('Add at least one item')
     createMutation.mutate({
       supplier_id: parseInt(form.supplier_id),
+      order_date: new Date().toISOString().slice(0, 10),
       expected_date: form.expected_date || undefined,
       notes: form.notes || undefined,
-      items: form.items.filter((item) => item.product_id && item.quantity).map((item) => ({
+      items: validItems.map((item) => ({
         product_id: parseInt(item.product_id),
+        product_name: item.product_name || '',
         quantity: parseInt(item.quantity),
-        unit_cost: parseFloat(item.unit_cost) || 0,
+        cost_price: parseFloat(item.unit_cost) || 0,
       })),
     })
   }
