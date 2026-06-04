@@ -6,17 +6,23 @@ use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
 use App\Models\Expense;
 use App\Services\ExpenseService;
+use App\Services\NotificationService;
 use App\Traits\ApiResponse;
 use App\Traits\AuditLog;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ExpenseController extends Controller
 {
     use ApiResponse;
     use AuditLog;
 
-    public function __construct(private ExpenseService $expenseService) {}
+    public function __construct(
+        private ExpenseService $expenseService,
+        private NotificationService $notifier,
+    ) {}
 
     public function index()
     {
@@ -50,6 +56,17 @@ class ExpenseController extends Controller
                 'expense_number' => $expense->expense_number,
                 'amount' => $expense->amount,
             ]);
+
+            // Notify admins for expenses above 100 (configurable threshold)
+            $threshold = (float) config('pos.expense_alert_threshold', 100);
+            if ((float) $expense->amount >= $threshold) {
+                try {
+                    $category = $expense->category?->name ?? '';
+                    $this->notifier->expenseRecorded($expense->title, (float) $expense->amount, $category);
+                } catch (Throwable $e) {
+                    Log::warning('expense.notification_failed', ['error' => $e->getMessage()]);
+                }
+            }
 
             return $this->success(['expense' => $expense], '', 201);
         } catch (Exception $e) {

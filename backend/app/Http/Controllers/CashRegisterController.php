@@ -142,8 +142,13 @@ class CashRegisterController extends Controller
             'status' => 'nullable|in:open,closed',
         ]);
 
-        return $this->success(['sessions' => $this->cashRegisterService->history(
+        $paginator = $this->cashRegisterService->history(
             $request->only(['cashier_id', 'date_from', 'date_to', 'status']),
-        )]);
+        );
+
+        return $this->success([
+            'sessions' => $paginator->items(),
+            'total'    => $paginator->total(),
+        ]);
     }
 }

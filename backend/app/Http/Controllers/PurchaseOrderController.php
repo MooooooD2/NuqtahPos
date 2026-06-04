@@ -6,12 +6,15 @@ use App\Contracts\Repositories\PurchaseOrderRepositoryInterface;
 use App\Http\Requests\ReceivePurchaseOrderRequest;
 use App\Http\Requests\StorePurchaseOrderRequest;
 use App\Models\PurchaseOrder;
+use App\Services\NotificationService;
 use App\Services\PurchaseOrderService;
 use App\Traits\ApiResponse;
 use App\Traits\AuditLog;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class PurchaseOrderController extends Controller
 {
@@ -21,6 +24,7 @@ class PurchaseOrderController extends Controller
     public function __construct(
         private PurchaseOrderService $poService,
         private PurchaseOrderRepositoryInterface $poRepo,
+        private NotificationService $notifier,
     ) {}
 
     public function index()
@@ -51,6 +55,13 @@ class PurchaseOrderController extends Controller
         try {
             $po = $this->poService->createPurchaseOrder($request->validated());
             $this->audit('po.created', PurchaseOrder::class, (int) $po->id, ['po_number' => $po->po_number]);
+
+            try {
+                $supplierName = $po->supplier?->name ?? 'Unknown Supplier';
+                $this->notifier->purchaseOrderCreated($po->po_number, $supplierName, (float) $po->total);
+            } catch (Throwable $e) {
+                Log::warning('po.notification_failed', ['error' => $e->getMessage()]);
+            }
 
             return $this->success(['purchase_order' => $po], '', 201);
         } catch (Exception $e) {

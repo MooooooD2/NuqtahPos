@@ -24,8 +24,8 @@ class InvoiceResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at->toDateTimeString(),
             'customer_id' => $this->customer_id,
-            'customer_name' => $this->whenLoaded('customer', fn () => $this->customer?->name),
-            'customer_phone' => $this->whenLoaded('customer', fn () => $this->customer?->phone),
+            'customer_name' => $this->whenLoaded('customer', fn () => $this->customer?->name, $this->customer_name),
+            'customer_phone' => $this->whenLoaded('customer', fn () => $this->customer?->phone, $this->customer_phone ?? null),
             'items' => InvoiceItemResource::collection($this->whenLoaded('items')),
             // ETA e-invoicing fields
             'eta_status' => $this->eta_status,

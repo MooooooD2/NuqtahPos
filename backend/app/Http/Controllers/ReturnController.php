@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReturnRequest;
 use App\Models\SalesReturn;
 use App\Services\Printing\ThermalPrinterService;
+use App\Services\NotificationService;
 use App\Services\ReturnService;
 use App\Services\SettingService;
 use App\Traits\ApiResponse;
@@ -26,6 +27,7 @@ class ReturnController extends Controller
         private ReturnService $returnService,
         private ThermalPrinterService $printerService,
         private SettingService $settingService,
+        private NotificationService $notifier,
     ) {}
 
     public function index()
@@ -73,6 +75,16 @@ class ReturnController extends Controller
                 'invoice_id' => $return->invoice_id,
                 'invoice_number' => $return->invoice_number,
             ]);
+
+            try {
+                $this->notifier->returnProcessed(
+                    $return->return_number ?? 'RET-' . $return->id,
+                    $return->invoice_number ?? '—',
+                    (float) $return->total_amount,
+                );
+            } catch (Throwable $e) {
+                Log::warning('return.notification_failed', ['error' => $e->getMessage()]);
+            }
 
             $printResult = null;
             if ($this->settingService->get('print_on_return', false)) {

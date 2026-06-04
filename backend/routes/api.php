@@ -553,4 +553,19 @@ Route::middleware(['auth:sanctum', 'permission:view_warehouse', 'throttle:30,1']
     Route::put('/warehouses/{warehouse}/unlock', [WarehouseController::class, 'toggleLock'])->name('warehouses.unlock');
 });
 
+// ── Dev-only: fire a test notification to verify the pipeline ─────────────
+Route::middleware(['auth:sanctum', 'permission:manage_roles'])->post('/dev/test-notification', function () {
+    $type = request()->input('type', 'custom');
+    $notifier = app(App\Services\NotificationService::class);
+
+    match ($type) {
+        'low_stock'   => $notifier->lowStock(1, 'Test Product', 3, 10),
+        'new_invoice' => $notifier->newInvoice('INV-TEST-001', 99.99, 'cash', 'Test Customer'),
+        'leave'       => $notifier->leaveRequest('Test Employee', 'annual', now()->toDateString(), now()->addDays(3)->toDateString(), 4),
+        default       => $notifier->custom('Test notification', 'This is a test subtitle from the backend.'),
+    };
+
+    return response()->json(['success' => true, 'message' => "Sent [{$type}] notification."]);
+})->name('dev.test-notification');
+
 require __DIR__ . '/_api_additions.php';

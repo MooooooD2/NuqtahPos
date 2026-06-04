@@ -101,7 +101,7 @@ class ShiftController extends Controller
     {
         $history = $this->service->history(auth()->user(), (int) $request->get('days', 30));
 
-        return response()->json(['shifts' => $history]);
+        return response()->json(['success' => true, 'data' => $history]);
     }
 
     /** GET /api/shifts/active — admin: all active shifts */

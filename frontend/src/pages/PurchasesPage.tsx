@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -24,8 +25,14 @@ const emptyPO = { supplier_id: '', expected_date: '', notes: '', items: [{ produ
 export default function PurchasesPage() {
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
+  const [searchParams] = useSearchParams()
   const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '')
+
+  useEffect(() => {
+    const s = searchParams.get('search')
+    if (s) setSearch(s)
+  }, [searchParams])
   const [modal, setModal] = useState<'add' | 'view' | null>(null)
   const [selectedPO, setSelectedPO] = useState<PO | null>(null)
   const [form, setForm] = useState({ ...emptyPO })

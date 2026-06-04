@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Services\InvoiceService;
+use App\Services\NotificationService;
 use App\Services\Printing\ThermalPrinterService;
 use App\Services\SettingService;
 use App\Traits\ApiResponse;
@@ -28,6 +29,7 @@ class InvoiceController extends Controller
         private InvoiceService $invoiceService,
         private SettingService $settingService,
         private ThermalPrinterService $printerService,
+        private NotificationService $notifier,
     ) {}
 
     public function posPage()
@@ -80,6 +82,21 @@ class InvoiceController extends Controller
         try {
             $invoice = $this->invoiceService->createInvoice($request->validated());
             $this->audit('invoice.created', Invoice::class, $invoice->id, ['total' => $invoice->final_total]);
+
+            // Store in-app notification for admin users
+            try {
+                $this->notifier->newInvoice(
+                    $invoice->invoice_number,
+                    (float) $invoice->final_total,
+                    $invoice->payment_method ?? 'cash',
+                    $invoice->customer_name,
+                );
+            } catch (Throwable $e) {
+                Log::warning('invoice.notification_failed', [
+                    'invoice' => $invoice->invoice_number,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
 
             $printResult = null;
             if ($this->settingService->get('print_on_sale', false)) {

@@ -28,7 +28,17 @@ Route::middleware(['auth:sanctum', 'permission:manage_white_label', 'throttle:30
 // Phase 9 — Push Notifications API
 // ═══════════════════════════════════════════════════════════════════════════
 Route::middleware(['auth:sanctum', 'throttle:30,1'])->prefix('notifications')->name('api.notifications.')->group(function () {
-    Route::get('/', fn () => response()->json(auth()->user()->notifications()->latest()->take(30)->get()))->name('index');
+    Route::get('/', function () {
+        try {
+            return response()->json(auth()->user()->notifications()->latest()->take(30)->get());
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Graceful fallback if notifications table missing in a fresh tenant
+            if (str_contains($e->getMessage(), 'notifications')) {
+                return response()->json([]);
+            }
+            throw $e;
+        }
+    })->name('index');
     Route::post('/push-token', [App\Http\Controllers\Mobile\MobileAuthController::class, 'updatePushToken'])->name('push-token');
     Route::post('/read-all', function () {
         auth()->user()->unreadNotifications()->update(['read_at' => now()]);
@@ -535,6 +545,16 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Notify admins of the leave request
+        try {
+            $employee = DB::table('users')->where('id', $targetUserId)->value('full_name') ?? 'Employee';
+            app(App\Services\NotificationService::class)->leaveRequest(
+                $employee, $req->leave_type, $req->starts_at, $req->ends_at, (int) $days,
+            );
+        } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('leave.notification_failed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json(['success' => true, 'id' => $id]);
     })->name('leaves.store');

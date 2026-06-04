@@ -84,8 +84,30 @@
   100% { top: 15%; }
 }
 
-/* Print styles */
+/* Print styles — hide all app chrome, show only the receipt */
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
+
+  /* Hide entire app shell */
+  header, nav, aside, footer,
+  [data-sidebar], [data-header],
+  .sidebar, .app-sidebar, .app-header { display: none !important; }
+
+  /* Reset body for clean print */
+  body { background: #fff !important; color: #000 !important; font-size: 12px !important; }
+
+  /* The receipt preview div */
+  .receipt { max-width: 300px !important; margin: 0 auto !important; }
+
+  /* Hide modal overlay and action buttons, show only receipt */
+  .fixed.inset-0.z-50 {
+    position: static !important;
+    background: none !important;
+    backdrop-filter: none !important;
+  }
+  .fixed.inset-0.z-50 > .absolute { display: none !important; }
+  .fixed.inset-0.z-50 > .relative > .flex:first-child,
+  .fixed.inset-0.z-50 > .relative > .flex:last-child { display: none !important; }
+  .fixed.inset-0.z-50 > .relative > .overflow-y-auto { overflow: visible !important; }
 }

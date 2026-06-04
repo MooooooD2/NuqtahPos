@@ -5,6 +5,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useOfflineStore } from '@/stores/offlineStore'
 import { usePermission } from '@/hooks/usePermission'
 import BarcodeScanner, { useKeyboardScanner } from '@/components/common/BarcodeScanner'
+import InvoicePrintModal, { type PrintableInvoice } from '@/components/common/InvoicePrintModal'
 import { invokeTauri } from '@/lib/tauri'
 import type { Product, Customer } from '@/types'
 import {
@@ -61,6 +62,7 @@ export default function PosPage() {
     barcode: string; name: string; brand?: string; price: string
   } | null>(null)
   const [creatingProduct, setCreatingProduct] = useState(false)
+  const [printInvoice, setPrintInvoice] = useState<PrintableInvoice | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const cart = useCartStore()
   const { isOnline, enqueue } = useOfflineStore()
@@ -153,11 +155,15 @@ export default function PosPage() {
   const checkoutMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/invoices', payload),
     onSuccess: async (res: unknown) => {
-      const data = res as { invoice?: { invoice_number: string } }
-      toast.success(`Sale #${data.invoice?.invoice_number ?? '—'} completed!`)
+      const data = res as { invoice?: PrintableInvoice }
+      const inv = data.invoice
+      toast.success(`Sale #${inv?.invoice_number ?? '—'} completed!`)
       await openCashDrawer()
       cart.clearCart(); setPayModal(false); setTenderedAmount('')
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      // Refresh notification bell immediately so admin sees the new-sale alert
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['notifications'] }), 800)
+      if (inv) setPrintInvoice(inv)
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Sale failed'
@@ -517,6 +523,15 @@ export default function PosPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Invoice Print Modal (shown after successful sale) ─────────── */}
+      {printInvoice && (
+        <InvoicePrintModal
+          invoice={printInvoice}
+          onClose={() => setPrintInvoice(null)}
+          title={`Receipt — #${printInvoice.invoice_number}`}
+        />
       )}
     </div>
   )

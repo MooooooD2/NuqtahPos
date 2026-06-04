@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import InvoicePrintModal, { type PrintableInvoice } from '@/components/common/InvoicePrintModal'
 import { FileText, Search, Eye, RotateCcw, Printer } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
@@ -17,14 +19,22 @@ const statusBadge: Record<string, string> = { paid: 'badge-success', completed: 
 export default function InvoicesPage() {
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
+  const [searchParams] = useSearchParams()
   const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '')
+
+  // When navigated from a notification link with ?search=, apply it
+  useEffect(() => {
+    const s = searchParams.get('search')
+    if (s) setSearch(s)
+  }, [searchParams])
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [viewInvoice, setViewInvoice] = useState<InvoiceDetail | null>(null)
   const [returnModal, setReturnModal] = useState(false)
   const [returnItems, setReturnItems] = useState<Array<{ item_id: number; quantity: number }>>([])
   const [refundMethod, setRefundMethod] = useState<'cash' | 'store_credit' | 'exchange'>('cash')
+  const [printInvoiceNumber, setPrintInvoiceNumber] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoices', page, search, dateFrom, dateTo],
@@ -40,8 +50,16 @@ export default function InvoicesPage() {
     enabled: !!viewInvoice?.id,
   })
 
+  const { data: printData, isLoading: printLoading } = useQuery({
+    queryKey: ['invoice-print', printInvoiceNumber],
+    queryFn: () => apiGet<{ success: boolean; invoice?: PrintableInvoice }>('/invoices/search', { number: printInvoiceNumber }),
+    enabled: !!printInvoiceNumber,
+    staleTime: 0,
+  })
+
   const invoices = data?.data ?? []
   const returnableItems = returnableData?.items ?? []
+  const printableInvoice = printData?.invoice ?? null
   const canReturn = hasPermission('create_returns', 'view_pos')
 
   const returnMutation = useMutation({
@@ -66,7 +84,7 @@ export default function InvoicesPage() {
     setRefundMethod('cash')
   }
 
-  const handlePrint = () => window.print()
+  const handlePrint = (inv: Invoice) => setPrintInvoiceNumber(inv.invoice_number)
 
   return (
     <div className="space-y-4">
@@ -106,7 +124,7 @@ export default function InvoicesPage() {
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           <button onClick={() => openView(inv)} className="p-1 text-gray-400 hover:text-primary-600 rounded"><Eye className="h-4 w-4" /></button>
-                          <button onClick={() => handlePrint()} className="p-1 text-gray-400 hover:text-gray-600 rounded"><Printer className="h-4 w-4" /></button>
+                          <button onClick={() => handlePrint(inv)} className="p-1 text-gray-400 hover:text-gray-600 rounded" title="Print invoice"><Printer className="h-4 w-4" /></button>
                           {canReturn && (inv.status === 'paid' || inv.status === 'completed') && (
                             <button onClick={() => { openView(inv); setReturnModal(true) }} title="Process Return" className="p-1 text-gray-400 hover:text-orange-600 rounded"><RotateCcw className="h-4 w-4" /></button>
                           )}
@@ -133,7 +151,7 @@ export default function InvoicesPage() {
       <Modal open={!!viewInvoice && !returnModal} onClose={() => setViewInvoice(null)} title={`Invoice #${viewInvoice?.invoice_number ?? ''}`} size="lg"
         footer={<>
           <button onClick={() => setViewInvoice(null)} className="btn btn-secondary">Close</button>
-          <button onClick={handlePrint} className="btn btn-secondary flex items-center gap-2"><Printer className="h-4 w-4" />Print</button>
+          {viewInvoice && <button onClick={() => handlePrint(viewInvoice)} className="btn btn-secondary flex items-center gap-2"><Printer className="h-4 w-4" />Print</button>}
           {canReturn && (viewInvoice?.status === 'paid' || viewInvoice?.status === 'completed') && (
             <button onClick={() => setReturnModal(true)} className="btn bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"><RotateCcw className="h-4 w-4" />Return</button>
           )}
@@ -193,6 +211,23 @@ export default function InvoicesPage() {
             })}
         </div>
       </Modal>
+
+      {/* ── Invoice Print Modal ───────────────────────────────────────── */}
+      {printInvoiceNumber && (
+        printLoading ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 flex items-center gap-3">
+              <div className="h-5 w-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">Loading invoice…</span>
+            </div>
+          </div>
+        ) : (
+          <InvoicePrintModal
+            invoice={printableInvoice}
+            onClose={() => setPrintInvoiceNumber(null)}
+          />
+        )
+      )}
     </div>
   )
 }
