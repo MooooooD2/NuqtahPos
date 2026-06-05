@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -30,7 +31,18 @@ function calcDays(start: string, end: string): number {
 export default function HrPage() {
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
-  const [tab, setTab] = useState<'employees' | 'shifts' | 'attendance' | 'leaves' | 'payroll'>('employees')
+  const [searchParams] = useSearchParams()
+  const validTabs = ['employees', 'shifts', 'attendance', 'leaves', 'payroll'] as const
+  type TabType = typeof validTabs[number]
+  const initialTab = (validTabs.includes(searchParams.get('tab') as TabType)
+    ? searchParams.get('tab')
+    : 'employees') as TabType
+  const [tab, setTab] = useState<TabType>(initialTab)
+
+  useEffect(() => {
+    const t = searchParams.get('tab') as TabType
+    if (validTabs.includes(t)) setTab(t)
+  }, [searchParams])
 
   // ── Employees state ──
   const [modal, setModal] = useState<'add' | 'edit' | null>(null)

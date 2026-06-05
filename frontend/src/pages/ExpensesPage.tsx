@@ -9,11 +9,12 @@ import { Receipt, Plus, Pencil, Trash2, Search, DollarSign, Hash, Calendar } fro
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 
+interface ExpenseCategoryObj { id: number; name: string }
 interface Expense {
   id: number
   title: string
   amount: string
-  category?: string
+  category?: ExpenseCategoryObj | null
   category_id?: number
   date: string
   payment_method: string
@@ -207,7 +208,7 @@ export default function ExpensesPage() {
                   <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 text-gray-400 text-xs">{(page - 1) * 20 + idx + 1}</td>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{exp.title}</td>
-                    <td className="px-4 py-3 text-gray-500">{exp.category ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">{exp.category?.name ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{exp.date?.slice(0, 10)}</td>
                     <td className="px-4 py-3 font-semibold text-red-600">{parseFloat(exp.amount).toFixed(2)}</td>
                     <td className="px-4 py-3">

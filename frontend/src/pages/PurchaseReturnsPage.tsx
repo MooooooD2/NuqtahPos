@@ -16,7 +16,7 @@ interface PurchaseReturn {
   total: string
   refund_method: string
   status: string
-  notes?: string
+  reason?: string
   items?: ReturnItem[]
   recorded_by?: string
 }
@@ -325,7 +325,7 @@ export default function PurchaseReturnsPage() {
                 <span className={clsx('badge ml-1 capitalize', statusBadge[viewReturn.status] ?? 'badge-gray')}>{viewReturn.status}</span>
               </div>
               <div><span className="text-gray-500">Total:</span> <span className="font-bold text-primary-600">{parseFloat(viewReturn.total ?? '0').toFixed(2)}</span></div>
-              {viewReturn.notes && <div className="col-span-2"><span className="text-gray-500">Notes:</span> <span>{viewReturn.notes}</span></div>}
+              {viewReturn.reason && <div className="col-span-2"><span className="text-gray-500">Reason:</span> <span>{viewReturn.reason}</span></div>}
             </div>
             {viewReturn.items && viewReturn.items.length > 0 && (
               <div>

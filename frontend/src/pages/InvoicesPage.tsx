@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
@@ -21,13 +21,22 @@ export default function InvoicesPage() {
   const qc = useQueryClient()
   const [searchParams] = useSearchParams()
   const [page, setPage] = useState(1)
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('search') ?? '')
   const [search, setSearch] = useState(() => searchParams.get('search') ?? '')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // When navigated from a notification link with ?search=, apply it
   useEffect(() => {
     const s = searchParams.get('search')
-    if (s) setSearch(s)
+    if (s) { setSearchInput(s); setSearch(s) }
   }, [searchParams])
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value)
+    setPage(1)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setSearch(value), 400)
+  }
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [viewInvoice, setViewInvoice] = useState<InvoiceDetail | null>(null)
@@ -94,12 +103,12 @@ export default function InvoicesPage() {
       <div className="flex flex-wrap gap-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Invoice # or customer…" className="input pl-9 w-56" />
+          <input value={searchInput} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Invoice # or customer…" className="input pl-9 w-56" />
         </div>
         <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="input" placeholder="From date" />
         <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="input" placeholder="To date" />
-        {(dateFrom || dateTo || search) && (
-          <button onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); }} className="btn btn-secondary text-sm">Clear</button>
+        {(dateFrom || dateTo || searchInput) && (
+          <button onClick={() => { setSearchInput(''); setSearch(''); setDateFrom(''); setDateTo(''); }} className="btn btn-secondary text-sm">Clear</button>
         )}
       </div>
 

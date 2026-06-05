@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
-import { CreditCard, Plus, Printer, DollarSign, Calendar, Hash } from 'lucide-react'
+import { CreditCard, Plus, Printer, DollarSign, Calendar, Hash, X } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 
@@ -20,6 +20,7 @@ export default function SupplierPaymentsPage() {
   const [modal, setModal] = useState<'new' | 'print' | null>(null)
   const [form, setForm] = useState({ ...emptyForm })
   const [printRow, setPrintRow] = useState<SupplierPayment | null>(null)
+  const receiptRef = useRef<HTMLDivElement>(null)
   const [filterSupplier, setFilterSupplier] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -30,6 +31,8 @@ export default function SupplierPaymentsPage() {
     queryFn: () => apiGet<{ success: boolean; data: Supplier[] }>('/suppliers', { all: 1 }),
     staleTime: 120_000,
   })
+  const datesValid = !dateFrom || !dateTo || dateFrom <= dateTo
+
   const { data, isLoading } = useQuery({
     queryKey: ['supplier-payments', filterSupplier, dateFrom, dateTo, page],
     queryFn: () => apiGet<{ success: boolean; data: SupplierPayment[]; total?: number }>('/supplier-payments', {
@@ -40,11 +43,48 @@ export default function SupplierPaymentsPage() {
       per_page: 20,
     }),
     staleTime: 30_000,
+    enabled: datesValid,
+  })
+
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings-store'],
+    queryFn: () => apiGet<Record<string, string>>('/settings/group/store'),
+    staleTime: 300_000,
+    retry: false,
   })
 
   const suppliers = suppliersData?.data ?? []
   const payments = data?.data ?? []
   const canView = hasPermission('view_warehouse')
+
+  const storeName = settingsData?.store_name ?? settingsData?.business_name ?? 'POS Store'
+  const storePhone = settingsData?.store_phone ?? settingsData?.phone ?? ''
+  const storeAddress = settingsData?.store_address ?? settingsData?.address ?? ''
+  const storeFooter = settingsData?.receipt_footer ?? settingsData?.footer_text ?? 'Thank you!'
+
+  const handlePrint = () => {
+    const content = receiptRef.current
+    if (!content) return
+    const win = window.open('', '_blank', 'width=400,height=600')
+    if (!win) { window.print(); return }
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/>
+      <title>Payment Receipt</title>
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Courier New',monospace;font-size:12px;color:#000;background:#fff;padding:8px}
+        .receipt{max-width:300px;margin:0 auto}
+        .center{text-align:center}
+        .bold{font-weight:bold}
+        .divider{border-top:1px dashed #000;margin:6px 0}
+        .row{display:flex;justify-content:space-between;margin:3px 0}
+        .label{color:#555}
+        @media print{body{padding:0}}
+      </style>
+    </head><body>${content.innerHTML}</body></html>`)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print(); win.close() }, 300)
+  }
 
   const selectedSupplier = suppliers.find((s) => String(s.id) === form.supplier_id)
 
@@ -54,7 +94,10 @@ export default function SupplierPaymentsPage() {
   const createPayment = useMutation({
     mutationFn: (payload: object) => apiPost('/supplier-payments', payload),
     onSuccess: () => { toast.success('Payment recorded'); qc.invalidateQueries({ queryKey: ['supplier-payments'] }); setModal(null) },
-    onError: () => toast.error('Failed to record payment'),
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg ?? 'Failed to record payment')
+    },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -115,11 +158,12 @@ export default function SupplierPaymentsPage() {
         </div>
         <div>
           <label className="label text-xs">Date From</label>
-          <input value={dateFrom} type="date" onChange={(e) => { setDateFrom(e.target.value); setPage(1) }} className="input text-sm" />
+          <input value={dateFrom} type="date" max={dateTo || undefined} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }} className="input text-sm" />
         </div>
         <div>
-          <label className="label text-xs">Date To</label>
-          <input value={dateTo} type="date" onChange={(e) => { setDateTo(e.target.value); setPage(1) }} className="input text-sm" />
+          <label className={`label text-xs${!datesValid ? ' text-red-500' : ''}`}>Date To</label>
+          <input value={dateTo} type="date" min={dateFrom || undefined} onChange={(e) => { setDateTo(e.target.value); setPage(1) }} className={`input text-sm${!datesValid ? ' border-red-400' : ''}`} />
+          {!datesValid && <p className="text-xs text-red-500 mt-0.5">Must be after "Date From"</p>}
         </div>
         <button onClick={clearFilters} className="btn btn-secondary text-sm">Clear</button>
       </div>
@@ -198,20 +242,92 @@ export default function SupplierPaymentsPage() {
         </form>
       </Modal>
 
-      <Modal open={modal === 'print'} onClose={() => setModal(null)} title="Payment Receipt" size="sm"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Close</button><button onClick={() => window.print()} className="btn btn-primary flex items-center gap-2"><Printer className="h-4 w-4" />Print</button></>}>
-        {printRow && (
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between"><span className="text-gray-500">Payment #</span><span className="font-mono font-semibold">{printRow.payment_number ?? `#${printRow.id}`}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Supplier</span><span className="font-medium">{printRow.supplier?.name ?? '—'}</span></div>
-            {printRow.supplier?.phone && <div className="flex justify-between"><span className="text-gray-500">Phone</span><span>{printRow.supplier.phone}</span></div>}
-            <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="font-bold text-green-600">{parseFloat(printRow.amount).toFixed(2)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Method</span><span className="capitalize">{printRow.payment_method}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Date</span><span>{printRow.payment_date?.slice(0, 10)}</span></div>
-            {printRow.notes && <div className="flex justify-between"><span className="text-gray-500">Notes</span><span className="max-w-40 text-right">{printRow.notes}</span></div>}
+      {/* Payment Receipt Print Modal */}
+      {modal === 'print' && printRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModal(null)} />
+          <div className="relative z-10 flex flex-col max-h-[90vh] w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Printer className="h-4 w-4 text-primary-500" /> Payment Receipt
+              </h2>
+              <button onClick={() => setModal(null)} className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><X className="h-5 w-5" /></button>
+            </div>
+
+            {/* Receipt preview */}
+            <div className="overflow-y-auto flex-1 p-4">
+              <div ref={receiptRef} className="bg-white text-black font-mono text-xs mx-auto" style={{ maxWidth: 300 }}>
+                {/* Store header */}
+                <div style={{ textAlign: 'center', marginBottom: 4 }}>
+                  <div style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 2 }} className="bold">{storeName}</div>
+                  {storeAddress && <div style={{ fontSize: 11, color: '#555' }}>{storeAddress}</div>}
+                  {storePhone && <div style={{ fontSize: 11, color: '#555' }}>{storePhone}</div>}
+                </div>
+
+                <div className="divider" style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
+
+                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>SUPPLIER PAYMENT RECEIPT</div>
+
+                <div className="divider" style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
+
+                {/* Payment details */}
+                <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '3px 0' }}>
+                  <span style={{ color: '#555' }}>Payment #</span>
+                  <span style={{ fontWeight: 'bold' }}>{printRow.payment_number ?? `#${printRow.id}`}</span>
+                </div>
+                <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '3px 0' }}>
+                  <span style={{ color: '#555' }}>Date</span>
+                  <span>{printRow.payment_date?.slice(0, 10)}</span>
+                </div>
+
+                <div className="divider" style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
+
+                <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '3px 0' }}>
+                  <span style={{ color: '#555' }}>Supplier</span>
+                  <span style={{ fontWeight: 'bold' }}>{printRow.supplier?.name ?? '—'}</span>
+                </div>
+                {printRow.supplier?.phone && (
+                  <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '3px 0' }}>
+                    <span style={{ color: '#555' }}>Phone</span>
+                    <span>{printRow.supplier.phone}</span>
+                  </div>
+                )}
+
+                <div style={{ borderTop: '1px solid #000', margin: '6px 0' }} />
+
+                <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0', fontWeight: 'bold', fontSize: 14 }}>
+                  <span>AMOUNT PAID</span>
+                  <span>{parseFloat(printRow.amount).toFixed(2)}</span>
+                </div>
+
+                <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '3px 0' }}>
+                  <span style={{ color: '#555' }}>Method</span>
+                  <span style={{ textTransform: 'capitalize' }}>{printRow.payment_method}</span>
+                </div>
+
+                {printRow.notes && (
+                  <>
+                    <div className="divider" style={{ borderTop: '1px dashed #000', margin: '6px 0' }} />
+                    <div style={{ fontSize: 11, color: '#555' }}>Note: {printRow.notes}</div>
+                  </>
+                )}
+
+                <div style={{ borderTop: '1px dashed #000', margin: '8px 0 4px' }} />
+                <div style={{ textAlign: 'center', fontSize: 11, color: '#555' }}>{storeFooter}</div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+              <button onClick={() => setModal(null)} className="btn btn-secondary flex-1">Close</button>
+              <button onClick={handlePrint} className="btn btn-primary flex-1 flex items-center justify-center gap-2">
+                <Printer className="h-4 w-4" /> Print
+              </button>
+            </div>
           </div>
-        )}
-      </Modal>
+        </div>
+      )}
     </div>
   )
 }

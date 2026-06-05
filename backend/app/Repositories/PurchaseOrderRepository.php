@@ -30,8 +30,17 @@ class PurchaseOrderRepository extends BaseRepository implements PurchaseOrderRep
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
+        if (! empty($filters['search'])) {
+            $q = $filters['search'];
+            $query->where(function ($q2) use ($q) {
+                $q2->where('po_number', 'like', "%{$q}%")
+                   ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$q}%"));
+            });
+        }
 
-        return $query->paginate(20);
+        $perPage = min((int) ($filters['per_page'] ?? 20), 100);
+
+        return $query->paginate($perPage);
     }
 
     public function create(array $data): PurchaseOrder

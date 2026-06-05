@@ -138,9 +138,16 @@ class PurchaseReturnService
             ->groupBy('product_id')
             ->pluck('total_returned', 'product_id');
 
+        $isReceived = in_array($po->status, ['received', 'partial']);
+
         $result = [];
         foreach ($po->items as $item) {
             $received = (int) $item->received_quantity;
+            // If received_quantity was never recorded (pre-receive-flow data) but the
+            // PO is in a received/partial state, fall back to the ordered quantity.
+            if ($received === 0 && $isReceived) {
+                $received = (int) $item->quantity;
+            }
             $returned = (int) ($alreadyReturned[$item->product_id] ?? 0);
             $result[$item->product_id] = max(0, $received - $returned);
         }

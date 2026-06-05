@@ -82,7 +82,7 @@ function getNotifLink(type: string, data: Record<string, unknown>): string | nul
     return '/expenses'
 
   if (t === 'leaverequestnotification' || msg.startsWith('leave request'))
-    return '/hr'
+    return '/hr?tab=leaves'
 
   if (t.includes('stock') || t.includes('inventory'))
     return '/inventory'

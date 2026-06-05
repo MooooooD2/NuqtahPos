@@ -256,6 +256,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', CheckSubscriptionActive::cla
         Route::get('/stock/near-expiry', [StockController::class, 'nearExpiry'])->name('stock.near-expiry');
         Route::get('/stock/expired-batches', [StockController::class, 'expiredBatches'])->name('stock.expired-batches');
         Route::get('/stock/reorder-suggestions', [StockController::class, 'reorderSuggestions'])->name('stock.reorder-suggestions');
+        Route::get('/stock/all-products', [StockController::class, 'allProducts'])->name('stock.all-products');
 
         // ── Stock availability & reservations (controller checks add_stock internally) ──
         Route::get('/stock/available/{product}', [StockController::class, 'available'])->name('stock.available');
@@ -508,6 +509,8 @@ Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->group(funct
     // Cashback rules management
     Route::get('/cashback/rules', [CashbackController::class, 'rules'])->name('api.cashback.rules');
     Route::post('/cashback/rules', [CashbackController::class, 'storeRule'])->name('api.cashback.rules.store');
+    Route::patch('/cashback/rules/{id}/activate', [CashbackController::class, 'activateRule'])->name('api.cashback.rules.activate');
+    Route::delete('/cashback/rules/{id}', [CashbackController::class, 'deleteRule'])->name('api.cashback.rules.destroy');
 });
 
 // ── CRM API ───────────────────────────────────────────────────────────────

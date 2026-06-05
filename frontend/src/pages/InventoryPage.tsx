@@ -9,19 +9,21 @@ import {
   Package,
   AlertTriangle,
   XCircle,
-  Plus,
   ArrowUpDown,
   Clock,
+  Search,
 } from "lucide-react";
 import { clsx } from "clsx";
 import toast from "react-hot-toast";
 
 interface StockItem {
-  id: number;
-  name: string;
+  id?: number;
+  product_id?: number;
+  name?: string;
+  product_name?: string;
   quantity: number;
   min_stock: number;
-  low_stock: boolean;
+  low_stock?: boolean;
   barcode?: string;
   category?: string;
 }
@@ -39,6 +41,15 @@ interface BatchItem {
   batch_number: string;
   days_until_expiry: number;
 }
+interface AllProduct {
+  id: number;
+  name: string;
+  quantity: number;
+  min_stock: number;
+  low_stock: boolean;
+  barcode?: string;
+  category?: string;
+}
 
 const adjForm = {
   product_id: "",
@@ -51,7 +62,9 @@ const adjForm = {
 export default function InventoryPage() {
   const { hasPermission } = usePermission();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"low" | "out" | "expiry" | "movements">("low");
+  const [tab, setTab] = useState<"all" | "low" | "out" | "expiry" | "movements">("all");
+  const [allSearch, setAllSearch] = useState("");
+  const [allPage, setAllPage] = useState(1);
   const [adjModal, setAdjModal] = useState(false);
   const [form, setForm] = useState({ ...adjForm });
 
@@ -101,10 +114,28 @@ export default function InventoryPage() {
     enabled: tab === "expiry",
   });
 
+  const {
+    data: allData,
+    isLoading: allLoading,
+    error: allError,
+  } = useQuery({
+    queryKey: ["stock-all", allPage, allSearch],
+    queryFn: () =>
+      apiGet<{ success: boolean; data: AllProduct[]; total?: number; pages?: number }>(
+        "/stock/all-products",
+        { page: allPage, per_page: 50, search: allSearch || undefined },
+      ),
+    staleTime: 30_000,
+    enabled: tab === "all",
+  });
+
   const health = healthData?.data;
   const lowItems = lowData?.data ?? [];
   const outItems = outData?.data ?? [];
   const expiryItems = expiryData?.data ?? [];
+  const allItems = allData?.data ?? [];
+  const allTotal = allData?.total ?? 0;
+  const allPages = allData?.pages ?? 1;
 
   const canAdjust = hasPermission("add_stock", "manage_roles");
 
@@ -189,11 +220,11 @@ export default function InventoryPage() {
             ) : (
               items.map((p) => (
                 <tr
-                  key={p.id}
+                  key={p.id ?? p.product_id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                 >
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                    {p.name}
+                    {p.name ?? p.product_name ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {p.category ?? "—"}
@@ -280,6 +311,7 @@ export default function InventoryPage() {
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
         {(
           [
+            { key: "all", label: "All Products" },
             { key: "low", label: "Low Stock", count: health?.low_stock },
             { key: "out", label: "Out of Stock", count: health?.out_of_stock },
             { key: "expiry", label: "Near Expiry", icon: Clock },
@@ -313,7 +345,78 @@ export default function InventoryPage() {
         ))}
       </div>
 
+      {/* All Products search bar */}
+      {tab === "all" && (
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            value={allSearch}
+            onChange={(e) => { setAllSearch(e.target.value); setAllPage(1); }}
+            placeholder="Search products…"
+            className="input pl-9 w-full"
+          />
+        </div>
+      )}
+
       <div className="card overflow-hidden">
+        {tab === "all" && (
+          allError ? (
+            <div className="p-4 text-red-600 dark:text-red-400 text-sm">
+              <strong>Error loading products:</strong> {String(allError)}
+            </div>
+          ) : allLoading ? (
+            <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      {["Product", "Category", "Barcode", "Remaining Stock", "Min Stock", "Status"].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {allItems.length === 0 ? (
+                      <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No products found</td></tr>
+                    ) : allItems.map((p) => (
+                      <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
+                        <td className="px-4 py-3 text-gray-500">{p.category ?? "—"}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-gray-400">{p.barcode ?? "—"}</td>
+                        <td className="px-4 py-3">
+                          <span className={clsx("font-bold text-lg",
+                            p.quantity <= 0 ? "text-red-600" : p.low_stock ? "text-amber-600" : "text-green-600"
+                          )}>
+                            {p.quantity}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">{p.min_stock}</td>
+                        <td className="px-4 py-3">
+                          {p.quantity <= 0
+                            ? <span className="badge badge-danger">Out of Stock</span>
+                            : p.low_stock
+                              ? <span className="badge badge-warning">Low Stock</span>
+                              : <span className="badge badge-success">In Stock</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {allTotal > 50 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+                  <span className="text-sm text-gray-500">Page {allPage} of {allPages} · {allTotal} products</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setAllPage((p) => Math.max(1, p - 1))} disabled={allPage === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
+                    <button onClick={() => setAllPage((p) => p + 1)} disabled={allPage >= allPages} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+                  </div>
+                </div>
+              )}
+            </>
+          )
+        )}
         {tab === "low" &&
           (lowError ? (
             <div className="p-4 text-red-600 dark:text-red-400 text-sm">

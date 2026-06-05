@@ -12,19 +12,19 @@ interface Session {
   id: number
   session_number?: string
   cashier_name?: string
-  opening_balance: string
-  closing_balance?: string
+  opening_amount: number
   expected_cash?: string
   actual_cash?: string
-  cash_sales?: string
-  card_sales?: string
-  total_sales?: string
+  cash_sales?: number | string
+  card_sales?: number | string
+  total_sales?: number | string
+  cash_returns?: number | string
   status: string
   opened_at: string
   closed_at?: string
 }
 
-const emptyOpenForm = { opening_balance: '', notes: '' }
+const emptyOpenForm = { opening_amount: '', notes: '' }
 const emptyCloseForm = { actual_cash: '', notes: '' }
 const emptyMovementForm = { type: 'deposit', amount: '', reason: '' }
 
@@ -83,8 +83,8 @@ export default function CashRegisterPage() {
 
   const handleOpen = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!openForm.opening_balance) return toast.error('Opening balance required')
-    openMutation.mutate({ opening_balance: parseFloat(openForm.opening_balance), notes: openForm.notes || undefined })
+    if (!openForm.opening_amount) return toast.error('Opening balance required')
+    openMutation.mutate({ opening_amount: parseFloat(openForm.opening_amount), notes: openForm.notes || undefined })
   }
   const handleClose = (e: React.FormEvent) => {
     e.preventDefault()
@@ -148,8 +148,8 @@ export default function CashRegisterPage() {
             {session && (
               <>
                 <span className="text-sm text-gray-500">Cashier: <span className="font-medium text-gray-900 dark:text-white">{session.cashier_name ?? '—'}</span></span>
-                <span className="text-sm text-gray-500">Opening Balance: <span className="font-medium">{parseFloat(session.opening_balance).toFixed(2)}</span></span>
-                <span className="text-sm text-gray-500">Opened: <span className="font-medium">{session.opened_at?.slice(0, 16)}</span></span>
+                <span className="text-sm text-gray-500">Opening Balance: <span className="font-medium">{Number(session.opening_amount ?? 0).toFixed(2)}</span></span>
+                <span className="text-sm text-gray-500">Opened: <span className="font-medium">{session.opened_at?.replace('T', ' ').slice(0, 16)}</span></span>
               </>
             )}
           </div>
@@ -164,7 +164,7 @@ export default function CashRegisterPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Cash Sales</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{parseFloat(session.cash_sales ?? '0').toFixed(2)}</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.cash_sales ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
                 <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -175,7 +175,7 @@ export default function CashRegisterPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Card Sales</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{parseFloat(session.card_sales ?? '0').toFixed(2)}</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.card_sales ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
                 <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -186,7 +186,7 @@ export default function CashRegisterPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Sales</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{parseFloat(session.total_sales ?? '0').toFixed(2)}</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.total_sales ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-primary-100 dark:bg-primary-900/30">
                 <ShoppingCart className="h-6 w-6 text-primary-600 dark:text-primary-400" />
@@ -197,7 +197,7 @@ export default function CashRegisterPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Returns</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{parseFloat('0').toFixed(2)}</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.cash_returns ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
                 <RotateCcw className="h-6 w-6 text-orange-600 dark:text-orange-400" />
@@ -231,8 +231,8 @@ export default function CashRegisterPage() {
                   <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-mono text-xs text-primary-600">{s.session_number ?? `#${s.id}`}</td>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.cashier_name ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{s.opened_at?.slice(0, 16)}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{s.closed_at?.slice(0, 16) ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{s.opened_at?.replace('T', ' ').slice(0, 16)}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{s.closed_at ? s.closed_at.replace('T', ' ').slice(0, 16) : '—'}</td>
                     <td className="px-4 py-3 font-semibold">{s.expected_cash ? parseFloat(s.expected_cash).toFixed(2) : '—'}</td>
                     <td className="px-4 py-3 font-semibold">{s.actual_cash ? parseFloat(s.actual_cash).toFixed(2) : '—'}</td>
                     <td className="px-4 py-3">
@@ -272,8 +272,8 @@ export default function CashRegisterPage() {
           <div>
             <label className="label">Opening Balance *</label>
             <input
-              value={openForm.opening_balance}
-              onChange={(e) => setOpenForm((p) => ({ ...p, opening_balance: e.target.value }))}
+              value={openForm.opening_amount}
+              onChange={(e) => setOpenForm((p) => ({ ...p, opening_amount: e.target.value }))}
               type="number" step="0.01" min="0" className="input w-full" placeholder="0.00" required
             />
           </div>
@@ -304,10 +304,12 @@ export default function CashRegisterPage() {
         }
       >
         <form onSubmit={handleClose} className="space-y-4">
-          {session?.expected_cash && (
+          {session && (
             <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
               <span className="text-gray-500">Expected Cash:</span>
-              <span className="font-bold text-gray-900 dark:text-white ml-2">{parseFloat(session.expected_cash).toFixed(2)}</span>
+              <span className="font-bold text-gray-900 dark:text-white ml-2">
+                {(Number(session.opening_amount ?? 0) + Number(session.cash_sales ?? 0) - Number(session.cash_returns ?? 0)).toFixed(2)}
+              </span>
             </div>
           )}
           <div>

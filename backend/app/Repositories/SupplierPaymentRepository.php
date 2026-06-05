@@ -21,7 +21,17 @@ class SupplierPaymentRepository extends BaseRepository implements SupplierPaymen
             $query->where('supplier_id', $filters['supplier_id']);
         }
 
-        return $query->paginate(20);
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('payment_date', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('payment_date', '<=', $filters['date_to']);
+        }
+
+        $perPage = min((int) ($filters['per_page'] ?? 20), 100);
+
+        return $query->paginate($perPage);
     }
 
     public function create(array $data): SupplierPayment

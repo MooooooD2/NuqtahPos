@@ -15,10 +15,10 @@ interface PO {
   status: string; total: string; expected_date?: string; notes?: string; created_at: string
   items?: POItem[]
 }
-interface POItem { id: number; product_id: number; product?: { name: string }; quantity: number; unit_cost: string; received_quantity: number }
+interface POItem { id: number; product_id: number; product_name?: string; product?: { name: string }; quantity: number; unit_cost?: string; cost_price?: string; received_quantity: number }
 interface Supplier { id: number; name: string }
 
-const statusBadge: Record<string, string> = { draft: 'badge-gray', sent: 'badge-info', received: 'badge-success', partial: 'badge-warning', cancelled: 'badge-danger', approved: 'badge-success' }
+const statusBadge: Record<string, string> = { draft: 'badge-gray', pending: 'badge-info', sent: 'badge-info', received: 'badge-success', partial: 'badge-warning', cancelled: 'badge-danger', approved: 'badge-success', rejected: 'badge-danger' }
 
 const emptyPO = { supplier_id: '', expected_date: '', notes: '', items: [{ product_id: '', product_name: '', quantity: '1', unit_cost: '' }] }
 
@@ -36,6 +36,9 @@ export default function PurchasesPage() {
   const [modal, setModal] = useState<'add' | 'view' | null>(null)
   const [selectedPO, setSelectedPO] = useState<PO | null>(null)
   const [form, setForm] = useState({ ...emptyPO })
+  const [receiveModal, setReceiveModal] = useState(false)
+  const [receivingPO, setReceivingPO] = useState<PO | null>(null)
+  const [receiveQtys, setReceiveQtys] = useState<Record<number, string>>({})
 
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-orders', page, search],
@@ -64,6 +67,28 @@ export default function PurchasesPage() {
     onSuccess: (_, vars) => { toast.success(`PO ${vars.action}d`); qc.invalidateQueries({ queryKey: ['purchase-orders'] }) },
     onError: () => toast.error('Action failed'),
   })
+  const receiveMutation = useMutation({
+    mutationFn: ({ id, items }: { id: number; items: object[] }) => apiPost(`/purchase-orders/${id}/receive`, { items }),
+    onSuccess: () => { toast.success('PO received'); qc.invalidateQueries({ queryKey: ['purchase-orders'] }); setReceiveModal(false) },
+    onError: () => toast.error('Failed to receive PO'),
+  })
+
+  const openReceiveModal = (po: PO) => {
+    const qtys: Record<number, string> = {}
+    po.items?.forEach((item) => { qtys[item.id] = String(Math.max(0, item.quantity - (item.received_quantity ?? 0))) })
+    setReceiveQtys(qtys)
+    setReceivingPO(po)
+    setReceiveModal(true)
+  }
+
+  const handleReceive = () => {
+    if (!receivingPO) return
+    const items = (receivingPO.items ?? [])
+      .map((item) => ({ item_id: item.id, received_quantity: parseInt(receiveQtys[item.id] ?? '0') }))
+      .filter((i) => i.received_quantity > 0)
+    if (items.length === 0) return toast.error('Enter at least one received quantity')
+    receiveMutation.mutate({ id: receivingPO.id, items })
+  }
 
   const addItem = () => setForm((p) => ({ ...p, items: [...p.items, { product_id: '', product_name: '', quantity: '1', unit_cost: '' }] }))
   const removeItem = (i: number) => setForm((p) => ({ ...p, items: p.items.filter((_, idx) => idx !== i) }))
@@ -122,14 +147,14 @@ export default function PurchasesPage() {
                           {canCreate && po.status === 'draft' && (
                             <button onClick={() => actionMutation.mutate({ id: po.id, action: 'submit' })} title="Submit" className="p-1 text-gray-400 hover:text-blue-600 rounded"><Send className="h-4 w-4" /></button>
                           )}
-                          {canApprove && po.status === 'sent' && (
+                          {canApprove && po.status === 'pending' && (
                             <>
                               <button onClick={() => actionMutation.mutate({ id: po.id, action: 'approve' })} title="Approve" className="p-1 text-gray-400 hover:text-green-600 rounded"><CheckCircle className="h-4 w-4" /></button>
                               <button onClick={() => actionMutation.mutate({ id: po.id, action: 'reject' })} title="Reject" className="p-1 text-gray-400 hover:text-red-600 rounded"><XCircle className="h-4 w-4" /></button>
                             </>
                           )}
                           {canReceive && (po.status === 'approved' || po.status === 'partial') && (
-                            <button onClick={() => actionMutation.mutate({ id: po.id, action: 'receive' })} title="Mark Received" className="p-1 text-gray-400 hover:text-green-600 rounded"><Package className="h-4 w-4" /></button>
+                            <button onClick={() => openReceiveModal(po)} title="Mark Received" className="p-1 text-gray-400 hover:text-green-600 rounded"><Package className="h-4 w-4" /></button>
                           )}
                         </div>
                       </td>
@@ -187,6 +212,40 @@ export default function PurchasesPage() {
             </div>
           </div>
         </form>
+      </Modal>
+
+      {/* Receive PO Modal */}
+      <Modal open={receiveModal} onClose={() => setReceiveModal(false)} title={`Receive PO #${receivingPO?.po_number ?? ''}`} size="lg"
+        footer={<><button onClick={() => setReceiveModal(false)} className="btn btn-secondary">Cancel</button><button onClick={handleReceive} disabled={receiveMutation.isPending} className="btn btn-primary">{receiveMutation.isPending ? 'Saving…' : 'Confirm Receipt'}</button></>}>
+        {receivingPO && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>{['Product', 'Ordered', 'Already Received', 'Receiving Now'].map((h) => <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {(receivingPO.items ?? []).length === 0
+                  ? <tr><td colSpan={4} className="px-3 py-8 text-center text-gray-400">No items</td></tr>
+                  : (receivingPO.items ?? []).map((item) => {
+                    const remaining = item.quantity - (item.received_quantity ?? 0)
+                    return (
+                      <tr key={item.id}>
+                        <td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{item.product_name ?? item.product?.name ?? `#${item.product_id}`}</td>
+                        <td className="px-3 py-2 text-gray-500">{item.quantity}</td>
+                        <td className="px-3 py-2 text-gray-500">{item.received_quantity ?? 0}</td>
+                        <td className="px-3 py-2">
+                          <input type="number" min="0" max={remaining} value={receiveQtys[item.id] ?? '0'}
+                            onChange={(e) => setReceiveQtys((p) => ({ ...p, [item.id]: e.target.value }))}
+                            className="input w-20" />
+                          {remaining > 0 && <span className="ml-2 text-xs text-gray-400">of {remaining}</span>}
+                        </td>
+                      </tr>
+                    )
+                  })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Modal>
 
       {/* View PO Modal */}

@@ -522,13 +522,13 @@ class InvoiceService
             $ret = $returned[$item->product_id] ?? 0;
 
             return [
-                'product_id' => $item->product_id,
-                'product_name' => $item->product_name,
-                'original_qty' => $item->quantity,
-                'returned_qty' => $ret,
-                'returnable_qty' => $item->quantity - $ret,
-                'price' => $item->price,
-                'unit_abbreviation' => $item->product?->unit?->abbreviation ?? $item->product?->unit?->name,
+                'id'                  => $item->id,
+                'product_id'          => $item->product_id,
+                'product_name'        => $item->product_name,
+                'quantity'            => $item->quantity,
+                'returnable_quantity' => $item->quantity - $ret,
+                'unit_price'          => $item->price,
+                'unit_abbreviation'   => $item->product?->unit?->abbreviation ?? $item->product?->unit?->name,
             ];
         })->values()->toArray();
     }

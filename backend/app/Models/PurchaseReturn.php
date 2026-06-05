@@ -14,10 +14,22 @@ class PurchaseReturn extends Model
         'processed_by', 'processed_by_name', 'return_date',
     ];
 
+    protected $appends = ['total', 'recorded_by'];
+
     protected $casts = [
         'total_amount' => 'decimal:2',
         'return_date' => 'date',
     ];
+
+    public function getTotalAttribute(): ?string
+    {
+        return $this->total_amount;
+    }
+
+    public function getRecordedByAttribute(): ?string
+    {
+        return $this->processed_by_name;
+    }
 
     public function purchaseOrder(): BelongsTo
     {

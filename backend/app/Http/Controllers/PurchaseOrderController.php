@@ -36,11 +36,13 @@ class PurchaseOrderController extends Controller
     {
         $request->validate([
             'supplier_id' => 'nullable|integer|exists:suppliers,id',
-            'status' => 'nullable|in:draft,pending,approved,partial,received,cancelled,rejected',
+            'status'      => 'nullable|in:draft,pending,approved,partial,received,cancelled,rejected',
+            'search'      => 'nullable|string|max:100',
+            'per_page'    => 'nullable|integer|min:1|max:100',
         ]);
 
         $paginated = $this->poRepo->paginate(
-            $request->only(['supplier_id', 'status']),
+            $request->only(['supplier_id', 'status', 'search', 'per_page']),
         );
         return $this->success([
             'data'  => $paginated->items(),

@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '@/services/api'
+import { api, apiGet, apiPost, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
-import { Gift, Plus, TrendingUp, TrendingDown, Percent } from 'lucide-react'
+import { Gift, Plus, TrendingUp, TrendingDown, Percent, ToggleRight, Trash2 } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 
-interface CashbackRule { id: number; name: string; percentage: string; min_purchase_amount: string; max_cashback?: string; is_active: boolean }
+interface CashbackRule { id: number; name: string; percentage: string; min_purchase: string; max_cashback?: string; is_active: boolean }
 interface CashbackTx { id: number; customer_name?: string; type: string; amount: string; balance_after: string; created_at: string }
 
 const emptyRule = { name: '', percentage: '', min_purchase_amount: '0', max_cashback: '' }
@@ -19,6 +20,7 @@ export default function CashbackPage() {
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState({ ...emptyRule })
   const [page, setPage] = useState(1)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { data: rulesData, isLoading: rulesLoading } = useQuery({
     queryKey: ['cashback-rules'],
@@ -43,6 +45,18 @@ export default function CashbackPage() {
     mutationFn: (payload: object) => apiPost('/cashback/rules', payload),
     onSuccess: () => { toast.success('Rule created'); qc.invalidateQueries({ queryKey: ['cashback-rules'] }); setModal(false) },
     onError: () => toast.error('Failed to create rule'),
+  })
+
+  const activateRule = useMutation({
+    mutationFn: (id: number) => api.patch(`/cashback/rules/${id}/activate`).then((r) => r.data),
+    onSuccess: () => { toast.success('Rule activated'); qc.invalidateQueries({ queryKey: ['cashback-rules'] }) },
+    onError: () => toast.error('Failed to activate rule'),
+  })
+
+  const deleteRule = useMutation({
+    mutationFn: (id: number) => apiDelete(`/cashback/rules/${id}`),
+    onSuccess: () => { toast.success('Rule deleted'); qc.invalidateQueries({ queryKey: ['cashback-rules'] }); setDeleteId(null) },
+    onError: () => toast.error('Failed to delete rule'),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,20 +112,43 @@ export default function CashbackPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{['Name', '%', 'Min Purchase', 'Max Cashback', 'Status'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{['Name', '%', 'Min Purchase', 'Max Cashback', 'Status', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {rules.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">No cashback rules yet</td></tr>
+                  {rules.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No cashback rules yet</td></tr>
                     : rules.map((r) => (
                       <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.name}</td>
                         <td className="px-4 py-3 text-primary-600 font-semibold">{r.percentage}%</td>
-                        <td className="px-4 py-3 text-gray-500">{parseFloat(r.min_purchase_amount).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-gray-500">{parseFloat(r.min_purchase ?? '0').toFixed(2)}</td>
                         <td className="px-4 py-3 text-gray-500">{r.max_cashback ? parseFloat(r.max_cashback).toFixed(2) : '—'}</td>
                         <td className="px-4 py-3">
                           <span className={clsx('badge text-xs', r.is_active ? 'badge-success' : 'badge-gray')}>
                             {r.is_active ? 'Active' : 'Inactive'}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {r.is_active ? (
+                              <ToggleRight className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <button
+                                onClick={() => activateRule.mutate(r.id)}
+                                disabled={activateRule.isPending}
+                                className="px-3 py-1 text-xs font-medium rounded-full border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                {activateRule.isPending ? '…' : 'Activate'}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteId(r.id)}
+                              disabled={deleteRule.isPending}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
+                              title="Delete rule"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -157,6 +194,15 @@ export default function CashbackPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Delete Cashback Rule"
+        message="Delete this cashback rule? This cannot be undone."
+        loading={deleteRule.isPending}
+        onConfirm={() => deleteId && deleteRule.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+      />
 
       <Modal open={modal} onClose={() => setModal(false)} title="New Cashback Rule" size="md"
         footer={<><button onClick={() => setModal(false)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={createRule.isPending} className="btn btn-primary">{createRule.isPending ? 'Creating…' : 'Create Rule'}</button></>}>

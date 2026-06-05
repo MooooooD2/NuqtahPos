@@ -274,8 +274,10 @@ class CashRegisterService
 
     public function calcSessionStats(CashRegisterSession $session): array
     {
+        // Use start-of-day so the entire shift's activity is captured even when the
+        // session was opened mid-day or after midnight in local time.
         $from = $session->opened_at->copy()->startOfDay();
-        $to = $session->closed_at ?? now();
+        $to   = $session->closed_at ?? now();
 
         $invoices = Invoice::where('cashier_id', $session->cashier_id)
             ->where('status', 'completed')
@@ -284,15 +286,14 @@ class CashRegisterService
             ->groupBy('payment_method')
             ->get()->keyBy('payment_method');
 
-        $returnsQuery = SalesReturn::where('processed_by', $session->cashier_id)
+        // Use created_at (datetime) for returns so time-of-day filtering works;
+        // return_date is date-only and cannot be narrowed to a shift window.
+        $returnsBase = SalesReturn::where('processed_by', $session->cashier_id)
             ->where('status', 'completed')
-            ->whereBetween('return_date', [$from->toDateString(), $to->toDateString()]);
+            ->whereBetween('created_at', [$from, $to]);
 
-        // Total returns for reporting
-        $totalReturns = (float) $returnsQuery->sum('total_amount');
-
-        // Only cash refunds reduce the expected cash balance in the drawer
-        $cashReturns = (float) $returnsQuery->where('refund_method', 'cash')->sum('refund_amount');
+        $totalReturns = (float) (clone $returnsBase)->sum('total_amount');
+        $cashReturns  = (float) (clone $returnsBase)->where('refund_method', 'cash')->sum('refund_amount');
 
         $cashSales = $invoices->get('cash')?->total ?? 0;
         $cardSales = $invoices->get('card')?->total ?? 0;

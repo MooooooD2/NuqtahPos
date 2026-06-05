@@ -14,12 +14,19 @@ class PurchaseOrder extends Model
         'approved_by', 'approved_at', 'rejection_reason',
     ];
 
+    protected $appends = ['total'];
+
     protected $casts = [
         'order_date' => 'date',
         'expected_date' => 'date',
         'received_date' => 'date',
         'approved_at' => 'datetime',
     ];
+
+    public function getTotalAttribute(): ?string
+    {
+        return $this->final_amount ?? $this->total_amount;
+    }
 
     public function supplier()
     {

@@ -136,4 +136,21 @@ class CashbackController extends Controller
 
         return response()->json(['rule' => $rule], 201);
     }
+
+    public function activateRule(int $id): JsonResponse
+    {
+        CashbackRule::query()->update(['is_active' => false]);
+        $rule = CashbackRule::findOrFail($id);
+        $rule->update(['is_active' => true]);
+
+        return $this->success(['rule' => $rule]);
+    }
+
+    public function deleteRule(int $id): JsonResponse
+    {
+        $rule = CashbackRule::findOrFail($id);
+        $rule->delete();
+
+        return $this->success([]);
+    }
 }

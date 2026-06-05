@@ -17,8 +17,8 @@ interface Rule {
   rule_type: string
   discount_type: string
   discount_value: string
-  start_time?: string
-  end_time?: string
+  time_start?: string
+  time_end?: string
   days_of_week?: number[]
   valid_from?: string
   valid_until?: string
@@ -107,8 +107,8 @@ export default function PricingRulesPage() {
       rule_type: r.rule_type,
       discount_type: r.discount_type,
       discount_value: r.discount_value,
-      start_time: r.start_time ?? '',
-      end_time: r.end_time ?? '',
+      start_time: r.time_start ?? '',
+      end_time: r.time_end ?? '',
       days_of_week: r.days_of_week ?? [],
       valid_from: r.valid_from?.slice(0, 10) ?? '',
       valid_until: r.valid_until?.slice(0, 10) ?? '',

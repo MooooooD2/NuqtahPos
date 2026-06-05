@@ -157,6 +157,54 @@ class StockController extends Controller
         ]);
     }
 
+    /**
+     * GET /api/stock/all-products?search=&page=&per_page=
+     *
+     * All products with their current stock quantities.
+     */
+    public function allProducts(Request $request): JsonResponse
+    {
+        $this->authorize('view_reports');
+
+        $request->validate([
+            'search'   => 'nullable|string|max:100',
+            'page'     => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:10|max:200',
+        ]);
+
+        $query = Product::query()->orderBy('name');
+
+        if ($request->filled('search')) {
+            $q = $request->string('search')->toString();
+            $query->where(function ($q2) use ($q) {
+                $q2->where('name', 'like', "%{$q}%")
+                   ->orWhere('barcode', 'like', "%{$q}%")
+                   ->orWhere('category', 'like', "%{$q}%");
+            });
+        }
+
+        $perPage = min((int) ($request->per_page ?? 50), 200);
+        $products = $query->select(['id', 'name', 'quantity', 'min_stock', 'barcode', 'category'])
+            ->paginate($perPage);
+
+        $items = collect($products->items())->map(fn ($p) => [
+            'id'        => $p->id,
+            'name'      => $p->name,
+            'quantity'  => (int) $p->quantity,
+            'min_stock' => (int) $p->min_stock,
+            'barcode'   => $p->barcode,
+            'category'  => $p->category,
+            'low_stock' => $p->min_stock > 0 && $p->quantity > 0 && $p->quantity <= $p->min_stock,
+        ]);
+
+        return $this->success([
+            'data'  => $items,
+            'total' => $products->total(),
+            'pages' => $products->lastPage(),
+            'page'  => $products->currentPage(),
+        ]);
+    }
+
     // ── Write-off ────────────────────────────────────────────────────────────
 
     /**

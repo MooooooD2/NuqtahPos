@@ -130,14 +130,15 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $query = Invoice::query()
-            ->with('cashier:id,username,full_name')
+            ->with(['cashier:id,username,full_name', 'customer:id,name,phone'])
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $q = $request->string('search')->toString();
             $query->where(function ($q2) use ($q) {
                 $q2->where('invoice_number', 'like', "%{$q}%")
-                   ->orWhere('customer_name', 'like', "%{$q}%");
+                   ->orWhere('cashier_name', 'like', "%{$q}%")
+                   ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$q}%"));
             });
         }
 
@@ -152,8 +153,19 @@ class InvoiceController extends Controller
         $perPage = min((int) $request->input('per_page', 20), 100);
         $invoices = $query->paginate($perPage);
 
+        $items = collect($invoices->items())->map(fn ($inv) => [
+            'id'             => $inv->id,
+            'invoice_number' => $inv->invoice_number,
+            'customer_name'  => $inv->customer?->name ?? null,
+            'cashier_name'   => $inv->cashier_name,
+            'payment_method' => $inv->payment_method,
+            'final_total'    => $inv->final_total,
+            'status'         => $inv->status,
+            'created_at'     => $inv->created_at?->toDateTimeString(),
+        ]);
+
         return $this->success([
-            'data'  => $invoices->items(),
+            'data'  => $items,
             'total' => $invoices->total(),
             'pages' => $invoices->lastPage(),
             'page'  => $invoices->currentPage(),
