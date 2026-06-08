@@ -20,6 +20,8 @@ interface Session {
   card_sales?: number | string
   total_sales?: number | string
   cash_returns?: number | string
+  deposits?: number | string
+  withdrawals?: number | string
   status: string
   opened_at: string
   closed_at?: string
@@ -307,11 +309,45 @@ export default function CashRegisterPage() {
       >
         <form onSubmit={handleClose} className="space-y-4">
           {session && (
-            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
-              <span className="text-gray-500">{t('expected_cash')}:</span>
-              <span className="font-bold text-gray-900 dark:text-white ml-2">
-                {(Number(session.opening_amount ?? 0) + Number(session.cash_sales ?? 0) - Number(session.cash_returns ?? 0)).toFixed(2)}
-              </span>
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('opening_balance')}:</span>
+                <span>{Number(session.opening_amount ?? 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">{t('cash_sales')}:</span>
+                <span className="text-green-600">+{Number(session.cash_sales ?? 0).toFixed(2)}</span>
+              </div>
+              {Number(session.cash_returns ?? 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{t('returns')}:</span>
+                  <span className="text-red-500">−{Number(session.cash_returns ?? 0).toFixed(2)}</span>
+                </div>
+              )}
+              {Number(session.deposits ?? 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{t('deposit')}:</span>
+                  <span className="text-green-600">+{Number(session.deposits ?? 0).toFixed(2)}</span>
+                </div>
+              )}
+              {Number(session.withdrawals ?? 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{t('withdrawal')}:</span>
+                  <span className="text-red-500">−{Number(session.withdrawals ?? 0).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1 font-bold">
+                <span className="text-gray-700 dark:text-gray-200">{t('expected_cash')}:</span>
+                <span className="text-gray-900 dark:text-white">
+                  {(
+                    Number(session.opening_amount ?? 0)
+                    + Number(session.cash_sales ?? 0)
+                    - Number(session.cash_returns ?? 0)
+                    + Number(session.deposits ?? 0)
+                    - Number(session.withdrawals ?? 0)
+                  ).toFixed(2)}
+                </span>
+              </div>
             </div>
           )}
           <div>

@@ -65,7 +65,11 @@ class CashRegisterService
     public function close(CashRegisterSession $session, array $data): CashRegisterSession
     {
         $stats = $this->calcSessionStats($session);
-        $expectedCash = $session->opening_amount + $stats['cash_sales'] - $stats['cash_returns'];
+        $expectedCash = $session->opening_amount
+            + $stats['cash_sales']
+            - $stats['cash_returns']
+            + $stats['deposits']
+            - $stats['withdrawals'];
         $actualCash = (float) $data['actual_cash'];
         $difference = $actualCash - $expectedCash;
 
@@ -186,12 +190,13 @@ class CashRegisterService
     public function estimatedCashBalance(CashRegisterSession $session): float
     {
         $stats = $this->calcSessionStats($session);
-        $movements = CashSessionMovement::where('cash_session_id', $session->id)->get();
-        $deposits = $movements->where('type', 'deposit')->sum('amount');
-        $withdrawals = $movements->where('type', 'withdrawal')->sum('amount');
 
         return round(
-            $session->opening_amount + $stats['cash_sales'] - $stats['cash_returns'] + $deposits - $withdrawals,
+            $session->opening_amount
+                + $stats['cash_sales']
+                - $stats['cash_returns']
+                + $stats['deposits']
+                - $stats['withdrawals'],
             2,
         );
     }
@@ -301,14 +306,20 @@ class CashRegisterService
         $totalSales = collect($invoices)->sum('total');
         $invoicesCount = collect($invoices)->sum('cnt');
 
+        $movements = CashSessionMovement::where('cash_session_id', $session->id)->get();
+        $deposits    = (float) $movements->where('type', 'deposit')->sum('amount');
+        $withdrawals = (float) $movements->where('type', 'withdrawal')->sum('amount');
+
         return [
-            'cash_sales' => $cashSales,
-            'card_sales' => $cardSales,
+            'cash_sales'    => $cashSales,
+            'card_sales'    => $cardSales,
             'transfer_sales' => $transferSales,
-            'total_sales' => $totalSales,
+            'total_sales'   => $totalSales,
             'total_returns' => $totalReturns,
-            'cash_returns' => $cashReturns,
+            'cash_returns'  => $cashReturns,
             'invoices_count' => $invoicesCount,
+            'deposits'      => $deposits,
+            'withdrawals'   => $withdrawals,
         ];
     }
 }
