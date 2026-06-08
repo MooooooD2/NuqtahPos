@@ -75,41 +75,44 @@ export default function WhatsAppPage() {
 
   const clearLogFilters = () => { setLogStatus(''); setLogType(''); setLogPhone(''); setLogPage(1) }
 
+  const getLogTypeLabel = (type: string) => {
+    const map: Record<string, string> = { invoice: t('invoice_msg_type'), debt_reminder: t('debt_reminder_type'), promotion: t('promotion_type') }
+    return map[type] ?? type.replace('_', ' ')
+  }
+
   const promoMutation = useMutation({
     mutationFn: (payload: object) => apiPost<{ success: boolean; data?: { count?: number }; message?: string }>('/whatsapp/promotions', payload),
     onSuccess: (res) => {
       const count = (res as any)?.data?.count
-      const msg = count != null ? `Promotion sent to ${count} customers` : 'Promotion sent successfully'
-      toast.success(msg)
+      toast.success(count != null ? t('promo_sent_n', { n: count }) : t('promo_sent'))
       setPromoResult(JSON.stringify(res, null, 2))
       setPromoMessage('')
       setVipOnly(false)
     },
-    onError: () => toast.error('Failed to send promotion'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handlePromoSend = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!promoMessage.trim()) return toast.error('Message is required')
+    if (!promoMessage.trim()) return toast.error(t('error'))
     promoMutation.mutate({ message: promoMessage.trim(), vip_only: vipOnly })
   }
 
   const debtMutation = useMutation({
     mutationFn: () => apiPost<{ success: boolean; data?: unknown; message?: string }>('/whatsapp/customers/bulk-reminders', {}),
     onSuccess: (res) => {
-      toast.success('Bulk reminders sent')
+      toast.success(t('updated_success'))
       setDebtResult(JSON.stringify(res, null, 2))
       setBulkConfirm(false)
     },
-    onError: () => { toast.error('Failed to send bulk reminders'); setBulkConfirm(false) },
+    onError: () => { toast.error(t('save_failed')); setBulkConfirm(false) },
   })
 
   if (!canManage) {
     return (
       <div className="card p-8 text-center text-gray-400 space-y-3">
         <MessageSquare className="h-10 w-10 mx-auto opacity-40" />
-        <p className="font-medium">{t('whatsapp')} module not accessible</p>
-        <p className="text-sm">Requires manage_roles permission</p>
+        <p className="font-medium">{t('no_permission')}</p>
       </div>
     )
   }
@@ -181,20 +184,20 @@ export default function WhatsAppPage() {
               <label className="label">{t('status')}</label>
               <select value={logStatus} onChange={(e) => { setLogStatus(e.target.value); setLogPage(1) }} className="input">
                 <option value="">{t('all')}</option>
-                <option value="queued">Queued</option>
-                <option value="sent">Sent</option>
-                <option value="delivered">Delivered</option>
-                <option value="read">Read</option>
-                <option value="failed">Failed</option>
+                <option value="queued">{t('queued')}</option>
+                <option value="sent">{t('sent_status')}</option>
+                <option value="delivered">{t('delivered')}</option>
+                <option value="read">{t('read_status')}</option>
+                <option value="failed">{t('failed_status')}</option>
               </select>
             </div>
             <div>
               <label className="label">{t('type')}</label>
               <select value={logType} onChange={(e) => { setLogType(e.target.value); setLogPage(1) }} className="input">
                 <option value="">{t('all')}</option>
-                <option value="invoice">Invoice</option>
-                <option value="debt_reminder">Debt Reminder</option>
-                <option value="promotion">Promotion</option>
+                <option value="invoice">{t('invoice_msg_type')}</option>
+                <option value="debt_reminder">{t('debt_reminder_type')}</option>
+                <option value="promotion">{t('promotion_type')}</option>
               </select>
             </div>
             <div>
@@ -216,7 +219,7 @@ export default function WhatsAppPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>{['To', t('type'), t('status'), 'Direction', t('date'), 'Error'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                      <tr>{[t('to'), t('type'), t('status'), t('direction'), t('date'), t('error_col')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {logs.length === 0
@@ -224,7 +227,7 @@ export default function WhatsAppPage() {
                         : logs.map((log) => (
                           <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                             <td className="px-4 py-3 font-mono text-xs text-gray-700 dark:text-gray-300">{log.to_phone}</td>
-                            <td className="px-4 py-3"><span className={clsx('badge capitalize', typeBadge(log.type))}>{log.type.replace('_', ' ')}</span></td>
+                            <td className="px-4 py-3"><span className={clsx('badge capitalize', typeBadge(log.type))}>{getLogTypeLabel(log.type)}</span></td>
                             <td className="px-4 py-3">
                               <span className={clsx('badge capitalize', log.status === 'read' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : statusBadge(log.status))}>
                                 {log.status}
@@ -232,8 +235,8 @@ export default function WhatsAppPage() {
                             </td>
                             <td className="px-4 py-3">
                               {log.direction === 'outbound'
-                                ? <span className="flex items-center gap-1 text-green-600 text-xs"><ArrowUp className="h-3.5 w-3.5" /> Out</span>
-                                : <span className="flex items-center gap-1 text-blue-600 text-xs"><ArrowDown className="h-3.5 w-3.5" /> In</span>
+                                ? <span className="flex items-center gap-1 text-green-600 text-xs"><ArrowUp className="h-3.5 w-3.5" /> {t('direction_out')}</span>
+                                : <span className="flex items-center gap-1 text-blue-600 text-xs"><ArrowDown className="h-3.5 w-3.5" /> {t('direction_in')}</span>
                               }
                             </td>
                             <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{log.created_at?.slice(0, 16)}</td>
@@ -268,7 +271,7 @@ export default function WhatsAppPage() {
             <form onSubmit={handlePromoSend} className="space-y-4">
               <div>
                 <div className="flex justify-between">
-                  <label className="label">{t('notes')} *</label>
+                  <label className="label">{t('message')} *</label>
                   <span className={clsx('text-xs', promoMessage.length > 1000 ? 'text-red-500 font-semibold' : 'text-gray-400')}>
                     {promoMessage.length} / 1000
                   </span>
@@ -279,7 +282,7 @@ export default function WhatsAppPage() {
                   maxLength={1000}
                   rows={6}
                   className="input w-full resize-y min-h-[140px]"
-                  placeholder="Enter your promotion message here…"
+                  placeholder={t('promo_message_ph')}
                   required
                 />
               </div>
@@ -330,7 +333,7 @@ export default function WhatsAppPage() {
       <ConfirmDialog
         open={bulkConfirm}
         title={t('bulk_debt_reminders')}
-        message="This will send WhatsApp payment reminders to ALL customers with outstanding balances. Are you sure?"
+        message={t('bulk_confirm_msg')}
         loading={debtMutation.isPending}
         onConfirm={() => debtMutation.mutate()}
         onCancel={() => setBulkConfirm(false)}

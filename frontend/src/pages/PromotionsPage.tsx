@@ -47,17 +47,6 @@ const typeBadge: Record<string, string> = {
   buy_x_get_y: 'badge badge-warning',
 }
 
-const typeLabel: Record<string, string> = {
-  percentage: 'Percentage',
-  fixed: 'Fixed',
-  buy_x_get_y: 'Buy X Get Y',
-}
-
-function formatValue(p: Promotion) {
-  if (p.type === 'percentage') return `${p.value ?? 0}%`
-  if (p.type === 'fixed') return `$${p.value ?? 0}`
-  return `Buy ${p.buy_quantity ?? 0} Get ${p.get_quantity ?? 0}`
-}
 
 export default function PromotionsPage() {
   const { hasPermission } = usePermission()
@@ -78,6 +67,13 @@ export default function PromotionsPage() {
 
   const promotions = data?.data ?? []
   const canManage = hasPermission('view_reports')
+
+  const getTypeLabel = (type: string) => ({ percentage: t('promo_type_percentage'), fixed: t('promo_type_fixed'), buy_x_get_y: t('promo_type_bxgy') }[type] ?? type)
+  const formatValue = (p: Promotion) => {
+    if (p.type === 'percentage') return `${p.value ?? 0}%`
+    if (p.type === 'fixed') return `$${p.value ?? 0}`
+    return `${t('buy_qty')} ${p.buy_quantity ?? 0} ${t('get_qty')} ${p.get_quantity ?? 0}`
+  }
 
   const set = (field: keyof typeof emptyForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const val = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value
@@ -106,19 +102,19 @@ export default function PromotionsPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/promotions/${editId}`, payload) : apiPost('/promotions', payload),
-    onSuccess: () => { toast.success(editId ? 'Promotion updated' : 'Promotion created'); qc.invalidateQueries({ queryKey: ['promotions'] }); setModal(null) },
-    onError: () => toast.error('Failed to save'),
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['promotions'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/promotions/${id}`),
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['promotions'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['promotions'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Name required')
+    if (!form.name) return toast.error(t('error'))
     const payload: Record<string, unknown> = {
       name: form.name,
       type: form.type,
@@ -165,7 +161,7 @@ export default function PromotionsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {[t('name'), t('type'), t('price'), 'Scope', 'Validity', t('status'), ''].map((h) => (
+                  {[t('name'), t('type'), t('price'), t('scope'), t('validity'), t('status'), ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -177,16 +173,16 @@ export default function PromotionsPage() {
                   <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
                     <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', typeBadge[p.type] ?? 'badge-gray')}>{typeLabel[p.type] ?? p.type}</span>
+                      <span className={clsx('badge capitalize', typeBadge[p.type] ?? 'badge-gray')}>{getTypeLabel(p.type)}</span>
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{formatValue(p)}</td>
                     <td className="px-4 py-3 text-gray-500">
-                      {p.product_id ? `Product #${p.product_id}` : p.category ? p.category : 'All'}
+                      {p.product_id ? t('product_scope', { n: p.product_id }) : p.category ? p.category : t('all')}
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs">
                       {p.starts_at || p.ends_at
                         ? `${p.starts_at?.slice(0, 10) ?? '∞'} – ${p.ends_at?.slice(0, 10) ?? '∞'}`
-                        : 'Always'}
+                        : t('always_label')}
                     </td>
                     <td className="px-4 py-3">
                       <span className={clsx('badge', p.is_active ? 'badge-success' : 'badge-gray')}>
@@ -247,51 +243,51 @@ export default function PromotionsPage() {
             <div>
               <label className="label">{t('type')} *</label>
               <select value={form.type} onChange={set('type')} className="input w-full">
-                <option value="percentage">Percentage</option>
-                <option value="fixed">Fixed Amount</option>
-                <option value="buy_x_get_y">Buy X Get Y</option>
+                <option value="percentage">{t('promo_type_percentage')}</option>
+                <option value="fixed">{t('promo_type_fixed')}</option>
+                <option value="buy_x_get_y">{t('promo_type_bxgy')}</option>
               </select>
             </div>
             {form.type !== 'buy_x_get_y' && (
               <div>
-                <label className="label">Value {form.type === 'percentage' ? '(%)' : '($)'} *</label>
+                <label className="label">{t('promo_value_label')} {form.type === 'percentage' ? '(%)' : '($)'} *</label>
                 <input value={form.value} onChange={set('value')} type="number" min="0" step="0.01" className="input w-full" />
               </div>
             )}
             {form.type === 'buy_x_get_y' && (
               <>
                 <div>
-                  <label className="label">Buy Quantity *</label>
+                  <label className="label">{t('buy_qty')} *</label>
                   <input value={form.buy_quantity} onChange={set('buy_quantity')} type="number" min="1" className="input w-full" />
                 </div>
                 <div>
-                  <label className="label">Get Quantity *</label>
+                  <label className="label">{t('get_qty')} *</label>
                   <input value={form.get_quantity} onChange={set('get_quantity')} type="number" min="1" className="input w-full" />
                 </div>
               </>
             )}
             <div>
-              <label className="label">Product ID (optional)</label>
-              <input value={form.product_id} onChange={set('product_id')} type="number" min="1" className="input w-full" placeholder="Leave blank for all" />
+              <label className="label">{t('product_id_opt')}</label>
+              <input value={form.product_id} onChange={set('product_id')} type="number" min="1" className="input w-full" />
             </div>
             <div>
-              <label className="label">Category (optional)</label>
+              <label className="label">{t('category_opt')}</label>
               <input value={form.category} onChange={set('category')} className="input w-full" placeholder="e.g. Electronics" />
             </div>
             <div>
-              <label className="label">Min Order Amount (optional)</label>
+              <label className="label">{t('min_order_opt')}</label>
               <input value={form.min_order_amount} onChange={set('min_order_amount')} type="number" min="0" step="0.01" className="input w-full" />
             </div>
             <div>
-              <label className="label">Starts At (optional)</label>
+              <label className="label">{t('starts_at_opt')}</label>
               <input value={form.starts_at} onChange={set('starts_at')} type="date" className="input w-full" />
             </div>
             <div>
-              <label className="label">Ends At (optional)</label>
+              <label className="label">{t('ends_at_opt')}</label>
               <input value={form.ends_at} onChange={set('ends_at')} type="date" className="input w-full" />
             </div>
             <div className="col-span-2">
-              <label className="label">Description (optional)</label>
+              <label className="label">{t('description_opt')}</label>
               <textarea value={form.description} onChange={set('description')} rows={2} className="input w-full resize-none" />
             </div>
             <div className="col-span-2 flex items-center gap-2">
@@ -304,8 +300,8 @@ export default function PromotionsPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Delete Promotion"
-        message="Delete this promotion? This cannot be undone."
+        title={t('delete_promotion')}
+        message={t('confirm_delete_promotion')}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}

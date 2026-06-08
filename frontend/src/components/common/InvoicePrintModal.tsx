@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/services/api'
 import { Printer, X, Download } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useTranslation } from 'react-i18next'
 
 export interface InvoiceItem {
   product_name: string
@@ -43,16 +44,17 @@ function fmt(val?: string | number | null, digits = 2): string {
   return parseFloat(String(val ?? 0)).toFixed(digits)
 }
 
-function payLabel(method?: string | null): string {
-  const map: Record<string, string> = {
-    cash: 'Cash', card: 'Card / POS', wallet: 'Digital Wallet',
-    credit: 'Credit', bank: 'Bank Transfer',
-  }
-  return method ? (map[method] ?? method) : '—'
-}
-
 export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
   const printRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation('pos')
+
+  const getPayLabel = (method?: string | null): string => {
+    const map: Record<string, string> = {
+      cash: t('cash'), card: t('card_pos'), wallet: t('wallet'),
+      credit: t('credit'), bank: t('bank_transfer'),
+    }
+    return method ? (map[method] ?? method) : '—'
+  }
 
   const { data: settingsData } = useQuery({
     queryKey: ['settings-store'],
@@ -132,7 +134,7 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Printer className="h-4 w-4 text-primary-500" />
-            {title ?? `Invoice #${invoice.invoice_number}`}
+            {title ?? `${t('invoice_hash')}${invoice.invoice_number}`}
           </h2>
           <button onClick={onClose} className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <X className="h-5 w-5" />
@@ -158,22 +160,22 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
             {/* Invoice metadata */}
             <div>
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                <span style={{ color: '#555' }}>Invoice #</span>
+                <span style={{ color: '#555' }}>{t('invoice_hash')}</span>
                 <span className="bold">{invoice.invoice_number}</span>
               </div>
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                <span style={{ color: '#555' }}>Date</span>
+                <span style={{ color: '#555' }}>{t('date')}</span>
                 <span>{invoiceDate}</span>
               </div>
               {invoice.cashier_name && (
                 <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                  <span style={{ color: '#555' }}>Cashier</span>
+                  <span style={{ color: '#555' }}>{t('cashier')}</span>
                   <span>{invoice.cashier_name}</span>
                 </div>
               )}
               {invoice.customer_name && (
                 <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                  <span style={{ color: '#555' }}>Customer</span>
+                  <span style={{ color: '#555' }}>{t('customer')}</span>
                   <span>{invoice.customer_name}</span>
                 </div>
               )}
@@ -186,10 +188,10 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 4 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #000' }}>
-                    <th style={{ textAlign: 'left', padding: '2px 0', fontSize: 11 }}>Item</th>
-                    <th style={{ textAlign: 'center', padding: '2px 0', fontSize: 11, width: 30 }}>Qty</th>
-                    <th style={{ textAlign: 'right', padding: '2px 0', fontSize: 11, width: 50 }}>Price</th>
-                    <th style={{ textAlign: 'right', padding: '2px 0', fontSize: 11, width: 55 }}>Total</th>
+                    <th style={{ textAlign: 'left', padding: '2px 0', fontSize: 11 }}>{t('item_col')}</th>
+                    <th style={{ textAlign: 'center', padding: '2px 0', fontSize: 11, width: 30 }}>{t('qty')}</th>
+                    <th style={{ textAlign: 'right', padding: '2px 0', fontSize: 11, width: 50 }}>{t('price')}</th>
+                    <th style={{ textAlign: 'right', padding: '2px 0', fontSize: 11, width: 55 }}>{t('total')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -207,7 +209,7 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
                 </tbody>
               </table>
             ) : (
-              <div style={{ textAlign: 'center', color: '#888', fontSize: 11, margin: '4px 0' }}>No items</div>
+              <div style={{ textAlign: 'center', color: '#888', fontSize: 11, margin: '4px 0' }}>{t('no_items')}</div>
             )}
 
             <div style={{ borderTop: '1px solid #000', margin: '6px 0' }} />
@@ -215,12 +217,12 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
             {/* Totals */}
             <div>
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                <span style={{ color: '#555' }}>Subtotal</span>
+                <span style={{ color: '#555' }}>{t('subtotal')}</span>
                 <span>{fmt(subtotal)}</span>
               </div>
               {discount > 0 && (
                 <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                  <span style={{ color: '#555' }}>Discount</span>
+                  <span style={{ color: '#555' }}>{t('discount')}</span>
                   <span style={{ color: '#c00' }}>-{fmt(discount)}</span>
                 </div>
               )}
@@ -231,7 +233,7 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
                 </div>
               )}
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0', fontWeight: 'bold', fontSize: 14 }}>
-                <span>TOTAL</span>
+                <span>{t('total').toUpperCase()}</span>
                 <span>{fmt(total)}</span>
               </div>
             </div>
@@ -241,17 +243,17 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
             {/* Payment */}
             <div>
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                <span style={{ color: '#555' }}>Payment</span>
-                <span style={{ textTransform: 'capitalize' }}>{payLabel(invoice.payment_method)}</span>
+                <span style={{ color: '#555' }}>{t('payment_title')}</span>
+                <span style={{ textTransform: 'capitalize' }}>{getPayLabel(invoice.payment_method)}</span>
               </div>
               {hasChange && (
                 <>
                   <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                    <span style={{ color: '#555' }}>Cash Received</span>
+                    <span style={{ color: '#555' }}>{t('cash_received')}</span>
                     <span>{fmt(cashReceived)}</span>
                   </div>
                   <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                    <span style={{ color: '#555' }}>Change</span>
+                    <span style={{ color: '#555' }}>{t('change_label')}</span>
                     <span>{fmt(change)}</span>
                   </div>
                 </>
@@ -272,12 +274,12 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
 
         {/* Actions */}
         <div className="flex gap-2 px-4 py-3 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={onClose} className="btn btn-secondary flex-1">Close</button>
+          <button onClick={onClose} className="btn btn-secondary flex-1">{t('close')}</button>
           <button
             onClick={handlePrint}
             className="btn btn-primary flex-1 flex items-center justify-center gap-2"
           >
-            <Printer className="h-4 w-4" /> Print
+            <Printer className="h-4 w-4" /> {t('print')}
           </button>
         </div>
       </div>

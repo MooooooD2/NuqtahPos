@@ -117,14 +117,14 @@ function notifSub(n: AppNotification): string | null {
   return (d.subtitle as string) ?? (d.detail as string) ?? null
 }
 
-function timeAgo(dateStr: string, tFn: (key: string) => string): string {
+function timeAgo(dateStr: string, tFn: (key: string, opts?: Record<string, unknown>) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60000)
   if (m < 1) return tFn('just_now')
-  if (m < 60) return `${m}m ago`
+  if (m < 60) return tFn('minutes_ago', { m })
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
+  if (h < 24) return tFn('hours_ago', { h })
+  return tFn('days_ago', { d: Math.floor(h / 24) })
 }
 
 export default function Header() {
@@ -174,7 +174,7 @@ export default function Header() {
     const prev = prevUnreadRef.current
     if (!notifOpen && unreadCount > prev && prev >= 0) {
       const diff = unreadCount - prev
-      toast(`${diff} new notification${diff > 1 ? 's' : ''}`, {
+      toast(diff === 1 ? t('new_notif_1') : t('new_notif_n', { n: diff }), {
         icon: '🔔',
         duration: 3000,
         id: 'new-notif',
@@ -253,8 +253,8 @@ export default function Header() {
           {isOnline ? t('online') : t('offline')}
           {pendingSync > 0 && (
             <button
-              title={`${pendingSync} pending sync item(s) — click to clear`}
-              onClick={() => { clearQueue(); toast.success('Sync queue cleared') }}
+              title={t('pending_sync_title', { n: pendingSync })}
+              onClick={() => { clearQueue(); toast.success(t('sync_queue_cleared')) }}
               className="ml-1 flex items-center gap-0.5 underline hover:no-underline"
             >
               ({pendingSync}) <Trash2 className="h-3 w-3" />
@@ -380,7 +380,7 @@ export default function Header() {
                           <p className="text-xs text-gray-400 dark:text-gray-500">{timeAgo(n.created_at, t)}</p>
                           {link && (
                             <span className="text-[10px] text-primary-500 dark:text-primary-400 font-medium flex items-center gap-0.5">
-                              View →
+                              {t('view_link')} →
                             </span>
                           )}
                         </div>
@@ -390,7 +390,7 @@ export default function Header() {
                       {isUnread && (
                         <button
                           onClick={(e) => { e.stopPropagation(); markOneRead.mutate(n.id) }}
-                          title="Mark as read"
+                          title={t('mark_as_read')}
                           className="flex-shrink-0 rounded-full p-1 text-gray-300 hover:bg-primary-100 hover:text-primary-600 dark:hover:bg-primary-900/40 dark:text-gray-500 dark:hover:text-primary-400"
                         >
                           <Check className="h-3.5 w-3.5" />
@@ -406,8 +406,8 @@ export default function Header() {
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-400">
                     {notifications.length > 0
-                      ? `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}${unreadCount > 0 ? ` · ${unreadCount} unread` : ''}`
-                      : 'No notifications'}
+                      ? `${notifications.length} ${t('notifications').toLowerCase()}${unreadCount > 0 ? ` · ${unreadCount} ${t('unread_label')}` : ''}`
+                      : t('no_notifications')}
                   </p>
                   <button
                     onClick={() => qc.invalidateQueries({ queryKey: ['notifications'] })}
