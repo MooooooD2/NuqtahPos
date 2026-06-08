@@ -97,8 +97,8 @@ export default function CashRegisterPage() {
   const handleMovement = (e: React.FormEvent) => {
     e.preventDefault()
     if (!session) return
-    if (!movementForm.amount || !movementForm.reason) return toast.error(t('error'))
-    movementMutation.mutate({ id: session.id, payload: { type: movementForm.type, amount: parseFloat(movementForm.amount), reason: movementForm.reason } })
+    if (!movementForm.amount) return toast.error(t('error'))
+    movementMutation.mutate({ id: session.id, payload: { type: movementForm.type, amount: parseFloat(movementForm.amount), reason: movementForm.reason || undefined } })
   }
 
   const diffColor = (expected: string, actual: string) => {
@@ -221,7 +221,7 @@ export default function CashRegisterPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {[t('session'), t('cashier_note'), t('date'), t('date'), t('expected_cash'), t('actual_cash'), t('difference'), t('status')].map((h) => (
+                  {[t('session'), t('cashier_note'), t('date_opened'), t('date_closed'), t('expected_cash'), t('actual_cash'), t('difference'), t('status')].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -371,11 +371,11 @@ export default function CashRegisterPage() {
             />
           </div>
           <div>
-            <label className="label">{t('cashier_note')} *</label>
+            <label className="label">{t('cashier_note')}</label>
             <input
               value={movementForm.reason}
               onChange={(e) => setMovementForm((p) => ({ ...p, reason: e.target.value }))}
-              className="input w-full" placeholder="Reason for this movement" required
+              className="input w-full" placeholder={t('optional')}
             />
           </div>
         </form>

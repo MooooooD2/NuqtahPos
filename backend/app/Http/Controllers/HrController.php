@@ -194,19 +194,35 @@ class HrController extends Controller
                 }
             });
 
-        $records = collect($query->orderBy('check_in')->paginate($perPage)->items())
-            ->map(fn ($r) => [
-                'id'              => $r->id,
-                'user_name'       => $r->user ? ($r->user->full_name ?: $r->user->username) : null,
-                'work_date'       => $r->work_date->toDateString(),
-                'check_in'        => $r->check_in?->toDateTimeString(),
-                'check_out'       => $r->check_out?->toDateTimeString(),
-                'hours_worked'    => $r->hours_worked,
-                'status'          => $r->check_in && ! $r->check_out ? 'working' : ($r->check_out ? 'checked_out' : $r->status),
-                'notes'           => $r->notes,
-                'is_working_now'  => (bool) ($r->check_in && ! $r->check_out),
-                'has_checked_out' => (bool) $r->check_out,
-            ]);
+        $items = $query->orderBy('check_in')->paginate($perPage)->items();
+
+        // Fetch break minutes per user for this date from employee_shifts + shift_breaks
+        $userIds = collect($items)->pluck('user_id')->unique()->filter()->values()->all();
+        $breakMinutesByUser = [];
+        if ($userIds) {
+            $breakMinutesByUser = DB::table('employee_shifts')
+                ->join('shift_breaks', 'shift_breaks.employee_shift_id', '=', 'employee_shifts.id')
+                ->where('employee_shifts.shift_date', $date)
+                ->whereIn('employee_shifts.user_id', $userIds)
+                ->whereNotNull('shift_breaks.ended_at')
+                ->groupBy('employee_shifts.user_id')
+                ->pluck(DB::raw('SUM(shift_breaks.duration_minutes)'), 'employee_shifts.user_id')
+                ->toArray();
+        }
+
+        $records = collect($items)->map(fn ($r) => [
+            'id'              => $r->id,
+            'user_name'       => $r->user ? ($r->user->full_name ?: $r->user->username) : null,
+            'work_date'       => $r->work_date->toDateString(),
+            'check_in'        => $r->check_in?->toDateTimeString(),
+            'check_out'       => $r->check_out?->toDateTimeString(),
+            'hours_worked'    => $r->hours_worked,
+            'break_minutes'   => (int) ($breakMinutesByUser[$r->user_id] ?? 0) ?: null,
+            'status'          => $r->check_in && ! $r->check_out ? 'working' : ($r->check_out ? 'checked_out' : $r->status),
+            'notes'           => $r->notes,
+            'is_working_now'  => (bool) ($r->check_in && ! $r->check_out),
+            'has_checked_out' => (bool) $r->check_out,
+        ]);
 
         return $this->success(['records' => $records]);
     }

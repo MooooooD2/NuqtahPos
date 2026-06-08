@@ -7,13 +7,24 @@ import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
-import { Users2, Plus, Pencil, Trash2, Clock, Calendar, UserCheck, FileText, DollarSign, CheckCircle, XCircle } from 'lucide-react'
+import { Users2, Plus, Pencil, Trash2, Clock, Calendar, UserCheck, FileText, DollarSign, CheckCircle, XCircle, Coffee, ChevronDown, ChevronUp } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 
 interface Employee { id: number; name: string; email?: string; phone?: string; position?: string; department?: string; salary?: string; status?: string; hire_date?: string }
-interface Shift { id: number; employee_name?: string; start_time: string; end_time?: string; status?: string; total_hours?: string }
-interface AttRecord { id: number; user_name?: string; work_date: string; check_in?: string; check_out?: string; hours_worked?: number; status: string; notes?: string; is_working_now?: boolean; has_checked_out?: boolean }
+interface ShiftBreak { id: number; started_at: string; ended_at?: string; duration_minutes?: number; type: 'meal' | 'rest' | 'personal' }
+interface Shift {
+  id: number
+  user?: { id: number; name: string }
+  clock_in_at: string
+  clock_out_at?: string
+  hours_worked?: number
+  status: string
+  on_break?: boolean
+  break_started_at?: string
+  breaks?: ShiftBreak[]
+}
+interface AttRecord { id: number; user_name?: string; work_date: string; check_in?: string; check_out?: string; hours_worked?: number; break_minutes?: number; status: string; notes?: string; is_working_now?: boolean; has_checked_out?: boolean }
 interface AttSummary { working: number; checked_out: number; absent: number; late: number }
 interface Leave { id: number; user_name?: string; leave_type: string; starts_at: string; ends_at: string; days_count: number; status: string; reason?: string }
 interface PayrollRun { id: number; period: string; employee_count: number; gross_salary: string; net_salary: string; status: string }
@@ -52,6 +63,9 @@ export default function HrPage() {
   const [form, setForm] = useState({ ...emptyEmp })
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
+  // ── Shifts state ──
+  const [expandedShiftId, setExpandedShiftId] = useState<number | null>(null)
+
   // ── Attendance state ──
   const [attDate, setAttDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [attStatus, setAttStatus] = useState('all')
@@ -80,14 +94,14 @@ export default function HrPage() {
   })
   const { data: shiftData, isLoading: shiftLoading } = useQuery({
     queryKey: ['hr-shifts'],
-    queryFn: () => apiGet<{ success: boolean; data: Shift[] }>('/shifts?per_page=30'),
-    staleTime: 60_000,
+    queryFn: () => apiGet<{ shifts: Shift[] }>('/shifts/active'),
+    staleTime: 30_000,
     enabled: tab === 'shifts',
     retry: false,
   })
 
   const employees = empData?.data ?? []
-  const shifts = shiftData?.data ?? []
+  const shifts = shiftData?.shifts ?? []
 
   const f = (field: keyof typeof form) => ({
     value: form[field],
@@ -336,24 +350,122 @@ export default function HrPage() {
 
       {/* ── Shifts Tab ── */}
       {tab === 'shifts' && (
-        <div className="card overflow-hidden">
-          {shiftLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('employee'), t('start_time'), t('end_time'), t('hours'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {shifts.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_shifts')}</td></tr>
-                  : shifts.map((s) => (
-                    <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.employee_name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{s.start_time?.slice(0, 16)}</td>
-                      <td className="px-4 py-3 text-gray-500">{s.end_time?.slice(0, 16) ?? t('ongoing')}</td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{s.total_hours ? `${s.total_hours}h` : '—'}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize', s.status === 'active' ? 'badge-success' : 'badge-gray')}>{s.status ?? 'completed'}</span></td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          )}
+        <div className="space-y-3">
+          {/* KPI row */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="card p-4 flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg"><UserCheck className="h-5 w-5 text-green-600" /></div>
+              <div><p className="text-xs text-gray-500">ورديات نشطة</p><p className="text-2xl font-bold text-green-600">{shifts.filter((s) => s.status === 'active').length}</p></div>
+            </div>
+            <div className="card p-4 flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg"><Coffee className="h-5 w-5 text-yellow-600" /></div>
+              <div><p className="text-xs text-gray-500">في استراحة</p><p className="text-2xl font-bold text-yellow-600">{shifts.filter((s) => s.on_break).length}</p></div>
+            </div>
+            <div className="card p-4 flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Clock className="h-5 w-5 text-blue-600" /></div>
+              <div><p className="text-xs text-gray-500">إجمالي الاستراحات</p><p className="text-2xl font-bold text-blue-600">{shifts.reduce((sum, s) => sum + (s.breaks?.length ?? 0), 0)}</p></div>
+            </div>
+          </div>
+
+          <div className="card overflow-hidden">
+            {shiftLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[t('employee'), t('clock_in'), t('clock_out'), t('hours_worked'), 'الاستراحات', t('status'), ''].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {shifts.length === 0 ? (
+                    <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_shifts')}</td></tr>
+                  ) : shifts.map((s) => {
+                    const sBreaks = s.breaks ?? []
+                    const completedBreaks = sBreaks.filter((b) => b.ended_at)
+                    const totalBreakMins = completedBreaks.reduce((sum, b) => sum + (b.duration_minutes ?? 0), 0)
+                    const isExpanded = expandedShiftId === s.id
+                    return (
+                      <>
+                        <tr key={s.id} className={clsx('hover:bg-gray-50 dark:hover:bg-gray-700/50', s.on_break && 'bg-yellow-50/50 dark:bg-yellow-900/10')}>
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                            {s.user?.name ?? '—'}
+                            {s.on_break && <span className="mr-1 badge badge-warning text-xs">استراحة</span>}
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{s.clock_in_at ? new Date(s.clock_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">
+                            {s.clock_out_at ? new Date(s.clock_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-green-500 font-medium">{t('ongoing')}</span>}
+                          </td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                            {s.hours_worked ? <span className="badge badge-info">{s.hours_worked}h</span> : '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {sBreaks.length > 0 ? (
+                              <span className="text-xs text-yellow-600 flex items-center gap-1">
+                                <Coffee className="h-3 w-3" />
+                                {sBreaks.length}×
+                                {totalBreakMins > 0 && <span className="text-gray-400">({Math.floor(totalBreakMins / 60) > 0 ? `${Math.floor(totalBreakMins / 60)}h ` : ''}{totalBreakMins % 60}m)</span>}
+                                {s.on_break && <span className="text-yellow-500">جارية</span>}
+                              </span>
+                            ) : <span className="text-gray-400 text-xs">—</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={clsx('badge capitalize', s.status === 'active' ? 'badge-success' : 'badge-gray')}>{s.status}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {sBreaks.length > 0 && (
+                              <button
+                                onClick={() => setExpandedShiftId(isExpanded ? null : s.id)}
+                                className="p-1 text-gray-400 hover:text-primary-600 rounded"
+                              >
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                        {isExpanded && sBreaks.length > 0 && (
+                          <tr key={`${s.id}-breaks`}>
+                            <td colSpan={7} className="px-4 pb-3 bg-gray-50 dark:bg-gray-800">
+                              <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <table className="w-full text-xs">
+                                  <thead className="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                      {['#', 'النوع', 'بداية', 'نهاية', 'المدة'].map((h) => (
+                                        <th key={h} className="px-3 py-2 text-left font-semibold text-gray-500">{h}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                    {sBreaks.map((b, bi) => (
+                                      <tr key={b.id} className={!b.ended_at ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}>
+                                        <td className="px-3 py-2 text-gray-500">{bi + 1}</td>
+                                        <td className="px-3 py-2 capitalize text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                                          <Coffee className="h-3 w-3 text-yellow-500" />{b.type}
+                                        </td>
+                                        <td className="px-3 py-2 text-gray-600">{new Date(b.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                        <td className="px-3 py-2 text-gray-600">
+                                          {b.ended_at ? new Date(b.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-yellow-500">جارية</span>}
+                                        </td>
+                                        <td className="px-3 py-2">
+                                          {b.duration_minutes != null ? (
+                                            <span className="badge badge-gray">{b.duration_minutes}m</span>
+                                          ) : <span className="text-yellow-500">—</span>}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
 
@@ -404,18 +516,25 @@ export default function HrPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('employee'), t('work_date'), t('check_in'), t('check_out'), t('hours'), t('status'), t('notes')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    <tr>{[t('employee'), t('work_date'), t('check_in'), t('check_out'), t('hours_worked'), 'الاستراحات', t('status'), t('notes')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {attRecords.length === 0
-                      ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_attendance')}</td></tr>
+                      ? <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">{t('no_attendance')}</td></tr>
                       : attRecords.map((r) => (
                         <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.user_name ?? '—'}</td>
                           <td className="px-4 py-3 text-gray-500">{r.work_date}</td>
                           <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.check_in ? r.check_in.slice(11, 16) : '—'}</td>
                           <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.check_out ? r.check_out.slice(11, 16) : '—'}</td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.hours_worked ? `${r.hours_worked}h` : '—'}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.hours_worked ? <span className="badge badge-info">{r.hours_worked}h</span> : '—'}</td>
+                          <td className="px-4 py-3">
+                            {r.break_minutes ? (
+                              <span className="text-xs text-yellow-600 flex items-center gap-1">
+                                <Coffee className="h-3 w-3" />{r.break_minutes}m
+                              </span>
+                            ) : <span className="text-gray-400">—</span>}
+                          </td>
                           <td className="px-4 py-3"><span className={clsx('badge capitalize', attStatusBadge(r.status))}>{r.status.replace('_', ' ')}</span></td>
                           <td className="px-4 py-3 text-gray-400 text-xs max-w-[160px] truncate">{r.notes ?? '—'}</td>
                         </tr>
