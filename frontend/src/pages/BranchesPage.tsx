@@ -45,23 +45,23 @@ export default function BranchesPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/branches/${editId}`, payload) : apiPost('/branches', payload),
-    onSuccess: () => { toast.success(editId ? 'Branch updated' : 'Branch created'); qc.invalidateQueries({ queryKey: ['branches'] }); setModal(null) },
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['branches'] }); setModal(null) },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to save branch'
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('save_failed')
       toast.error(msg)
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/branches/${id}`),
-    onSuccess: () => { toast.success('Branch deleted'); qc.invalidateQueries({ queryKey: ['branches'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete branch'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['branches'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Branch name is required')
-    if (!form.code) return toast.error('Branch code is required')
+    if (!form.name) return toast.error(t('error'))
+    if (!form.code) return toast.error(t('error'))
     saveMutation.mutate({ name: form.name, code: form.code, address: form.address || undefined, phone: form.phone || undefined, is_default: form.is_default, is_active: form.is_active })
   }
 
@@ -100,7 +100,7 @@ export default function BranchesPage() {
                       <span className="badge badge-warning flex items-center gap-0.5"><Star className="h-3 w-3" /> {t('main_branch')}</span>
                     )}
                     <span className={clsx('badge', branch.is_active ? 'badge-success' : 'badge-gray')}>
-                      {branch.is_active ? 'Active' : 'Inactive'}
+                      {branch.is_active ? t('active') : t('inactive')}
                     </span>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export default function BranchesPage() {
                   <button
                     onClick={() => !branch.is_default && setDeleteId(branch.id)}
                     disabled={branch.is_default}
-                    title={branch.is_default ? 'Cannot delete the default branch' : 'Delete branch'}
+                    title={branch.is_default ? t('cannot_delete_default_branch') : t('delete_branch')}
                     className={clsx('flex items-center gap-1.5 text-xs px-2 py-1.5 rounded transition-colors', branch.is_default ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20')}
                   >
                     <Trash2 className="h-3.5 w-3.5" /> {t('delete')}
@@ -183,7 +183,7 @@ export default function BranchesPage() {
                 onChange={(e) => setForm((p) => ({ ...p, is_default: e.target.checked }))}
                 className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
-              <label htmlFor="is_default" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Set as default branch</label>
+              <label htmlFor="is_default" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">{t('set_as_default_branch')}</label>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -193,7 +193,7 @@ export default function BranchesPage() {
                 onChange={(e) => setForm((p) => ({ ...p, is_active: e.target.checked }))}
                 className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
-              <label htmlFor="is_active" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Active</label>
+              <label htmlFor="is_active" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">{t('active')}</label>
             </div>
           </div>
         </form>
@@ -201,8 +201,8 @@ export default function BranchesPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Delete Branch"
-        message={`Delete branch "${deletingBranch?.name}"? This action cannot be undone.`}
+        title={t('delete_branch')}
+        message={t('confirm_delete_branch', { n: deletingBranch?.name ?? '' })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}

@@ -67,7 +67,7 @@ export default function DashboardPage() {
       {((stats.sales_trend?.length ?? 0) > 0 || (stats.payment_breakdown?.length ?? 0) > 0) && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="card p-5 lg:col-span-2">
-            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Sales Trend (30 days)</h3>
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('sales_trend_30')}</h3>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={stats.sales_trend ?? []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -79,7 +79,7 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
           <div className="card p-5">
-            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Payment Methods</h3>
+            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('payment_method')}</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={stats.payment_breakdown ?? []} dataKey="amount" nameKey="method" cx="50%" cy="50%" outerRadius={80}>
@@ -97,13 +97,13 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Top products */}
         <div className="card p-5">
-          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Top Selling Products</h3>
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('top_products')}</h3>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700">
-                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">Product</th>
-                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Qty</th>
-                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Sales</th>
+                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">{t('product')}</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">{t('qty')}</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">{t('sales')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                 </tr>
               ))}
               {(stats.top_products ?? []).length === 0 && (
-                <tr><td colSpan={3} className="py-8 text-center text-gray-400">No sales yet today</td></tr>
+                <tr><td colSpan={3} className="py-8 text-center text-gray-400">{t('no_sales_today')}</td></tr>
               )}
             </tbody>
           </table>
@@ -125,13 +125,13 @@ export default function DashboardPage() {
 
         {/* Recent invoices */}
         <div className="card p-5">
-          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">Recent Invoices</h3>
+          <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('recent_invoices')}</h3>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700">
-                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">Invoice</th>
-                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">Cashier</th>
-                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">Total</th>
+                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">{t('invoice_number')}</th>
+                <th className="pb-2 text-left text-xs font-semibold uppercase text-gray-500">{t('cashier_col')}</th>
+                <th className="pb-2 text-right text-xs font-semibold uppercase text-gray-500">{t('total')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                 </tr>
               ))}
               {(stats.recent_invoices ?? []).length === 0 && (
-                <tr><td colSpan={3} className="py-8 text-center text-gray-400">No invoices yet</td></tr>
+                <tr><td colSpan={3} className="py-8 text-center text-gray-400">{t('no_invoices_yet')}</td></tr>
               )}
             </tbody>
           </table>

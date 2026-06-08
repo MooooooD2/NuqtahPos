@@ -49,22 +49,22 @@ export default function CrmPage() {
   const addActivity = useMutation({
     mutationFn: (payload: object) => apiPost('/crm/activities', payload),
     onSuccess: () => {
-      toast.success('Activity logged')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['crm-activities'] })
       qc.invalidateQueries({ queryKey: ['crm-stats'] })
       setModal(null)
     },
-    onError: () => toast.error('Failed to log activity'),
+    onError: () => toast.error(t('save_failed')),
   })
   const addFollowup = useMutation({
     mutationFn: (payload: object) => apiPost('/crm/follow-ups', payload),
     onSuccess: () => {
-      toast.success('Follow-up scheduled')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['crm-followups'] })
       qc.invalidateQueries({ queryKey: ['crm-stats'] })
       setModal(null)
     },
-    onError: () => toast.error('Failed to schedule follow-up'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const actBadge: Record<string, string> = { call: 'badge-info', email: 'badge-gray', meeting: 'badge-success', note: 'badge-warning', task: 'badge-info', other: 'badge-gray' }
@@ -105,7 +105,7 @@ export default function CrmPage() {
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
         {(['overview', 'activities', 'followups'] as const).map((tabKey) => (
           <button key={tabKey} onClick={() => setTab(tabKey)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === tabKey ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>
-            {tabKey === 'followups' ? t('schedule_followup') : tabKey === 'activities' ? t('activity_log') : 'Overview'}
+            {tabKey === 'followups' ? t('schedule_followup') : tabKey === 'activities' ? t('activity_log') : t('overview')}
           </button>
         ))}
       </div>
@@ -205,33 +205,33 @@ export default function CrmPage() {
 
       {/* Log Activity Modal */}
       <Modal open={modal === 'activity'} onClose={() => setModal(null)} title={t('log_activity')} size="md"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!actForm.customer_id) return toast.error('Customer required'); addActivity.mutate({ customer_id: parseInt(actForm.customer_id), type: actForm.type, notes: actForm.notes || undefined }) }} disabled={addActivity.isPending} className="btn btn-primary">{addActivity.isPending ? 'Saving…' : t('log_activity')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!actForm.customer_id) return toast.error(t('error')); addActivity.mutate({ customer_id: parseInt(actForm.customer_id), type: actForm.type, notes: actForm.notes || undefined }) }} disabled={addActivity.isPending} className="btn btn-primary">{addActivity.isPending ? t('saving') : t('log_activity')}</button></>}>
         <div className="space-y-4">
           <div>
-            <label className="label">{t('customers')} *</label>
+            <label className="label">{t('customer')} *</label>
             <select value={actForm.customer_id} onChange={(e) => setActForm((p) => ({ ...p, customer_id: e.target.value }))} className="input w-full">
-              <option value="">— {t('customers')} —</option>
+              <option value="">— {t('customer')} —</option>
               {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">{t('activity_log')}</label>
+            <label className="label">{t('type')}</label>
             <select value={actForm.type} onChange={(e) => setActForm((p) => ({ ...p, type: e.target.value }))} className="input w-full">
               {activityTypes.map((actType) => <option key={actType} value={actType} className="capitalize">{actType}</option>)}
             </select>
           </div>
-          <div><label className="label">{t('notes')}</label><textarea value={actForm.notes} onChange={(e) => setActForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full h-24 resize-none" placeholder="What happened?" /></div>
+          <div><label className="label">{t('notes')}</label><textarea value={actForm.notes} onChange={(e) => setActForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full h-24 resize-none" /></div>
         </div>
       </Modal>
 
       {/* Schedule Follow-up Modal */}
       <Modal open={modal === 'followup'} onClose={() => setModal(null)} title={t('schedule_followup')} size="md"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!fuForm.customer_id || !fuForm.due_date) return toast.error('Customer and due date required'); addFollowup.mutate({ customer_id: parseInt(fuForm.customer_id), due_date: fuForm.due_date, notes: fuForm.notes || undefined, activity_type: fuForm.activity_type }) }} disabled={addFollowup.isPending} className="btn btn-primary">{addFollowup.isPending ? 'Saving…' : t('schedule_followup')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!fuForm.customer_id || !fuForm.due_date) return toast.error(t('error')); addFollowup.mutate({ customer_id: parseInt(fuForm.customer_id), due_date: fuForm.due_date, notes: fuForm.notes || undefined, activity_type: fuForm.activity_type }) }} disabled={addFollowup.isPending} className="btn btn-primary">{addFollowup.isPending ? t('saving') : t('schedule_followup')}</button></>}>
         <div className="space-y-4">
           <div>
-            <label className="label">{t('customers')} *</label>
+            <label className="label">{t('customer')} *</label>
             <select value={fuForm.customer_id} onChange={(e) => setFuForm((p) => ({ ...p, customer_id: e.target.value }))} className="input w-full">
-              <option value="">— {t('customers')} —</option>
+              <option value="">— {t('customer')} —</option>
               {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>

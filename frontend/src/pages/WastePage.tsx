@@ -60,18 +60,18 @@ export default function WastePage() {
   const recordMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/waste', payload),
     onSuccess: () => {
-      toast.success('Waste recorded successfully')
+      toast.success(t('record_success'))
       qc.invalidateQueries({ queryKey: ['waste'] })
       setForm({ ...emptyForm })
     },
-    onError: () => toast.error('Failed to record waste'),
+    onError: () => toast.error(t('record_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.product_id) return toast.error('Select a product')
-    if (!form.quantity || parseInt(form.quantity) < 1) return toast.error('Quantity must be at least 1')
-    if (!form.reason) return toast.error('Reason is required')
+    if (!form.product_id) return toast.error(t('error'))
+    if (!form.quantity || parseInt(form.quantity) < 1) return toast.error(t('error'))
+    if (!form.reason) return toast.error(t('error'))
     recordMutation.mutate({
       product_id: parseInt(form.product_id),
       quantity: parseInt(form.quantity),
@@ -95,7 +95,7 @@ export default function WastePage() {
     return (
       <div className="card p-8 text-center text-gray-400">
         <Trash2 className="h-12 w-12 mx-auto mb-3 opacity-40" />
-        <p>Access requires manage_waste permission</p>
+        <p>{t('access_denied_msg')}</p>
       </div>
     )
   }
@@ -160,7 +160,7 @@ export default function WastePage() {
             </div>
             <button type="submit" disabled={recordMutation.isPending} className="btn btn-primary w-full flex items-center justify-center gap-2">
               {recordMutation.isPending ? <LoadingSpinner size="sm" /> : <Trash2 className="h-4 w-4" />}
-              {recordMutation.isPending ? 'Recording…' : t('record_waste')}
+              {recordMutation.isPending ? t('saving') : t('record_waste')}
             </button>
           </form>
         </div>
@@ -180,7 +180,7 @@ export default function WastePage() {
               <Search className="h-4 w-4" /> {t('search')}
             </button>
             {(searchFrom || searchTo) && (
-              <button onClick={() => { setDateFrom(''); setDateTo(''); setSearchFrom(''); setSearchTo(''); setPage(1) }} className="btn btn-secondary text-sm">Clear</button>
+              <button onClick={() => { setDateFrom(''); setDateTo(''); setSearchFrom(''); setSearchTo(''); setPage(1) }} className="btn btn-secondary text-sm">{t('clear')}</button>
             )}
           </div>
 

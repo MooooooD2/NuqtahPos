@@ -40,31 +40,31 @@ export default function CashbackPage() {
   const canManage = hasPermission('manage_cashback')
 
   const activeRule = rules.find((r) => r.is_active)
-  const totalEarned = txs.filter((t) => t.type === 'earned').reduce((s, t) => s + parseFloat(t.amount || '0'), 0)
-  const totalRedeemed = txs.filter((t) => t.type === 'redeemed').reduce((s, t) => s + parseFloat(t.amount || '0'), 0)
+  const totalEarned = txs.filter((tx) => tx.type === 'earned').reduce((s, tx) => s + parseFloat(tx.amount || '0'), 0)
+  const totalRedeemed = txs.filter((tx) => tx.type === 'redeemed').reduce((s, tx) => s + parseFloat(tx.amount || '0'), 0)
 
   const createRule = useMutation({
     mutationFn: (payload: object) => apiPost('/cashback/rules', payload),
-    onSuccess: () => { toast.success('Rule created'); qc.invalidateQueries({ queryKey: ['cashback-rules'] }); setModal(false) },
-    onError: () => toast.error('Failed to create rule'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['cashback-rules'] }); setModal(false) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const activateRule = useMutation({
     mutationFn: (id: number) => api.patch(`/cashback/rules/${id}/activate`).then((r) => r.data),
-    onSuccess: () => { toast.success('Rule activated'); qc.invalidateQueries({ queryKey: ['cashback-rules'] }) },
-    onError: () => toast.error('Failed to activate rule'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['cashback-rules'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const deleteRule = useMutation({
     mutationFn: (id: number) => apiDelete(`/cashback/rules/${id}`),
-    onSuccess: () => { toast.success('Rule deleted'); qc.invalidateQueries({ queryKey: ['cashback-rules'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete rule'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['cashback-rules'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Name required')
-    if (!form.percentage || parseFloat(form.percentage) <= 0) return toast.error('Percentage must be > 0')
+    if (!form.name) return toast.error(t('error'))
+    if (!form.percentage || parseFloat(form.percentage) <= 0) return toast.error(t('error'))
     createRule.mutate({
       name: form.name,
       percentage: parseFloat(form.percentage),
@@ -139,14 +139,14 @@ export default function CashbackPage() {
                                 disabled={activateRule.isPending}
                                 className="px-3 py-1 text-xs font-medium rounded-full border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               >
-                                {activateRule.isPending ? '…' : 'Activate'}
+                                {activateRule.isPending ? '…' : t('activate')}
                               </button>
                             )}
                             <button
                               onClick={() => setDeleteId(r.id)}
                               disabled={deleteRule.isPending}
                               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
-                              title="Delete rule"
+                              title={t('delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -168,17 +168,17 @@ export default function CashbackPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('customer'), 'Type', t('amount'), 'Balance After', t('date')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('customer'), t('type'), t('amount'), t('balance_after'), t('date')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {txs.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    : txs.map((t) => (
-                      <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{t.customer_name ?? '—'}</td>
-                        <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', txTypeBadge[t.type] ?? 'badge-gray')}>{t.type}</span></td>
-                        <td className={clsx('px-4 py-3', txAmountClass(t.type))}>{parseFloat(t.amount).toFixed(2)}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">{parseFloat(t.balance_after).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-400 text-xs">{t.created_at?.slice(0, 16)}</td>
+                    : txs.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tx.customer_name ?? '—'}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', txTypeBadge[tx.type] ?? 'badge-gray')}>{tx.type}</span></td>
+                        <td className={clsx('px-4 py-3', txAmountClass(tx.type))}>{parseFloat(tx.amount).toFixed(2)}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">{parseFloat(tx.balance_after).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">{tx.created_at?.slice(0, 16)}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -187,10 +187,10 @@ export default function CashbackPage() {
           )}
           {(txData?.total ?? 0) > 20 && (
             <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-              <span className="text-sm text-gray-500">Page {page} · {txData?.total} total</span>
+              <span className="text-sm text-gray-500">{t('page')} {page} · {txData?.total} {t('total')}</span>
               <div className="flex gap-2">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-                <button onClick={() => setPage((p) => p + 1)} disabled={txs.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+                <button onClick={() => setPage((p) => p + 1)} disabled={txs.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
               </div>
             </div>
           )}
@@ -199,8 +199,8 @@ export default function CashbackPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Delete Cashback Rule"
-        message="Delete this cashback rule? This cannot be undone."
+        title={t('delete_cashback_title')}
+        message={t('delete_cashback_confirm')}
         loading={deleteRule.isPending}
         onConfirm={() => deleteId && deleteRule.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
@@ -209,12 +209,12 @@ export default function CashbackPage() {
       <Modal open={modal} onClose={() => setModal(false)} title={t('cashback_management')} size="md"
         footer={<><button onClick={() => setModal(false)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={createRule.isPending} className="btn btn-primary">{createRule.isPending ? '…' : t('save')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="label">Rule Name *</label><input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" placeholder="e.g. Standard Cashback" required /></div>
+          <div><label className="label">{t('name')} *</label><input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" required /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="label">Percentage (%) *</label><input value={form.percentage} type="number" min="0.01" max="100" step="0.01" onChange={(e) => setForm((p) => ({ ...p, percentage: e.target.value }))} className="input w-full" required /></div>
-            <div><label className="label">Min Purchase Amount</label><input value={form.min_purchase_amount} type="number" min="0" step="0.01" onChange={(e) => setForm((p) => ({ ...p, min_purchase_amount: e.target.value }))} className="input w-full" /></div>
+            <div><label className="label">{t('cashback_percentage')} *</label><input value={form.percentage} type="number" min="0.01" max="100" step="0.01" onChange={(e) => setForm((p) => ({ ...p, percentage: e.target.value }))} className="input w-full" required /></div>
+            <div><label className="label">{t('min_purchase')}</label><input value={form.min_purchase_amount} type="number" min="0" step="0.01" onChange={(e) => setForm((p) => ({ ...p, min_purchase_amount: e.target.value }))} className="input w-full" /></div>
           </div>
-          <div><label className="label">Max Cashback (optional)</label><input value={form.max_cashback} type="number" min="0" step="0.01" onChange={(e) => setForm((p) => ({ ...p, max_cashback: e.target.value }))} className="input w-full" placeholder="Leave empty for unlimited" /></div>
+          <div><label className="label">{t('max_cashback_optional')}</label><input value={form.max_cashback} type="number" min="0" step="0.01" onChange={(e) => setForm((p) => ({ ...p, max_cashback: e.target.value }))} className="input w-full" /></div>
         </form>
       </Modal>
     </div>

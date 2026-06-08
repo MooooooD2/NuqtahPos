@@ -58,18 +58,18 @@ export default function WarehousePage() {
 
   const createWh = useMutation({
     mutationFn: (payload: object) => apiPost('/warehouses', payload),
-    onSuccess: () => { toast.success('Warehouse created'); qc.invalidateQueries({ queryKey: ['warehouses'] }); setModal(null) },
-    onError: () => toast.error('Failed to create warehouse'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['warehouses'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
   const toggleLock = useMutation({
     mutationFn: ({ id }: { id: number; locked: boolean }) => apiPost(`/warehouses/${id}/toggle-lock`, {}),
-    onSuccess: () => { toast.success('Warehouse status updated'); qc.invalidateQueries({ queryKey: ['warehouses'] }) },
-    onError: () => toast.error('Action failed'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['warehouses'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
   const createTransfer = useMutation({
     mutationFn: (payload: object) => apiPost('/warehouse-transfers', payload),
     onSuccess: () => {
-      toast.success('Transfer created')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['warehouse-transfers'] })
       qc.invalidateQueries({ queryKey: ['warehouse-stock', fromId] })
       setModal(null)
@@ -78,7 +78,7 @@ export default function WarehousePage() {
     onError: (err: any) => {
       const msg = err?.response?.data?.message
         ?? Object.values(err?.response?.data?.errors ?? {}).flat().join(' ')
-        ?? 'Failed to create transfer'
+        ?? t('save_failed')
       toast.error(msg)
     },
   })
@@ -88,15 +88,15 @@ export default function WarehousePage() {
 
   const handleCreateWh = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.code) return toast.error('Name and code required')
+    if (!form.name || !form.code) return toast.error(t('error'))
     createWh.mutate({ name: form.name, code: form.code, address: form.address || undefined, keeper_name: form.keeper_name || undefined })
   }
 
   const handleCreateTransfer = () => {
-    if (!transferForm.from_warehouse_id || !transferForm.to_warehouse_id) return toast.error('From and to warehouses required')
-    if (transferForm.from_warehouse_id === transferForm.to_warehouse_id) return toast.error('Cannot transfer to same warehouse')
+    if (!transferForm.from_warehouse_id || !transferForm.to_warehouse_id) return toast.error(t('error'))
+    if (transferForm.from_warehouse_id === transferForm.to_warehouse_id) return toast.error(t('error'))
     const validItems = transferForm.items.filter((i) => i.product_id && i.quantity && parseInt(i.quantity) > 0)
-    if (validItems.length === 0) return toast.error('Add at least one product with a quantity')
+    if (validItems.length === 0) return toast.error(t('error'))
     createTransfer.mutate({
       from_warehouse_id: parseInt(transferForm.from_warehouse_id),
       to_warehouse_id: parseInt(transferForm.to_warehouse_id),
@@ -130,7 +130,7 @@ export default function WarehousePage() {
           {whLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('warehouse_code'), t('warehouse_keeper'), 'Address', t('type'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+                <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('warehouse_code'), t('warehouse_keeper'), t('address'), t('type'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {warehouses.length === 0 ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
                     : warehouses.map((w) => (
@@ -168,13 +168,13 @@ export default function WarehousePage() {
               <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('from_warehouse'), t('to_warehouse'), t('transfer_items'), t('status'), t('date')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {transfers.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                  : transfers.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{t.from_warehouse?.name ?? '—'}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{t.to_warehouse?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{t.items_count ?? '—'}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[t.status] ?? 'badge-gray')}>{t.status}</span></td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{t.created_at?.slice(0, 10)}</td>
+                  : transfers.map((tr) => (
+                    <tr key={tr.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tr.from_warehouse?.name ?? '—'}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tr.to_warehouse?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{tr.items_count ?? '—'}</td>
+                      <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[tr.status] ?? 'badge-gray')}>{tr.status}</span></td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{tr.created_at?.slice(0, 10)}</td>
                     </tr>
                   ))}
               </tbody>
@@ -185,33 +185,33 @@ export default function WarehousePage() {
 
       {/* Add Warehouse Modal */}
       <Modal open={modal === 'add'} onClose={() => setModal(null)} title={t('new_warehouse')} size="md"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleCreateWh} disabled={createWh.isPending} className="btn btn-primary">{createWh.isPending ? 'Creating…' : t('create')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleCreateWh} disabled={createWh.isPending} className="btn btn-primary">{createWh.isPending ? t('creating') : t('create')}</button></>}>
         <form onSubmit={handleCreateWh} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div><label className="label">{t('name')} *</label><input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" required /></div>
-            <div><label className="label">{t('warehouse_code')} *</label><input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} className="input w-full" placeholder="WH001" required /></div>
+            <div><label className="label">{t('warehouse_code')} *</label><input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} className="input w-full" required /></div>
             <div><label className="label">{t('warehouse_keeper')}</label><input value={form.keeper_name} onChange={(e) => setForm((p) => ({ ...p, keeper_name: e.target.value }))} className="input w-full" /></div>
-            <div className="col-span-2"><label className="label">Address</label><input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} className="input w-full" /></div>
+            <div className="col-span-2"><label className="label">{t('address')}</label><input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} className="input w-full" /></div>
           </div>
         </form>
       </Modal>
 
       {/* Transfer Modal */}
       <Modal open={modal === 'transfer'} onClose={() => setModal(null)} title={t('new_transfer')} size="lg"
-        footer={<><button type="button" onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button type="button" onClick={handleCreateTransfer} disabled={createTransfer.isPending} className="btn btn-primary">{createTransfer.isPending ? 'Creating…' : t('create')}</button></>}>
+        footer={<><button type="button" onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button type="button" onClick={handleCreateTransfer} disabled={createTransfer.isPending} className="btn btn-primary">{createTransfer.isPending ? t('creating') : t('create')}</button></>}>
         <form onSubmit={(e) => { e.preventDefault(); handleCreateTransfer() }} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">{t('from_warehouse')} *</label>
               <select value={transferForm.from_warehouse_id} onChange={(e) => setTransferForm((p) => ({ ...p, from_warehouse_id: e.target.value }))} className="input w-full">
-                <option value="">— Select —</option>
+                <option value="">— {t('select')} —</option>
                 {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
               </select>
             </div>
             <div>
               <label className="label">{t('to_warehouse')} *</label>
               <select value={transferForm.to_warehouse_id} onChange={(e) => setTransferForm((p) => ({ ...p, to_warehouse_id: e.target.value }))} className="input w-full">
-                <option value="">— Select —</option>
+                <option value="">— {t('select')} —</option>
                 {warehouses.filter((w) => String(w.id) !== transferForm.from_warehouse_id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
               </select>
             </div>
@@ -227,7 +227,7 @@ export default function WarehousePage() {
             {!transferForm.from_warehouse_id && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                Select a source warehouse to see available stock
+                {t('select_source_warehouse_hint')}
               </p>
             )}
 
@@ -259,10 +259,10 @@ export default function WarehousePage() {
                         min="1"
                         onChange={(e) => setTransferForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, quantity: e.target.value } : x) }))}
                         className={clsx('input w-24', overStock && 'border-red-400 focus:ring-red-400')}
-                        placeholder="Qty"
+                        placeholder={t('qty')}
                       />
                       {overStock && (
-                        <p className="text-xs text-red-500 mt-0.5">Exceeds available ({available})</p>
+                        <p className="text-xs text-red-500 mt-0.5">{t('exceeds_available', { n: available })}</p>
                       )}
                     </div>
                     {transferForm.items.length > 1 && (

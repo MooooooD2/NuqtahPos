@@ -144,12 +144,12 @@ export default function InventoryPage() {
   const adjMutation = useMutation({
     mutationFn: (payload: object) => apiPost("/stock/adjustment", payload),
     onSuccess: () => {
-      toast.success("Stock adjusted");
+      toast.success(t('stock_adjusted'));
       qc.invalidateQueries({ queryKey: ["stock-low"] });
       qc.invalidateQueries({ queryKey: ["stock-health"] });
       setAdjModal(false);
     },
-    onError: () => toast.error("Failed to adjust stock"),
+    onError: () => toast.error(t('save_failed')),
   });
 
   const kpis = [
@@ -425,7 +425,7 @@ export default function InventoryPage() {
               <strong>Error loading low stock:</strong> {String(lowError)}
             </div>
           ) : (
-            stockTable(lowItems, lowLoading, "All products are well stocked!")
+            stockTable(lowItems, lowLoading, t('stock_healthy'))
           ))}
         {tab === "out" &&
           (outError ? (
@@ -433,7 +433,7 @@ export default function InventoryPage() {
               <strong>Error loading out of stock:</strong> {String(outError)}
             </div>
           ) : (
-            stockTable(outItems, outLoading, "No out-of-stock products!")
+            stockTable(outItems, outLoading, t('no_out_of_stock_items'))
           ))}
         {tab === "expiry" &&
           (expiryError ? (
@@ -504,7 +504,7 @@ export default function InventoryPage() {
                                   : "badge-warning",
                             )}
                           >
-                            {b.days_until_expiry} days
+                            {t('days_count', { n: b.days_until_expiry })}
                           </span>
                         </td>
                       </tr>
@@ -517,10 +517,7 @@ export default function InventoryPage() {
         {tab === "movements" && (
           <div className="p-6 text-center text-gray-400">
             <ArrowUpDown className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p>
-              Stock movements are recorded automatically with every sale and
-              purchase
-            </p>
+            <p>{t('no_movements_found')}</p>
           </div>
         )}
       </div>
@@ -542,7 +539,7 @@ export default function InventoryPage() {
             <button
               onClick={() => {
                 if (!form.product_id || !form.quantity)
-                  return toast.error("Product and quantity required");
+                  return toast.error(t('error'));
                 adjMutation.mutate({
                   product_id: parseInt(form.product_id),
                   quantity: parseInt(form.quantity),
@@ -591,9 +588,9 @@ export default function InventoryPage() {
               className="input w-full"
             >
               <option value="adjustment">{t('adjustment')}</option>
-              <option value="damage">Damage / Loss</option>
-              <option value="count">Physical Count</option>
-              <option value="return">Return to Stock</option>
+              <option value="damage">{t('damage_loss')}</option>
+              <option value="count">{t('physical_count')}</option>
+              <option value="return">{t('return_to_stock_type')}</option>
             </select>
           </div>
           <div>

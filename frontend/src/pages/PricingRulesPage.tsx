@@ -123,26 +123,26 @@ export default function PricingRulesPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/pricing-rules/${editId}`, payload) : apiPost('/pricing-rules/', payload),
-    onSuccess: () => { toast.success(editId ? 'Rule updated' : 'Rule created'); qc.invalidateQueries({ queryKey: ['pricing-rules'] }); setModal(null) },
-    onError: () => toast.error('Failed to save'),
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['pricing-rules'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/pricing-rules/${id}`),
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['pricing-rules'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['pricing-rules'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const toggleMutation = useMutation({
     mutationFn: (id: number) => api.patch(`/pricing-rules/${id}/toggle`).then((r) => r.data),
-    onSuccess: () => { toast.success('Toggled'); qc.invalidateQueries({ queryKey: ['pricing-rules'] }) },
-    onError: () => toast.error('Failed to toggle'),
+    onSuccess: () => { toast.success(t('saved_success')); qc.invalidateQueries({ queryKey: ['pricing-rules'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Name required')
-    if (!form.discount_value) return toast.error('Discount value required')
+    if (!form.name) return toast.error(t('error'))
+    if (!form.discount_value) return toast.error(t('error'))
     const payload: Record<string, unknown> = {
       name: form.name,
       description: form.description || undefined,
@@ -199,7 +199,7 @@ export default function PricingRulesPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {[t('name'), 'Type', t('discount'), 'Priority', t('status'), t('pricing_active_now'), ''].map((h, i) => (
+                  {[t('name'), t('rule_type'), t('discount'), t('priority'), t('status'), t('pricing_active_now'), ''].map((h, i) => (
                     <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -229,9 +229,9 @@ export default function PricingRulesPage() {
                     </td>
                     <td className="px-4 py-3">
                       {r.active_now ? (
-                        <span className="badge badge-success">Yes</span>
+                        <span className="badge badge-success">{t('yes')}</span>
                       ) : (
-                        <span className="text-gray-400 text-xs">No</span>
+                        <span className="text-gray-400 text-xs">{t('no')}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -284,40 +284,40 @@ export default function PricingRulesPage() {
               <input value={form.name} onChange={set('name')} className="input w-full" required />
             </div>
             <div>
-              <label className="label">Rule Type *</label>
+              <label className="label">{t('rule_type')} *</label>
               <select value={form.rule_type} onChange={set('rule_type')} className="input w-full">
-                <option value="happy_hour">Happy Hour</option>
-                <option value="bulk_discount">Bulk Discount</option>
-                <option value="day_of_week">Day of Week</option>
-                <option value="category">Category</option>
-                <option value="flat_price">Flat Price</option>
+                <option value="happy_hour">{t('pricing_happy_hour_type')}</option>
+                <option value="bulk_discount">{t('pricing_bulk_discount')}</option>
+                <option value="day_of_week">{t('pricing_day_of_week')}</option>
+                <option value="category">{t('category')}</option>
+                <option value="flat_price">{t('pricing_flat_price')}</option>
               </select>
             </div>
             <div>
-              <label className="label">Priority (1–100)</label>
+              <label className="label">{t('priority')} (1–100)</label>
               <input value={form.priority} onChange={set('priority')} type="number" min="1" max="100" className="input w-full" />
             </div>
             <div>
-              <label className="label">Discount Type *</label>
+              <label className="label">{t('discount_type')} *</label>
               <select value={form.discount_type} onChange={set('discount_type')} className="input w-full">
-                <option value="percentage">Percentage</option>
-                <option value="fixed_amount">Fixed Amount</option>
-                <option value="new_price">New Price</option>
+                <option value="percentage">{t('percentage')}</option>
+                <option value="fixed_amount">{t('fixed_amount')}</option>
+                <option value="new_price">{t('new_price')}</option>
               </select>
             </div>
             <div>
-              <label className="label">Discount Value *</label>
+              <label className="label">{t('promo_value_label')} *</label>
               <input value={form.discount_value} onChange={set('discount_value')} type="number" min="0" step="0.01" className="input w-full" />
             </div>
 
             {showTimePicker && (
               <>
                 <div>
-                  <label className="label">Start Time</label>
+                  <label className="label">{t('start_time')}</label>
                   <input value={form.start_time} onChange={set('start_time')} type="time" className="input w-full" />
                 </div>
                 <div>
-                  <label className="label">End Time</label>
+                  <label className="label">{t('end_time')}</label>
                   <input value={form.end_time} onChange={set('end_time')} type="time" className="input w-full" />
                 </div>
               </>
@@ -325,7 +325,7 @@ export default function PricingRulesPage() {
 
             {showDays && (
               <div className="col-span-2">
-                <label className="label">Days of Week</label>
+                <label className="label">{t('days_of_week')}</label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {DAY_LABELS.map((label, i) => (
                     <button
@@ -348,26 +348,26 @@ export default function PricingRulesPage() {
 
             {showMinQty && (
               <div>
-                <label className="label">Min Quantity</label>
+                <label className="label">{t('min_quantity')}</label>
                 <input value={form.min_quantity} onChange={set('min_quantity')} type="number" min="1" className="input w-full" />
               </div>
             )}
 
             <div>
-              <label className="label">Valid From (optional)</label>
+              <label className="label">{t('valid_from_optional')}</label>
               <input value={form.valid_from} onChange={set('valid_from')} type="date" className="input w-full" />
             </div>
             <div>
-              <label className="label">Valid Until (optional)</label>
+              <label className="label">{t('valid_until_optional')}</label>
               <input value={form.valid_until} onChange={set('valid_until')} type="date" className="input w-full" />
             </div>
             <div className="col-span-2">
-              <label className="label">Description (optional)</label>
+              <label className="label">{t('description_optional')}</label>
               <input value={form.description} onChange={set('description')} className="input w-full" />
             </div>
             <div className="col-span-2 flex items-center gap-2">
               <input id="rule-active" type="checkbox" checked={form.is_active} onChange={set('is_active')} className="h-4 w-4 rounded border-gray-300 text-primary-600" />
-              <label htmlFor="rule-active" className="label mb-0">Active</label>
+              <label htmlFor="rule-active" className="label mb-0">{t('active_status')}</label>
             </div>
           </div>
         </form>
@@ -375,8 +375,8 @@ export default function PricingRulesPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Delete Pricing Rule"
-        message="Delete this pricing rule? This cannot be undone."
+        title={t('delete_pricing_rule_title')}
+        message={t('delete_rule_confirm')}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}

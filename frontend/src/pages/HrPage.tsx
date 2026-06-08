@@ -30,6 +30,7 @@ function calcDays(start: string, end: string): number {
 }
 
 export default function HrPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [searchParams] = useSearchParams()
@@ -41,8 +42,8 @@ export default function HrPage() {
   const [tab, setTab] = useState<TabType>(initialTab)
 
   useEffect(() => {
-    const t = searchParams.get('tab') as TabType
-    if (validTabs.includes(t)) setTab(t)
+    const tabParam = searchParams.get('tab') as TabType
+    if (validTabs.includes(tabParam)) setTab(tabParam)
   }, [searchParams])
 
   // ── Employees state ──
@@ -101,18 +102,18 @@ export default function HrPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/hr/employees/${editId}`, payload) : apiPost('/hr/employees', payload),
-    onSuccess: () => { toast.success(editId ? 'Employee updated' : 'Employee created'); qc.invalidateQueries({ queryKey: ['hr-employees'] }); setModal(null) },
-    onError: () => toast.error('Failed to save employee'),
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['hr-employees'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/hr/employees/${id}`),
-    onSuccess: () => { toast.success('Employee deleted'); qc.invalidateQueries({ queryKey: ['hr-employees'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['hr-employees'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Name required')
+    if (!form.name) return toast.error(t('error'))
     saveMutation.mutate({ name: form.name, email: form.email || undefined, phone: form.phone || undefined, position: form.position || undefined, department: form.department || undefined, salary: form.salary || undefined, status: form.status, hire_date: form.hire_date || undefined })
   }
 
@@ -139,13 +140,13 @@ export default function HrPage() {
 
   const attCreateMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/hr/attendance/checkin', payload),
-    onSuccess: () => { toast.success('Attendance recorded'); qc.invalidateQueries({ queryKey: ['hr-attendance'] }); setAttModal(false); setAttForm({ ...emptyAtt }) },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Failed to record attendance'),
+    onSuccess: () => { toast.success(t('record_success')); qc.invalidateQueries({ queryKey: ['hr-attendance'] }); setAttModal(false); setAttForm({ ...emptyAtt }) },
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? t('record_failed')),
   })
 
   const handleAttSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!attForm.user_id || !attForm.work_date || !attForm.check_in) return toast.error('Employee, date and check-in are required')
+    if (!attForm.user_id || !attForm.work_date || !attForm.check_in) return toast.error(t('error'))
     attCreateMutation.mutate({
       user_id: Number(attForm.user_id),
       work_date: attForm.work_date,
@@ -176,25 +177,25 @@ export default function HrPage() {
 
   const leaveApplyMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/hr/leaves', payload),
-    onSuccess: () => { toast.success('Leave request submitted'); qc.invalidateQueries({ queryKey: ['hr-leaves'] }); setLeaveForm({ ...emptyLeave }) },
-    onError: () => toast.error('Failed to submit leave request'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['hr-leaves'] }); setLeaveForm({ ...emptyLeave }) },
+    onError: () => toast.error(t('save_failed')),
   })
   const leaveApproveMutation = useMutation({
     mutationFn: (id: number) => apiPost(`/hr/leaves/${id}/approve`, {}),
-    onSuccess: () => { toast.success('Leave approved'); qc.invalidateQueries({ queryKey: ['hr-leaves'] }) },
-    onError: () => toast.error('Failed to approve leave'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['hr-leaves'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
   const leaveRejectMutation = useMutation({
     mutationFn: (id: number) => apiPost(`/hr/leaves/${id}/reject`, {}),
-    onSuccess: () => { toast.success('Leave rejected'); qc.invalidateQueries({ queryKey: ['hr-leaves'] }); setRejectId(null) },
-    onError: () => toast.error('Failed to reject leave'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['hr-leaves'] }); setRejectId(null) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleLeaveSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!leaveForm.user_id || !leaveForm.starts_at || !leaveForm.ends_at) return toast.error('Employee, start and end dates are required')
+    if (!leaveForm.user_id || !leaveForm.starts_at || !leaveForm.ends_at) return toast.error(t('error'))
     const days = calcDays(leaveForm.starts_at, leaveForm.ends_at)
-    if (days <= 0) return toast.error('End date must be after start date')
+    if (days <= 0) return toast.error(t('error'))
     leaveApplyMutation.mutate({
       user_id: Number(leaveForm.user_id),
       leave_type: leaveForm.leave_type,
@@ -224,18 +225,18 @@ export default function HrPage() {
 
   const generatePayrollMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/hr/payroll/generate', payload),
-    onSuccess: () => { toast.success('Payroll run generated'); qc.invalidateQueries({ queryKey: ['hr-payroll-runs'] }) },
-    onError: () => toast.error('Failed to generate payroll'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['hr-payroll-runs'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
   const approvePayrollMutation = useMutation({
     mutationFn: (id: number) => apiPost(`/hr/payroll/runs/${id}/approve`, {}),
-    onSuccess: () => { toast.success('Payroll approved'); qc.invalidateQueries({ queryKey: ['hr-payroll-runs'] }); setApproveRunId(null) },
-    onError: () => toast.error('Failed to approve payroll'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['hr-payroll-runs'] }); setApproveRunId(null) },
+    onError: () => toast.error(t('save_failed')),
   })
   const markPaidMutation = useMutation({
     mutationFn: (id: number) => apiPost(`/hr/payroll/runs/${id}/mark-paid`, {}),
-    onSuccess: () => { toast.success('Payroll marked as paid'); qc.invalidateQueries({ queryKey: ['hr-payroll-runs'] }); setMarkPaidRunId(null) },
-    onError: () => toast.error('Failed to mark payroll as paid'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['hr-payroll-runs'] }); setMarkPaidRunId(null) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const payrollStatusBadge = (s: string) => {
@@ -248,18 +249,18 @@ export default function HrPage() {
   const currentYear = new Date().getFullYear()
   const years = [currentYear - 1, currentYear, currentYear + 1]
   const months = [
-    { v: 1, l: 'January' }, { v: 2, l: 'February' }, { v: 3, l: 'March' },
-    { v: 4, l: 'April' }, { v: 5, l: 'May' }, { v: 6, l: 'June' },
-    { v: 7, l: 'July' }, { v: 8, l: 'August' }, { v: 9, l: 'September' },
-    { v: 10, l: 'October' }, { v: 11, l: 'November' }, { v: 12, l: 'December' },
+    { v: 1, l: t('month_jan') }, { v: 2, l: t('month_feb') }, { v: 3, l: t('month_mar') },
+    { v: 4, l: t('month_apr') }, { v: 5, l: t('month_may') }, { v: 6, l: t('month_jun') },
+    { v: 7, l: t('month_jul') }, { v: 8, l: t('month_aug') }, { v: 9, l: t('month_sep') },
+    { v: 10, l: t('month_oct') }, { v: 11, l: t('month_nov') }, { v: 12, l: t('month_dec') },
   ]
 
   if (empError && !canManage) {
     return (
       <div className="card p-8 text-center text-gray-400 space-y-3">
         <Users2 className="h-10 w-10 mx-auto opacity-40" />
-        <p className="font-medium">HR module not accessible</p>
-        <p className="text-sm">Requires manage_hr permission</p>
+        <p className="font-medium">{t('access_denied')}</p>
+        <p className="text-sm">{t('no_permission')}</p>
       </div>
     )
   }
@@ -268,30 +269,30 @@ export default function HrPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Users2 className="h-6 w-6 text-primary-500" /> Human Resources
+          <Users2 className="h-6 w-6 text-primary-500" /> {t('hr')}
         </h1>
         {canManage && tab === 'employees' && (
           <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Add Employee
+            <Plus className="h-4 w-4" /> {t('add_employee')}
           </button>
         )}
         {canManage && tab === 'attendance' && (
           <button onClick={() => setAttModal(true)} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Manual Entry
+            <Plus className="h-4 w-4" /> {t('manual_entry')}
           </button>
         )}
       </div>
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit flex-wrap">
-        {(['employees', 'shifts', 'attendance', 'leaves', 'payroll'] as const).map((t) => (
+        {(['employees', 'shifts', 'attendance', 'leaves', 'payroll'] as const).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors',
-              tab === t ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === tabKey ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
             )}
           >
-            {t}
+            {t(`hr_tab_${tabKey}`)}
           </button>
         ))}
       </div>
@@ -303,10 +304,10 @@ export default function HrPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{['Name', 'Position', 'Department', 'Phone', 'Hire Date', 'Salary', 'Status', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('name'), t('position'), t('department'), t('phone'), t('hire_date'), t('salary'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {employees.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No employees found</td></tr>
+                  {employees.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_employees')}</td></tr>
                     : employees.map((e) => (
                       <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{e.name}</td>
@@ -338,14 +339,14 @@ export default function HrPage() {
         <div className="card overflow-hidden">
           {shiftLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{['Employee', 'Start', 'End', 'Hours', 'Status'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('employee'), t('start_time'), t('end_time'), t('hours'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {shifts.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">No shifts found</td></tr>
+                {shifts.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_shifts')}</td></tr>
                   : shifts.map((s) => (
                     <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.employee_name ?? '—'}</td>
                       <td className="px-4 py-3 text-gray-500">{s.start_time?.slice(0, 16)}</td>
-                      <td className="px-4 py-3 text-gray-500">{s.end_time?.slice(0, 16) ?? 'Ongoing'}</td>
+                      <td className="px-4 py-3 text-gray-500">{s.end_time?.slice(0, 16) ?? t('ongoing')}</td>
                       <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{s.total_hours ? `${s.total_hours}h` : '—'}</td>
                       <td className="px-4 py-3"><span className={clsx('badge capitalize', s.status === 'active' ? 'badge-success' : 'badge-gray')}>{s.status ?? 'completed'}</span></td>
                     </tr>
@@ -363,36 +364,36 @@ export default function HrPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="card p-4 flex items-center gap-3">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg"><UserCheck className="h-5 w-5 text-green-600" /></div>
-              <div><p className="text-xs text-gray-500">Working Now</p><p className="text-2xl font-bold text-green-600">{attSummary.working}</p></div>
+              <div><p className="text-xs text-gray-500">{t('working_now')}</p><p className="text-2xl font-bold text-green-600">{attSummary.working}</p></div>
             </div>
             <div className="card p-4 flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Clock className="h-5 w-5 text-blue-600" /></div>
-              <div><p className="text-xs text-gray-500">Checked Out</p><p className="text-2xl font-bold text-blue-600">{attSummary.checked_out}</p></div>
+              <div><p className="text-xs text-gray-500">{t('checked_out')}</p><p className="text-2xl font-bold text-blue-600">{attSummary.checked_out}</p></div>
             </div>
             <div className="card p-4 flex items-center gap-3">
               <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg"><XCircle className="h-5 w-5 text-red-600" /></div>
-              <div><p className="text-xs text-gray-500">Absent</p><p className="text-2xl font-bold text-red-600">{attSummary.absent}</p></div>
+              <div><p className="text-xs text-gray-500">{t('absent')}</p><p className="text-2xl font-bold text-red-600">{attSummary.absent}</p></div>
             </div>
             <div className="card p-4 flex items-center gap-3">
               <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg"><Calendar className="h-5 w-5 text-orange-500" /></div>
-              <div><p className="text-xs text-gray-500">Late</p><p className="text-2xl font-bold text-orange-500">{attSummary.late}</p></div>
+              <div><p className="text-xs text-gray-500">{t('late')}</p><p className="text-2xl font-bold text-orange-500">{attSummary.late}</p></div>
             </div>
           </div>
 
           {/* Filters */}
           <div className="card p-4 flex flex-wrap gap-3 items-end">
             <div>
-              <label className="label">Date</label>
+              <label className="label">{t('date')}</label>
               <input type="date" value={attDate} onChange={(e) => setAttDate(e.target.value)} className="input" />
             </div>
             <div>
-              <label className="label">Status</label>
+              <label className="label">{t('status')}</label>
               <select value={attStatus} onChange={(e) => setAttStatus(e.target.value)} className="input">
-                <option value="all">All</option>
-                <option value="working">Working</option>
-                <option value="checked_out">Checked Out</option>
-                <option value="absent">Absent</option>
-                <option value="late">Late</option>
+                <option value="all">{t('all')}</option>
+                <option value="working">{t('working_now')}</option>
+                <option value="checked_out">{t('checked_out')}</option>
+                <option value="absent">{t('absent')}</option>
+                <option value="late">{t('late')}</option>
               </select>
             </div>
           </div>
@@ -403,11 +404,11 @@ export default function HrPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{['Employee', 'Work Date', 'Check-In', 'Check-Out', 'Hours', 'Status', 'Notes'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    <tr>{[t('employee'), t('work_date'), t('check_in'), t('check_out'), t('hours'), t('status'), t('notes')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {attRecords.length === 0
-                      ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">No attendance records for this date</td></tr>
+                      ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_attendance')}</td></tr>
                       : attRecords.map((r) => (
                         <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.user_name ?? '—'}</td>
@@ -432,45 +433,45 @@ export default function HrPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Apply Leave Sidebar */}
           <div className="card p-5 space-y-4">
-            <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-4 w-4 text-primary-500" /> Apply for Leave</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-4 w-4 text-primary-500" /> {t('apply_for_leave')}</h2>
             <form onSubmit={handleLeaveSubmit} className="space-y-3">
               <div>
-                <label className="label">Employee *</label>
+                <label className="label">{t('employee')} *</label>
                 <select value={leaveForm.user_id} onChange={(e) => setLeaveForm((p) => ({ ...p, user_id: e.target.value }))} className="input w-full" required>
-                  <option value="">Select employee</option>
+                  <option value="">{t('select_employee')}</option>
                   {employees.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="label">Leave Type *</label>
+                <label className="label">{t('leave_type')} *</label>
                 <select value={leaveForm.leave_type} onChange={(e) => setLeaveForm((p) => ({ ...p, leave_type: e.target.value }))} className="input w-full">
-                  <option value="annual">Annual</option>
-                  <option value="sick">Sick</option>
-                  <option value="unpaid">Unpaid</option>
+                  <option value="annual">{t('leave_annual')}</option>
+                  <option value="sick">{t('leave_sick')}</option>
+                  <option value="unpaid">{t('leave_unpaid')}</option>
                 </select>
               </div>
               <div>
-                <label className="label">Start Date *</label>
+                <label className="label">{t('start_date')} *</label>
                 <input type="date" value={leaveForm.starts_at}
                   onChange={(e) => setLeaveForm((p) => ({ ...p, starts_at: e.target.value }))}
                   className="input w-full" required />
               </div>
               <div>
-                <label className="label">End Date *</label>
+                <label className="label">{t('end_date')} *</label>
                 <input type="date" value={leaveForm.ends_at}
                   onChange={(e) => setLeaveForm((p) => ({ ...p, ends_at: e.target.value }))}
                   className="input w-full" required />
               </div>
               <div>
-                <label className="label">Days Count</label>
+                <label className="label">{t('days_count_label')}</label>
                 <input type="number" readOnly value={calcDays(leaveForm.starts_at, leaveForm.ends_at)} className="input w-full bg-gray-50 dark:bg-gray-700 cursor-not-allowed" />
               </div>
               <div>
-                <label className="label">Reason</label>
+                <label className="label">{t('reason')}</label>
                 <textarea value={leaveForm.reason} onChange={(e) => setLeaveForm((p) => ({ ...p, reason: e.target.value }))} className="input w-full min-h-[80px] resize-y" rows={3} />
               </div>
               <button type="submit" disabled={leaveApplyMutation.isPending} className="btn btn-primary w-full">
-                {leaveApplyMutation.isPending ? 'Submitting…' : 'Submit Request'}
+                {leaveApplyMutation.isPending ? t('submitting') : t('submit_request')}
               </button>
             </form>
           </div>
@@ -478,17 +479,17 @@ export default function HrPage() {
           {/* Pending Requests Table */}
           <div className="lg:col-span-2 card overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-              <h2 className="font-semibold text-gray-900 dark:text-white">Pending Requests</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white">{t('pending_requests')}</h2>
             </div>
             {leavesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{['Employee', 'Type', 'Start', 'End', 'Days', 'Status', 'Actions'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    <tr>{[t('employee'), t('type'), t('start_date'), t('end_date'), t('days'), t('status'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {leavesList.length === 0
-                      ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">No pending leave requests</td></tr>
+                      ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_leave_requests')}</td></tr>
                       : leavesList.map((lv) => (
                         <tr key={lv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{lv.user_name ?? '—'}</td>
@@ -525,13 +526,13 @@ export default function HrPage() {
           {/* Generate Payroll Row */}
           <div className="card p-4 flex flex-wrap gap-3 items-end">
             <div>
-              <label className="label">Year</label>
+              <label className="label">{t('year')}</label>
               <select value={payYear} onChange={(e) => setPayYear(Number(e.target.value))} className="input">
                 {years.map((y) => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Month</label>
+              <label className="label">{t('month')}</label>
               <select value={payMonth} onChange={(e) => setPayMonth(Number(e.target.value))} className="input">
                 {months.map((m) => <option key={m.v} value={m.v}>{m.l}</option>)}
               </select>
@@ -543,7 +544,7 @@ export default function HrPage() {
                 className="btn btn-primary flex items-center gap-2"
               >
                 <DollarSign className="h-4 w-4" />
-                {generatePayrollMutation.isPending ? 'Generating…' : 'Generate Payroll'}
+                {generatePayrollMutation.isPending ? t('generating') : t('generate_payroll')}
               </button>
             )}
           </div>
@@ -554,11 +555,11 @@ export default function HrPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{['Period', 'Employees', 'Gross Salary', 'Net Salary', 'Status', 'Actions'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    <tr>{[t('period'), t('employees'), t('gross_salary'), t('net_salary'), t('status'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {payrollRuns.length === 0
-                      ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No payroll runs found</td></tr>
+                      ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_payroll_runs')}</td></tr>
                       : payrollRuns.map((run) => (
                         <tr key={run.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{run.period}</td>
@@ -570,10 +571,10 @@ export default function HrPage() {
                             {canManagePayroll && (
                               <div className="flex gap-1">
                                 {run.status === 'draft' && (
-                                  <button onClick={() => setApproveRunId(run.id)} className="btn btn-secondary text-xs py-1 px-2">Approve</button>
+                                  <button onClick={() => setApproveRunId(run.id)} className="btn btn-secondary text-xs py-1 px-2">{t('approve')}</button>
                                 )}
                                 {run.status === 'approved' && (
-                                  <button onClick={() => setMarkPaidRunId(run.id)} className="btn btn-primary text-xs py-1 px-2">Mark Paid</button>
+                                  <button onClick={() => setMarkPaidRunId(run.id)} className="btn btn-primary text-xs py-1 px-2">{t('mark_paid')}</button>
                                 )}
                               </div>
                             )}
@@ -589,59 +590,59 @@ export default function HrPage() {
       )}
 
       {/* ── Employee Add/Edit Modal ── */}
-      <Modal open={modal !== null} onClose={() => setModal(null)} title={editId ? 'Edit Employee' : 'Add Employee'} size="lg"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}</button></>}>
+      <Modal open={modal !== null} onClose={() => setModal(null)} title={editId ? t('edit_employee') : t('add_employee')} size="lg"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? t('saving') : editId ? t('update') : t('create')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="label">Full Name *</label><input {...f('name')} className="input w-full" required /></div>
-            <div><label className="label">Email</label><input {...f('email')} type="email" className="input w-full" /></div>
-            <div><label className="label">Phone</label><input {...f('phone')} className="input w-full" /></div>
-            <div><label className="label">Position</label><input {...f('position')} className="input w-full" placeholder="e.g. Cashier" /></div>
-            <div><label className="label">Department</label><input {...f('department')} className="input w-full" placeholder="e.g. Sales" /></div>
-            <div><label className="label">Salary</label><input {...f('salary')} type="number" step="0.01" min="0" className="input w-full" /></div>
-            <div><label className="label">Hire Date</label><input {...f('hire_date')} type="date" className="input w-full" /></div>
-            <div><label className="label">Status</label><select {...f('status')} className="input w-full"><option value="active">Active</option><option value="inactive">Inactive</option><option value="terminated">Terminated</option></select></div>
+            <div className="col-span-2"><label className="label">{t('full_name')} *</label><input {...f('name')} className="input w-full" required /></div>
+            <div><label className="label">{t('email')}</label><input {...f('email')} type="email" className="input w-full" /></div>
+            <div><label className="label">{t('phone')}</label><input {...f('phone')} className="input w-full" /></div>
+            <div><label className="label">{t('position')}</label><input {...f('position')} className="input w-full" /></div>
+            <div><label className="label">{t('department')}</label><input {...f('department')} className="input w-full" /></div>
+            <div><label className="label">{t('salary')}</label><input {...f('salary')} type="number" step="0.01" min="0" className="input w-full" /></div>
+            <div><label className="label">{t('hire_date')}</label><input {...f('hire_date')} type="date" className="input w-full" /></div>
+            <div><label className="label">{t('status')}</label><select {...f('status')} className="input w-full"><option value="active">{t('active')}</option><option value="inactive">{t('inactive')}</option><option value="terminated">{t('terminated')}</option></select></div>
           </div>
         </form>
       </Modal>
 
       {/* ── Attendance Manual Entry Modal ── */}
-      <Modal open={attModal} onClose={() => setAttModal(false)} title="Manual Attendance Entry" size="md"
-        footer={<><button onClick={() => setAttModal(false)} className="btn btn-secondary">Cancel</button><button onClick={handleAttSubmit} disabled={attCreateMutation.isPending} className="btn btn-primary">{attCreateMutation.isPending ? 'Saving…' : 'Save'}</button></>}>
+      <Modal open={attModal} onClose={() => setAttModal(false)} title={t('manual_attendance_entry')} size="md"
+        footer={<><button onClick={() => setAttModal(false)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleAttSubmit} disabled={attCreateMutation.isPending} className="btn btn-primary">{attCreateMutation.isPending ? t('saving') : t('save')}</button></>}>
         <form onSubmit={handleAttSubmit} className="space-y-4">
           <div>
-            <label className="label">Employee *</label>
+            <label className="label">{t('employee')} *</label>
             <select value={attForm.user_id} onChange={(e) => setAttForm((p) => ({ ...p, user_id: e.target.value }))} className="input w-full" required>
-              <option value="">Select employee</option>
+              <option value="">{t('select_employee')}</option>
               {employees.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Work Date *</label>
+            <label className="label">{t('work_date')} *</label>
             <input type="date" value={attForm.work_date} onChange={(e) => setAttForm((p) => ({ ...p, work_date: e.target.value }))} className="input w-full" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Check-In Time *</label>
+              <label className="label">{t('check_in')} *</label>
               <input type="time" value={attForm.check_in} onChange={(e) => setAttForm((p) => ({ ...p, check_in: e.target.value }))} className="input w-full" required />
             </div>
             <div>
-              <label className="label">Check-Out Time</label>
+              <label className="label">{t('check_out')}</label>
               <input type="time" value={attForm.check_out} onChange={(e) => setAttForm((p) => ({ ...p, check_out: e.target.value }))} className="input w-full" />
             </div>
           </div>
           <div>
-            <label className="label">Notes</label>
-            <input type="text" value={attForm.notes} onChange={(e) => setAttForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" placeholder="Optional notes" />
+            <label className="label">{t('notes')}</label>
+            <input type="text" value={attForm.notes} onChange={(e) => setAttForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" />
           </div>
         </form>
       </Modal>
 
       {/* ── Confirm Dialogs ── */}
-      <ConfirmDialog open={deleteId !== null} title="Delete Employee" message="Delete this employee record?" loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
-      <ConfirmDialog open={rejectId !== null} title="Reject Leave" message="Reject this leave request?" loading={leaveRejectMutation.isPending} onConfirm={() => rejectId && leaveRejectMutation.mutate(rejectId)} onCancel={() => setRejectId(null)} />
-      <ConfirmDialog open={approveRunId !== null} title="Approve Payroll" message="Approve this payroll run? This action cannot be undone." loading={approvePayrollMutation.isPending} onConfirm={() => approveRunId && approvePayrollMutation.mutate(approveRunId)} onCancel={() => setApproveRunId(null)} />
-      <ConfirmDialog open={markPaidRunId !== null} title="Mark Payroll as Paid" message="Mark this payroll run as paid?" loading={markPaidMutation.isPending} onConfirm={() => markPaidRunId && markPaidMutation.mutate(markPaidRunId)} onCancel={() => setMarkPaidRunId(null)} />
+      <ConfirmDialog open={deleteId !== null} title={t('delete_employee')} message={t('confirm_delete')} loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+      <ConfirmDialog open={rejectId !== null} title={t('reject_leave')} message={t('confirm_reject_leave')} loading={leaveRejectMutation.isPending} onConfirm={() => rejectId && leaveRejectMutation.mutate(rejectId)} onCancel={() => setRejectId(null)} />
+      <ConfirmDialog open={approveRunId !== null} title={t('approve_payroll')} message={t('confirm_approve_payroll')} loading={approvePayrollMutation.isPending} onConfirm={() => approveRunId && approvePayrollMutation.mutate(approveRunId)} onCancel={() => setApproveRunId(null)} />
+      <ConfirmDialog open={markPaidRunId !== null} title={t('mark_paid')} message={t('confirm_mark_paid')} loading={markPaidMutation.isPending} onConfirm={() => markPaidRunId && markPaidMutation.mutate(markPaidRunId)} onCancel={() => setMarkPaidRunId(null)} />
     </div>
   )
 }

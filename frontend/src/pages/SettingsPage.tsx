@@ -48,8 +48,8 @@ export default function SettingsPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/settings', payload),
-    onSuccess: () => toast.success('Settings saved'),
-    onError: () => toast.error('Failed to save settings'),
+    onSuccess: () => toast.success(t('saved_success')),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleSave = () => {
@@ -72,26 +72,26 @@ export default function SettingsPage() {
     { key: 'store_address', label: t('store_address'), type: 'text' },
     { key: 'store_email', label: t('store_email'), type: 'email' },
     { key: 'currency', label: t('currency_symbol'), type: 'text' },
-    { key: 'timezone', label: 'Timezone', type: 'text' },
+    { key: 'timezone', label: t('timezone'), type: 'text' },
   ]
   const salesFields = [
-    { key: 'allow_negative_stock', label: 'Allow Negative Stock', type: 'checkbox' },
-    { key: 'allow_cashier_price_change', label: 'Allow Cashier Price Change', type: 'checkbox' },
+    { key: 'allow_negative_stock', label: t('allow_negative_stock'), type: 'checkbox' },
+    { key: 'allow_cashier_price_change', label: t('allow_cashier_price_change'), type: 'checkbox' },
     { key: 'auto_print_receipt', label: t('auto_print'), type: 'checkbox' },
-    { key: 'require_customer', label: 'Require Customer on Sale', type: 'checkbox' },
+    { key: 'require_customer', label: t('require_customer'), type: 'checkbox' },
     { key: 'default_payment_method', label: t('payment_method'), type: 'select', options: ['cash', 'card', 'wallet'] },
   ]
   const taxFields = [
     { key: 'tax_rate', label: t('tax_rate'), type: 'number' },
-    { key: 'tax_included', label: 'Tax Included in Price', type: 'checkbox' },
+    { key: 'tax_included', label: t('tax_included'), type: 'checkbox' },
     { key: 'tax_name', label: t('tax_name'), type: 'text' },
     { key: 'tax_number', label: t('tax_number'), type: 'text' },
   ]
   const receiptFields = [
-    { key: 'receipt_header', label: 'Receipt Header', type: 'text' },
+    { key: 'receipt_header', label: t('receipt_header'), type: 'text' },
     { key: 'receipt_footer', label: t('invoice_footer'), type: 'text' },
-    { key: 'show_logo', label: 'Show Logo on Receipt', type: 'checkbox' },
-    { key: 'show_cashier', label: 'Show Cashier Name', type: 'checkbox' },
+    { key: 'show_logo', label: t('show_logo'), type: 'checkbox' },
+    { key: 'show_cashier', label: t('show_cashier'), type: 'checkbox' },
   ]
 
   const fieldSets: Record<string, typeof storeFields> = {
@@ -106,7 +106,7 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Settings className="h-6 w-6 text-primary-500" /> {t('settings')}</h1>
         {canManage && activeGroup !== 'appearance' && activeGroup !== 'desktop' && (
           <button onClick={handleSave} disabled={saveMutation.isPending} className="btn btn-primary flex items-center gap-2">
-            <Save className="h-4 w-4" />{saveMutation.isPending ? 'Saving…' : t('save_changes')}
+            <Save className="h-4 w-4" />{saveMutation.isPending ? t('saving') : t('save_changes')}
           </button>
         )}
       </div>
@@ -191,7 +191,7 @@ export default function SettingsPage() {
                             <input type="checkbox" checked={form[field.key] === 'true' || form[field.key] === '1'}
                               onChange={(e) => setForm((p) => ({ ...p, [field.key]: e.target.checked ? 'true' : 'false' }))}
                               className="h-5 w-5 rounded border-gray-300 text-primary-600" disabled={!canManage} />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Enable {field.label}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{field.label}</span>
                           </label>
                         ) : field.type === 'select' && field.options ? (
                           <select value={form[field.key] ?? ''} onChange={(e) => setForm((p) => ({ ...p, [field.key]: e.target.value }))} className="input w-full" disabled={!canManage}>

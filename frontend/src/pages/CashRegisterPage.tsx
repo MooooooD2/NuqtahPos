@@ -56,48 +56,48 @@ export default function CashRegisterPage() {
   const openMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/cash-session/open', payload),
     onSuccess: () => {
-      toast.success('Session opened')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['cash-session-current'] })
       qc.invalidateQueries({ queryKey: ['cash-session-history'] })
       setModal(null)
     },
-    onError: () => toast.error('Failed to open session'),
+    onError: () => toast.error(t('save_failed')),
   })
   const closeMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: object }) => apiPost(`/cash-session/${id}/close`, payload),
     onSuccess: () => {
-      toast.success('Session closed')
+      toast.success(t('updated_success'))
       qc.invalidateQueries({ queryKey: ['cash-session-current'] })
       qc.invalidateQueries({ queryKey: ['cash-session-history'] })
       setModal(null)
     },
-    onError: () => toast.error('Failed to close session'),
+    onError: () => toast.error(t('save_failed')),
   })
   const movementMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: object }) => apiPost(`/cash-session/${id}/movements`, payload),
     onSuccess: () => {
-      toast.success('Movement recorded')
+      toast.success(t('record_success'))
       qc.invalidateQueries({ queryKey: ['cash-session-current'] })
       setModal(null)
     },
-    onError: () => toast.error('Failed to record movement'),
+    onError: () => toast.error(t('record_failed')),
   })
 
   const handleOpen = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!openForm.opening_amount) return toast.error('Opening balance required')
+    if (!openForm.opening_amount) return toast.error(t('error'))
     openMutation.mutate({ opening_amount: parseFloat(openForm.opening_amount), notes: openForm.notes || undefined })
   }
   const handleClose = (e: React.FormEvent) => {
     e.preventDefault()
     if (!session) return
-    if (!closeForm.actual_cash) return toast.error('Actual cash amount required')
+    if (!closeForm.actual_cash) return toast.error(t('error'))
     closeMutation.mutate({ id: session.id, payload: { actual_cash: parseFloat(closeForm.actual_cash), notes: closeForm.notes || undefined } })
   }
   const handleMovement = (e: React.FormEvent) => {
     e.preventDefault()
     if (!session) return
-    if (!movementForm.amount || !movementForm.reason) return toast.error('Amount and reason required')
+    if (!movementForm.amount || !movementForm.reason) return toast.error(t('error'))
     movementMutation.mutate({ id: session.id, payload: { type: movementForm.type, amount: parseFloat(movementForm.amount), reason: movementForm.reason } })
   }
 
@@ -354,11 +354,11 @@ export default function CashRegisterPage() {
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer text-sm">
                 <input type="radio" name="mv_type" value="deposit" checked={movementForm.type === 'deposit'} onChange={() => setMovementForm((p) => ({ ...p, type: 'deposit' }))} className="accent-primary-600" />
-                <Plus className="h-4 w-4 text-green-600" /> Deposit
+                <Plus className="h-4 w-4 text-green-600" /> {t('deposit')}
               </label>
               <label className="flex items-center gap-2 cursor-pointer text-sm">
                 <input type="radio" name="mv_type" value="withdrawal" checked={movementForm.type === 'withdrawal'} onChange={() => setMovementForm((p) => ({ ...p, type: 'withdrawal' }))} className="accent-primary-600" />
-                <Minus className="h-4 w-4 text-red-600" /> Withdrawal
+                <Minus className="h-4 w-4 text-red-600" /> {t('withdrawal')}
               </label>
             </div>
           </div>

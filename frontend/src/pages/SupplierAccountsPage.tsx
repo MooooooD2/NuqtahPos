@@ -12,7 +12,6 @@ interface AccountEntry { id: number; date: string; movement_type: string; refere
 interface StatementData { supplier: Supplier; entries: AccountEntry[]; totals: { total_debt: string; total_paid: string; balance: string } }
 
 const movementBadge: Record<string, string> = { purchase_order: 'badge-info', payment: 'badge-success', purchase_return: 'badge-warning', adjustment: 'badge-gray' }
-const movementLabel: Record<string, string> = { purchase_order: 'Purchase Order', payment: 'Payment', purchase_return: 'Purchase Return', adjustment: 'Adjustment' }
 
 export default function SupplierAccountsPage() {
   const { t } = useTranslation('pos')
@@ -53,7 +52,12 @@ export default function SupplierAccountsPage() {
 
   const canView = hasPermission('view_warehouse')
 
-  if (!canView) return <div className="card p-8 text-center text-gray-400">No permission to view supplier accounts.</div>
+  const getMovementLabel = (type: string) => {
+    const map: Record<string, string> = { purchase_order: t('move_purchase_order'), payment: t('move_payment'), purchase_return: t('move_purchase_return'), adjustment: t('move_adjustment') }
+    return map[type] ?? type
+  }
+
+  if (!canView) return <div className="card p-8 text-center text-gray-400">{t('no_permission')}</div>
 
   return (
     <div className="space-y-4">
@@ -127,16 +131,16 @@ export default function SupplierAccountsPage() {
                 </div>
                 <div className="flex flex-wrap gap-3 items-end">
                   <div>
-                    <label className="label text-xs">Date From</label>
+                    <label className="label text-xs">{t('date_from')}</label>
                     <input value={dateFrom} type="date" onChange={(e) => setDateFrom(e.target.value)} className="input text-sm" />
                   </div>
                   <div>
-                    <label className="label text-xs">Date To</label>
+                    <label className="label text-xs">{t('date_to')}</label>
                     <input value={dateTo} type="date" onChange={(e) => setDateTo(e.target.value)} className="input text-sm" />
                   </div>
-                  <button onClick={() => setLoadTrigger((n) => n + 1)} className="btn btn-primary text-sm">Load Statement</button>
+                  <button onClick={() => setLoadTrigger((n) => n + 1)} className="btn btn-primary text-sm">{t('load_statement')}</button>
                   {entries.length > 0 && (
-                    <button onClick={() => window.print()} className="btn btn-secondary text-sm flex items-center gap-1"><Printer className="h-4 w-4" />Print</button>
+                    <button onClick={() => window.print()} className="btn btn-secondary text-sm flex items-center gap-1"><Printer className="h-4 w-4" />{t('print')}</button>
                   )}
                 </div>
               </div>
@@ -148,7 +152,7 @@ export default function SupplierAccountsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>{[t('date'), 'Type', t('invoice_number'), t('debt'), t('paid'), t('current_balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                        <tr>{[t('date'), t('type'), t('invoice_number'), t('debt'), t('paid'), t('current_balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                         {entries.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_movements')}</td></tr>
@@ -159,7 +163,7 @@ export default function SupplierAccountsPage() {
                                 <td className="px-4 py-3 text-gray-500 text-xs">{entry.date?.slice(0, 10)}</td>
                                 <td className="px-4 py-3">
                                   <span className={clsx('badge text-xs', movementBadge[entry.movement_type] ?? 'badge-gray')}>
-                                    {movementLabel[entry.movement_type] ?? entry.movement_type}
+                                    {getMovementLabel(entry.movement_type)}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 font-mono text-xs text-primary-600">{entry.reference || '—'}</td>

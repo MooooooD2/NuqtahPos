@@ -21,9 +21,9 @@ interface DeviceSession {
 
 function getDeviceIcon(deviceType?: string) {
   if (!deviceType) return Monitor
-  const t = deviceType.toLowerCase()
-  if (t === 'mobile') return Smartphone
-  if (t === 'tablet') return Tablet
+  const dtype = deviceType.toLowerCase()
+  if (dtype === 'mobile') return Smartphone
+  if (dtype === 'tablet') return Tablet
   return Monitor
 }
 
@@ -43,14 +43,14 @@ export default function DeviceSessionsPage() {
 
   const revokeMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/device-sessions/${id}`),
-    onSuccess: () => { toast.success('Session revoked'); qc.invalidateQueries({ queryKey: ['device-sessions'] }); setRevokeId(null) },
-    onError: () => toast.error('Failed to revoke session'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['device-sessions'] }); setRevokeId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const revokeAllMutation = useMutation({
     mutationFn: () => apiDelete('/device-sessions/revoke-all'),
-    onSuccess: () => { toast.success('All other sessions signed out'); qc.invalidateQueries({ queryKey: ['device-sessions'] }); setRevokeAll(false) },
-    onError: () => toast.error('Failed to sign out other sessions'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['device-sessions'] }); setRevokeAll(false) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const otherSessions = sessions.filter((s) => !s.is_current)
@@ -94,7 +94,7 @@ export default function DeviceSessionsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {session.browser ?? 'Unknown Browser'}{session.os ? ` on ${session.os}` : ''}
+                      {session.browser ?? t('unknown_browser')}{session.os ? ` ${t('on')} ${session.os}` : ''}
                     </span>
                     {session.is_current && <span className="badge badge-success text-xs">{t('current_session_badge')}</span>}
                   </div>
@@ -105,7 +105,7 @@ export default function DeviceSessionsPage() {
                       </span>
                     )}
                     <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" /> {session.last_active_at ?? 'Unknown'}
+                      <Clock className="h-3.5 w-3.5" /> {session.last_active_at ?? t('unknown')}
                     </span>
                     {session.device_name && (
                       <span className="hidden md:block text-gray-400 dark:text-gray-500 truncate max-w-xs">
@@ -131,8 +131,8 @@ export default function DeviceSessionsPage() {
 
       <ConfirmDialog
         open={revokeId !== null}
-        title="Revoke Session"
-        message="This device will be signed out immediately. Continue?"
+        title={t('revoke_session')}
+        message={t('confirm_revoke_session')}
         confirmLabel={t('revoke')}
         loading={revokeMutation.isPending}
         onConfirm={() => revokeId && revokeMutation.mutate(revokeId)}
@@ -142,7 +142,7 @@ export default function DeviceSessionsPage() {
       <ConfirmDialog
         open={revokeAll}
         title={t('sign_out_all_other')}
-        message={`Sign out ${otherSessions.length} other session${otherSessions.length !== 1 ? 's' : ''}? Your current session will remain active.`}
+        message={t('sign_out_others_confirm', { n: otherSessions.length })}
         confirmLabel={t('sign_out_all_other')}
         loading={revokeAllMutation.isPending}
         onConfirm={() => revokeAllMutation.mutate()}

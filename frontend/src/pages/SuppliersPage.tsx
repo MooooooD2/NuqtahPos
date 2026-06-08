@@ -54,29 +54,29 @@ export default function SuppliersPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/suppliers/${editId}`, payload) : apiPost('/suppliers', payload),
-    onSuccess: () => { toast.success(editId ? 'Supplier updated' : 'Supplier created'); qc.invalidateQueries({ queryKey: ['suppliers'] }); setModal(null) },
-    onError: () => toast.error('Failed to save'),
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['suppliers'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/suppliers/${id}`),
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['suppliers'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['suppliers'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
   const paymentMutation = useMutation({
     mutationFn: (payload: object) => apiPost(`/supplier-payments`, payload),
-    onSuccess: () => { toast.success('Payment recorded'); qc.invalidateQueries({ queryKey: ['suppliers'] }); setModal(null) },
-    onError: () => toast.error('Failed to record payment'),
+    onSuccess: () => { toast.success(t('record_success')); qc.invalidateQueries({ queryKey: ['suppliers'] }); setModal(null) },
+    onError: () => toast.error(t('record_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Name required')
+    if (!form.name) return toast.error(t('error'))
     saveMutation.mutate({ name: form.name, phone: form.phone || undefined, email: form.email || undefined, address: form.address || undefined, tax_number: form.tax_number || undefined, payment_terms: parseInt(form.payment_terms) || 30 })
   }
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!paymentForm.amount) return toast.error('Amount required')
+    if (!paymentForm.amount) return toast.error(t('error'))
     paymentMutation.mutate({ supplier_id: paymentSupplierId, amount: parseFloat(paymentForm.amount), payment_method: paymentForm.payment_method, notes: paymentForm.notes || undefined, payment_date: paymentForm.payment_date })
   }
 
@@ -97,7 +97,7 @@ export default function SuppliersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{[t('name'), t('phone'), t('email'), 'Tax No.', 'Terms', t('balance'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                <tr>{[t('name'), t('phone'), t('email'), t('tax_no'), t('payment_terms_days'), t('balance'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {suppliers.length === 0 ? <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
@@ -107,7 +107,7 @@ export default function SuppliersPage() {
                       <td className="px-4 py-3 text-gray-500">{s.phone ?? '—'}</td>
                       <td className="px-4 py-3 text-gray-500">{s.email ?? '—'}</td>
                       <td className="px-4 py-3 text-gray-400 font-mono text-xs">{s.tax_number ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{s.payment_terms ?? 30} days</td>
+                      <td className="px-4 py-3 text-gray-500">{t('days_count', { n: s.payment_terms ?? 30 })}</td>
                       <td className="px-4 py-3"><span className={clsx('font-semibold', parseFloat(s.outstanding_balance ?? '0') > 0 ? 'text-red-600' : 'text-gray-500')}>{parseFloat(s.outstanding_balance ?? '0').toFixed(2)}</span></td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1 justify-end">
@@ -134,26 +134,26 @@ export default function SuppliersPage() {
       </div>
 
       <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? t('edit_supplier') : t('add_supplier')} size="lg"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? 'Saving…' : editId ? t('update') : t('create')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? t('saving') : editId ? t('update') : t('create')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2"><label className="label">{t('name')} *</label><input {...f('name')} className="input w-full" required /></div>
             <div><label className="label">{t('phone')}</label><input {...f('phone')} className="input w-full" /></div>
             <div><label className="label">{t('email')}</label><input {...f('email')} type="email" className="input w-full" /></div>
             <div><label className="label">{t('tax_number')}</label><input {...f('tax_number')} className="input w-full" /></div>
-            <div><label className="label">Payment Terms (days)</label><input {...f('payment_terms')} type="number" min="0" className="input w-full" /></div>
+            <div><label className="label">{t('payment_terms_days')}</label><input {...f('payment_terms')} type="number" min="0" className="input w-full" /></div>
             <div className="col-span-2"><label className="label">{t('address')}</label><input {...f('address')} className="input w-full" /></div>
           </div>
         </form>
       </Modal>
 
       <Modal open={modal === 'payment'} onClose={() => setModal(null)} title={t('supplier_payments')} size="sm"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handlePayment} disabled={paymentMutation.isPending} className="btn btn-primary">{paymentMutation.isPending ? 'Saving…' : t('add_payment')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handlePayment} disabled={paymentMutation.isPending} className="btn btn-primary">{paymentMutation.isPending ? t('saving') : t('add_payment')}</button></>}>
         <form onSubmit={handlePayment} className="space-y-4">
           <div><label className="label">{t('amount')} *</label><input value={paymentForm.amount} type="number" min="0" step="0.01" onChange={(e) => setPaymentForm((p) => ({ ...p, amount: e.target.value }))} className="input w-full" required /></div>
           <div><label className="label">{t('payment_method')} *</label><select value={paymentForm.payment_method} onChange={(e) => setPaymentForm((p) => ({ ...p, payment_method: e.target.value }))} className="input w-full"><option value="cash">{t('cash')}</option><option value="card">{t('card')}</option><option value="transfer">{t('transfer')}</option><option value="check">Check</option></select></div>
           <div><label className="label">{t('payment_date')}</label><input value={paymentForm.payment_date} type="date" onChange={(e) => setPaymentForm((p) => ({ ...p, payment_date: e.target.value }))} className="input w-full" /></div>
-          <div><label className="label">{t('notes')}</label><input value={paymentForm.notes} onChange={(e) => setPaymentForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" placeholder="Optional notes" /></div>
+          <div><label className="label">{t('notes')}</label><input value={paymentForm.notes} onChange={(e) => setPaymentForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" placeholder={t('optional_notes')} /></div>
         </form>
       </Modal>
 

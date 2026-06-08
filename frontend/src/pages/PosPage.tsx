@@ -141,16 +141,16 @@ export default function PosPage() {
       } else {
         // Not found anywhere — still offer to create manually
         setNewProductModal({ barcode: code, name: '', brand: undefined, price: '0.00' })
-        toast.error(`Barcode ${code} not found — enter details to create it`)
+        toast.error(t('product_not_found'))
       }
     } catch {
       toast.dismiss(loadingId)
-      toast.error(`Could not look up barcode ${code}`)
+      toast.error(t('error'))
     }
   }, [products, cart])
 
   const handleCreateAndAdd = async () => {
-    if (!newProductModal?.name.trim()) return toast.error('Product name is required')
+    if (!newProductModal?.name.trim()) return toast.error(t('product_name'))
     setCreatingProduct(true)
     try {
       const res = await apiPost<{ success: boolean; product: ApiProduct }>('/products', {
@@ -163,13 +163,13 @@ export default function PosPage() {
       })
       if (res?.product) {
         cart.addItem(toCartProduct(res.product))
-        toast.success(`✓ Created & added: ${res.product.name}`)
+        toast.success(t('created_success'))
         qc.invalidateQueries({ queryKey: ['pos-products'] })
         qc.invalidateQueries({ queryKey: ['products'] })
         setNewProductModal(null)
       }
     } catch {
-      toast.error('Failed to create product')
+      toast.error(t('save_failed'))
     } finally {
       setCreatingProduct(false)
     }
@@ -177,7 +177,7 @@ export default function PosPage() {
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newCustForm.name.trim()) return toast.error('Name is required')
+    if (!newCustForm.name.trim()) return toast.error(t('error'))
     setCreatingCust(true)
     try {
       const res = await apiPost<{ customer: Customer }>('/customers/quick', {
@@ -190,11 +190,11 @@ export default function PosPage() {
         setShowCustomerDrop(false)
         setNewCustModal(false)
         setNewCustForm({ name: '', phone: '' })
-        toast.success(`Customer "${res.customer.name}" created`)
+        toast.success(t('created_success'))
         qc.invalidateQueries({ queryKey: ['pos-customers'] })
       }
     } catch {
-      toast.error('Failed to create customer')
+      toast.error(t('save_failed'))
     } finally {
       setCreatingCust(false)
     }
@@ -209,7 +209,7 @@ export default function PosPage() {
       const inv = data.invoice
       const customerId = cart.customer?.id
       const cbUsed = cashbackToUse
-      toast.success(`Sale #${inv?.invoice_number ?? '—'} completed!`)
+      toast.success(`${t('complete_sale')} #${inv?.invoice_number ?? '—'}`)
       await openCashDrawer()
       cart.clearCart(); setPayModal(false); setTenderedAmount(''); setCashbackToUse(0); setCashbackBalance(0)
       qc.invalidateQueries({ queryKey: ['dashboard'] })
@@ -218,11 +218,11 @@ export default function PosPage() {
       // Redeem cashback points after invoice is created
       if (cbUsed > 0 && customerId && inv?.id) {
         apiPost('/cashback/redeem', { customer_id: customerId, amount: cbUsed, invoice_id: inv.id })
-          .catch(() => toast.error('Warning: cashback balance was not deducted — contact manager'))
+          .catch(() => toast.error(t('error')))
       }
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Sale failed'
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('error')
       toast.error(msg)
     },
   })
@@ -251,7 +251,7 @@ export default function PosPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center"><AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">Access Denied</p>
+          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">{t('access_denied')}</p>
         </div>
       </div>
     )
@@ -518,7 +518,7 @@ export default function PosPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Payment</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('payment_title')}</h2>
               <button onClick={() => setPayModal(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
             </div>
 
@@ -527,7 +527,7 @@ export default function PosPage() {
                 <p className="text-sm text-gray-400 line-through">{total.toFixed(2)}</p>
               )}
               <p className="text-3xl font-bold text-primary-600">{finalTotal.toFixed(2)}</p>
-              <p className="text-sm text-gray-400 mt-1">Total Amount</p>
+              <p className="text-sm text-gray-400 mt-1">{t('total')}</p>
             </div>
 
             {/* Cashback redemption */}
@@ -535,7 +535,7 @@ export default function PosPage() {
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 font-medium">
-                    <Gift className="h-4 w-4" /> Cashback Balance
+                    <Gift className="h-4 w-4" /> {t('cashback')}
                   </span>
                   <span className="font-bold text-amber-700 dark:text-amber-300">{cashbackBalance.toFixed(2)}</span>
                 </div>
@@ -548,16 +548,16 @@ export default function PosPage() {
                     placeholder="0.00"
                     className="input flex-1 text-sm py-1 text-center"
                   />
-                  <button onClick={() => setCashbackToUse(Math.min(cashbackBalance, total))} className="btn btn-secondary text-xs py-1 px-2 whitespace-nowrap">Use All</button>
+                  <button onClick={() => setCashbackToUse(Math.min(cashbackBalance, total))} className="btn btn-secondary text-xs py-1 px-2 whitespace-nowrap">{t('use_all')}</button>
                   {cashbackToUse > 0 && (
-                    <button onClick={() => setCashbackToUse(0)} className="text-xs text-gray-400 hover:text-red-500 whitespace-nowrap">Clear</button>
+                    <button onClick={() => setCashbackToUse(0)} className="text-xs text-gray-400 hover:text-red-500 whitespace-nowrap">{t('clear')}</button>
                   )}
                 </div>
               </div>
             )}
 
             <div className="grid grid-cols-3 gap-2">
-              {([{ key: 'cash', label: 'Cash', icon: DollarSign }, { key: 'card', label: 'Card', icon: CreditCard }, { key: 'wallet', label: 'Wallet', icon: Wallet }] as const).map(({ key, label, icon: Icon }) => (
+              {([{ key: 'cash', label: t('cash'), icon: DollarSign }, { key: 'card', label: t('card'), icon: CreditCard }, { key: 'wallet', label: t('wallet'), icon: Wallet }] as const).map(({ key, label, icon: Icon }) => (
                 <button key={key} onClick={() => cart.setPaymentMethod(key)}
                   className={clsx('flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-all text-sm font-medium',
                     cart.payment_method === key ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400')}>
@@ -568,12 +568,12 @@ export default function PosPage() {
 
             {cart.payment_method === 'cash' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tendered Amount</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('tendered')}</label>
                 <input type="number" value={tenderedAmount} onChange={(e) => setTenderedAmount(e.target.value)}
                   className="input w-full text-lg font-semibold text-center" placeholder="0.00" autoFocus />
                 {tenderedAmount && (
                   <div className={clsx('text-center py-2 rounded-lg font-bold text-lg', change >= 0 ? 'bg-green-50 text-green-700 dark:bg-green-900/20' : 'bg-red-50 text-red-700')}>
-                    Change: {change.toFixed(2)}
+                    {t('change_due')}: {change.toFixed(2)}
                   </div>
                 )}
                 <div className="grid grid-cols-4 gap-1">
@@ -587,7 +587,7 @@ export default function PosPage() {
             <button onClick={handleCheckout}
               disabled={checkoutMutation.isPending || (cart.payment_method === 'cash' && !!tenderedAmount && tendered < finalTotal)}
               className="btn btn-primary w-full py-3 text-base font-semibold">
-              {checkoutMutation.isPending ? 'Processing…' : `Complete Sale · ${finalTotal.toFixed(2)}`}
+              {checkoutMutation.isPending ? t('processing') : `${t('complete_sale')} · ${finalTotal.toFixed(2)}`}
             </button>
           </div>
         </div>
@@ -600,7 +600,7 @@ export default function PosPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 {newProductModal.name ? <Globe className="h-5 w-5 text-green-500" /> : <PackagePlus className="h-5 w-5 text-primary-500" />}
-                {newProductModal.name ? 'Product Found Online' : 'Create New Product'}
+                {newProductModal.name ? t('add_product') : t('add_product')}
               </h2>
               <button onClick={() => setNewProductModal(null)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
             </div>
@@ -617,22 +617,22 @@ export default function PosPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="label">Barcode</label>
+                <label className="label">{t('barcode')}</label>
                 <input value={newProductModal.barcode} readOnly
                   className="input w-full bg-gray-50 dark:bg-gray-700 font-mono text-gray-500 cursor-not-allowed" />
               </div>
               <div>
-                <label className="label">Product Name *</label>
+                <label className="label">{t('product_name')} *</label>
                 <input
                   value={newProductModal.name}
                   onChange={(e) => setNewProductModal((p) => p ? { ...p, name: e.target.value } : null)}
                   className="input w-full"
-                  placeholder="Enter product name"
+                  placeholder={t('product_name')}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="label">Selling Price</label>
+                <label className="label">{t('selling_price')}</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={newProductModal.price}
@@ -646,7 +646,7 @@ export default function PosPage() {
 
             <div className="flex gap-2">
               <button onClick={() => setNewProductModal(null)} className="btn btn-secondary flex-1">
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleCreateAndAdd}
@@ -654,7 +654,7 @@ export default function PosPage() {
                 className="btn btn-primary flex-1 flex items-center justify-center gap-2"
               >
                 <PackagePlus className="h-4 w-4" />
-                {creatingProduct ? 'Creating…' : 'Create & Add to Cart'}
+                {creatingProduct ? t('saving') : t('add_product')}
               </button>
             </div>
           </div>
@@ -667,35 +667,35 @@ export default function PosPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <User className="h-5 w-5 text-primary-500" /> New Customer
+                <User className="h-5 w-5 text-primary-500" /> {t('new_customer')}
               </h2>
               <button onClick={() => setNewCustModal(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
             </div>
             <form onSubmit={handleCreateCustomer} className="space-y-3">
               <div>
-                <label className="label">Name *</label>
+                <label className="label">{t('name')} *</label>
                 <input
                   value={newCustForm.name}
                   onChange={(e) => setNewCustForm((p) => ({ ...p, name: e.target.value }))}
                   className="input w-full"
-                  placeholder="Customer name"
+                  placeholder={t('name')}
                   autoFocus
                   required
                 />
               </div>
               <div>
-                <label className="label">Phone</label>
+                <label className="label">{t('phone')}</label>
                 <input
                   value={newCustForm.phone}
                   onChange={(e) => setNewCustForm((p) => ({ ...p, phone: e.target.value }))}
                   className="input w-full"
-                  placeholder="Optional"
+                  placeholder={t('optional_notes')}
                 />
               </div>
               <div className="flex gap-2 pt-1">
-                <button type="button" onClick={() => setNewCustModal(false)} className="btn btn-secondary flex-1">Cancel</button>
+                <button type="button" onClick={() => setNewCustModal(false)} className="btn btn-secondary flex-1">{t('cancel')}</button>
                 <button type="submit" disabled={creatingCust || !newCustForm.name.trim()} className="btn btn-primary flex-1">
-                  {creatingCust ? 'Creating…' : 'Create & Select'}
+                  {creatingCust ? t('saving') : t('new_customer')}
                 </button>
               </div>
             </form>

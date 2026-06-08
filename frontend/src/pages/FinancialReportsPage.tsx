@@ -70,13 +70,13 @@ export default function FinancialReportsPage() {
   const canView = hasPermission('view_accounting')
 
   const handleGenerateIncome = async () => {
-    if (!incomeStart || !incomeEnd) { toast.error('Select start and end date'); return }
+    if (!incomeStart || !incomeEnd) { toast.error(t('select_dates')); return }
     setIncomeLoading(true)
     try {
       const res = await apiPost<IncomeStatement>('/reports/income-statement', { start_date: incomeStart, end_date: incomeEnd })
       setIncomeData(res)
     } catch {
-      toast.error('Failed to generate income statement')
+      toast.error(t('error'))
     } finally {
       setIncomeLoading(false)
     }
@@ -89,21 +89,21 @@ export default function FinancialReportsPage() {
       const res = await apiGet<BalanceSheet>('/reports/balance-sheet')
       setBalanceData(res)
     } catch {
-      toast.error('Failed to load balance sheet')
+      toast.error(t('error'))
     } finally {
       setBalanceLoading(false)
     }
   }
 
   const handleLoadStatement = async () => {
-    if (!stmtAccountId) { toast.error('Select an account'); return }
-    if (!stmtStart || !stmtEnd) { toast.error('Select date range'); return }
+    if (!stmtAccountId) { toast.error(t('error')); return }
+    if (!stmtStart || !stmtEnd) { toast.error(t('select_dates')); return }
     setStmtLoading(true)
     try {
       const res = await apiPost<AccountStatement>(`/reports/account-statement/${stmtAccountId}`, { start_date: stmtStart, end_date: stmtEnd })
       setStmtData(res)
     } catch {
-      toast.error('Failed to load account statement')
+      toast.error(t('error'))
     } finally {
       setStmtLoading(false)
     }
@@ -122,7 +122,7 @@ export default function FinancialReportsPage() {
     return (
       <div className="card p-8 text-center text-gray-400">
         <BarChart2 className="h-12 w-12 mx-auto mb-3 opacity-40" />
-        <p>Access requires view_accounting permission</p>
+        <p>{t('access_denied_msg')}</p>
       </div>
     )
   }
@@ -205,13 +205,13 @@ export default function FinancialReportsPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="card overflow-hidden">
                   <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b dark:border-gray-700">
-                    <h3 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Revenue</h3>
+                    <h3 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2"><TrendingUp className="h-4 w-4" /> {t('revenue')}</h3>
                   </div>
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Account</th>
-                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">Amount</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('amount')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -226,7 +226,7 @@ export default function FinancialReportsPage() {
                     </tbody>
                     <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
                       <tr>
-                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">Total</td>
+                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')}</td>
                         <td className="px-4 py-2 text-right font-bold text-green-600 dark:text-green-400">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                     </tfoot>
@@ -235,13 +235,13 @@ export default function FinancialReportsPage() {
 
                 <div className="card overflow-hidden">
                   <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b dark:border-gray-700">
-                    <h3 className="font-semibold text-red-700 dark:text-red-300 flex items-center gap-2"><TrendingDown className="h-4 w-4" /> Expenses</h3>
+                    <h3 className="font-semibold text-red-700 dark:text-red-300 flex items-center gap-2"><TrendingDown className="h-4 w-4" /> {t('expenses')}</h3>
                   </div>
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Account</th>
-                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">Amount</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('amount')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -256,7 +256,7 @@ export default function FinancialReportsPage() {
                     </tbody>
                     <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
                       <tr>
-                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">Total</td>
+                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')}</td>
                         <td className="px-4 py-2 text-right font-bold text-red-600 dark:text-red-400">{incomeTotalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                     </tfoot>
@@ -281,7 +281,7 @@ export default function FinancialReportsPage() {
           <div className="flex justify-end">
             <button onClick={handleLoadBalance} disabled={balanceLoading} className="btn btn-secondary flex items-center gap-2">
               {balanceLoading ? <LoadingSpinner size="sm" /> : <BookOpen className="h-4 w-4" />}
-              Reload
+              {t('reload')}
             </button>
           </div>
 
@@ -290,9 +290,9 @@ export default function FinancialReportsPage() {
           {!balanceLoading && balanceData && (
             <>
               {([
-                { label: 'Assets', rows: balanceData.assets, total: balanceData.total_assets, color: 'text-green-600 dark:text-green-400', border: 'border-green-500', bg: 'bg-green-50 dark:bg-green-900/20', hdr: 'text-green-700 dark:text-green-300' },
-                { label: 'Liabilities', rows: balanceData.liabilities, total: null, color: 'text-red-600 dark:text-red-400', border: 'border-red-500', bg: 'bg-red-50 dark:bg-red-900/20', hdr: 'text-red-700 dark:text-red-300' },
-                { label: 'Equity', rows: balanceData.equity, total: balanceData.total_liabilities_equity, color: 'text-blue-600 dark:text-blue-400', border: 'border-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', hdr: 'text-blue-700 dark:text-blue-300' },
+                { label: t('assets'), rows: balanceData.assets, total: balanceData.total_assets, color: 'text-green-600 dark:text-green-400', border: 'border-green-500', bg: 'bg-green-50 dark:bg-green-900/20', hdr: 'text-green-700 dark:text-green-300' },
+                { label: t('liabilities'), rows: balanceData.liabilities, total: null, color: 'text-red-600 dark:text-red-400', border: 'border-red-500', bg: 'bg-red-50 dark:bg-red-900/20', hdr: 'text-red-700 dark:text-red-300' },
+                { label: t('equity'), rows: balanceData.equity, total: balanceData.total_liabilities_equity, color: 'text-blue-600 dark:text-blue-400', border: 'border-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', hdr: 'text-blue-700 dark:text-blue-300' },
               ]).map(({ label, rows, total, color, border, bg, hdr }) => (
                 <div key={label} className={clsx('card overflow-hidden border-l-4', border)}>
                   <div className={clsx('px-4 py-3 border-b dark:border-gray-700', bg)}>
@@ -301,9 +301,9 @@ export default function FinancialReportsPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Code</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Account</th>
-                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">Balance</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_code')}</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('balance')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -314,7 +314,7 @@ export default function FinancialReportsPage() {
                     {total !== null && (
                       <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
                         <tr>
-                          <td colSpan={2} className="px-4 py-2 font-bold text-gray-900 dark:text-white">Total {label}</td>
+                          <td colSpan={2} className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')} {label}</td>
                           <td className={clsx('px-4 py-2 text-right font-bold', color)}>{fmt(total)}</td>
                         </tr>
                       </tfoot>
@@ -340,12 +340,12 @@ export default function FinancialReportsPage() {
           <div className="card p-4">
             <div className="flex flex-wrap gap-4 items-end">
               <div>
-                <label className="label">{t('select_period_view')}</label>
+                <label className="label">{t('account_name')}</label>
                 {accountsLoading ? (
                   <div className="input w-48 flex items-center"><LoadingSpinner size="sm" /></div>
                 ) : (
                   <select value={stmtAccountId} onChange={(e) => { setStmtAccountId(e.target.value); setStmtData(null) }} className="input w-56">
-                    <option value="">— Select account —</option>
+                    <option value="">—</option>
                     {accounts.map((a) => <option key={a.id} value={a.id}>{a.account_code} — {a.account_name}</option>)}
                   </select>
                 )}
@@ -373,7 +373,7 @@ export default function FinancialReportsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      {['Entry #', t('date'), 'Description', 'Debit', 'Credit'].map((h, i) => (
+                      {[t('entry_number'), t('date'), t('description'), t('debit'), t('credit')].map((h, i) => (
                         <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                       ))}
                     </tr>
@@ -397,12 +397,12 @@ export default function FinancialReportsPage() {
                   </tbody>
                   <tfoot className="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-200 dark:border-gray-600">
                     <tr>
-                      <td colSpan={3} className="px-4 py-3 font-bold text-gray-900 dark:text-white">Totals</td>
+                      <td colSpan={3} className="px-4 py-3 font-bold text-gray-900 dark:text-white">{t('totals')}</td>
                       <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{fmt(String(stmtData.total_debit))}</td>
                       <td className="px-4 py-3 font-bold text-red-600 dark:text-red-400">{fmt(String(stmtData.total_credit))}</td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Net Balance</td>
+                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">{t('net_balance')}</td>
                       <td colSpan={2} className={clsx('px-4 py-2 font-bold text-lg', Number(stmtData.net_balance) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
                         {fmt(String(stmtData.net_balance))}
                       </td>

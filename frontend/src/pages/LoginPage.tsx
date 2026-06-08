@@ -34,10 +34,10 @@ export default function LoginPage() {
       const res = await api.post('/login', { ...data, tenant_code: 'main' })
       const { user, token } = res.data
       login(user, token)
-      toast.success(`Welcome back, ${user.name}!`)
+      toast.success(t('welcome_back', { name: user.name }))
       navigate('/')
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Login failed'
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('login_failed')
       toast.error(msg)
     } finally {
       setLoading(false)

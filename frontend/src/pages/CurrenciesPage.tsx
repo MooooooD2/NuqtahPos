@@ -57,36 +57,36 @@ export default function CurrenciesPage() {
   const createMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/currencies', payload),
     onSuccess: () => {
-      toast.success('Currency created')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['currencies'] })
       setModal(false)
     },
-    onError: () => toast.error('Failed to create currency'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const toggleMutation = useMutation({
     mutationFn: ({ code, is_active }: { code: string; is_active: boolean }) =>
       api.patch(`/currencies/${code}/toggle`, { is_active }),
-    onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries({ queryKey: ['currencies'] }) },
-    onError: () => toast.error('Failed to toggle status'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['currencies'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (code: string) => apiDelete(`/currencies/${code}`),
-    onSuccess: () => { toast.success('Currency deleted'); qc.invalidateQueries({ queryKey: ['currencies'] }); setDeleteCode(null) },
-    onError: () => toast.error('Failed to delete currency'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['currencies'] }); setDeleteCode(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const syncMutation = useMutation({
     mutationFn: () => apiPost('/currencies/update-rates', {}),
-    onSuccess: () => { toast.success('Rates synced'); qc.invalidateQueries({ queryKey: ['currencies'] }) },
-    onError: () => toast.error('Failed to sync rates'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['currencies'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.code || !form.symbol || !form.name || !form.exchange_rate) return toast.error('All fields are required')
-    if (parseFloat(form.exchange_rate) < 0.0001) return toast.error('Exchange rate must be at least 0.0001')
+    if (!form.code || !form.symbol || !form.name || !form.exchange_rate) return toast.error(t('error'))
+    if (parseFloat(form.exchange_rate) < 0.0001) return toast.error(t('error'))
     createMutation.mutate({
       code: form.code.toUpperCase(),
       symbol: form.symbol,
@@ -98,25 +98,25 @@ export default function CurrenciesPage() {
 
   const handleRateSave = async (code: string) => {
     const rate = inlineRates[code]
-    if (!rate || parseFloat(rate) < 0.0001) { toast.error('Enter a valid rate'); return }
+    if (!rate || parseFloat(rate) < 0.0001) { toast.error(t('error')); return }
     setSavingRate(code)
     try {
       await apiPut(`/currencies/${code}`, { exchange_rate: parseFloat(rate) })
-      toast.success('Rate updated')
+      toast.success(t('updated_success'))
       qc.invalidateQueries({ queryKey: ['currencies'] })
       setInlineRates((p) => { const n = { ...p }; delete n[code]; return n })
     } catch {
-      toast.error('Failed to update rate')
+      toast.error(t('save_failed'))
     } finally {
       setSavingRate(null)
     }
   }
 
   const handleConvert = () => {
-    if (!convAmount || !convFrom || !convTo) { toast.error('Fill all converter fields'); return }
+    if (!convAmount || !convFrom || !convTo) { toast.error(t('error')); return }
     const fromCur = currencies.find((c) => c.code === convFrom)
     const toCur = currencies.find((c) => c.code === convTo)
-    if (!fromCur || !toCur) { toast.error('Invalid currency selection'); return }
+    if (!fromCur || !toCur) { toast.error(t('error')); return }
     const result = parseFloat(convAmount) * parseFloat(toCur.exchange_rate) / parseFloat(fromCur.exchange_rate)
     setConvResult(result.toFixed(4))
   }
@@ -156,7 +156,7 @@ export default function CurrenciesPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    {['Code', 'Name', 'Symbol', t('exchange_rate'), 'Rate Updated', 'Status', ''].map((h, i) => (
+                    {[t('code'), t('name'), t('symbol'), t('exchange_rate'), t('rate_updated'), t('status'), ''].map((h, i) => (
                       <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                     ))}
                   </tr>
@@ -168,7 +168,7 @@ export default function CurrenciesPage() {
                     <tr key={cur.code} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3">
                         <span className="font-mono font-bold text-gray-900 dark:text-white">{cur.code}</span>
-                        {cur.is_base && <span className="ml-1 badge badge-info text-xs">Base</span>}
+                        {cur.is_base && <span className="ml-1 badge badge-info text-xs">{t('base')}</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{cur.name}</td>
                       <td className="px-4 py-3 text-gray-500 font-mono">{cur.symbol}</td>
@@ -188,7 +188,7 @@ export default function CurrenciesPage() {
                               onClick={() => handleRateSave(cur.code)}
                               disabled={savingRate === cur.code}
                               className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                              title="Save rate"
+                              title={t('save_rate')}
                             >
                               <Check className="h-4 w-4" />
                             </button>
@@ -208,7 +208,7 @@ export default function CurrenciesPage() {
                               onClick={() => toggleMutation.mutate({ code: cur.code, is_active: !cur.is_active })}
                               className={clsx('px-2 py-1 rounded text-xs font-medium transition-colors', cur.is_active ? 'text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20' : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20')}
                             >
-                              {cur.is_active ? 'Disable' : 'Enable'}
+                              {cur.is_active ? t('disable') : t('enable')}
                             </button>
                           )}
                           {canManage && !cur.is_base && (
@@ -246,14 +246,14 @@ export default function CurrenciesPage() {
           <div>
             <label className="label">{t('from_currency')}</label>
             <select value={convFrom} onChange={(e) => { setConvFrom(e.target.value); setConvResult(null) }} className="input w-full">
-              <option value="">— Select currency —</option>
+              <option value="">— {t('select')} —</option>
               {currencies.map((c) => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
             </select>
           </div>
           <div>
             <label className="label">{t('to_currency')}</label>
             <select value={convTo} onChange={(e) => { setConvTo(e.target.value); setConvResult(null) }} className="input w-full">
-              <option value="">— Select currency —</option>
+              <option value="">— {t('select')} —</option>
               {currencies.map((c) => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
             </select>
           </div>
@@ -290,11 +290,11 @@ export default function CurrenciesPage() {
               <input {...f('code')} maxLength={3} className="input w-full uppercase" placeholder="USD" required />
             </div>
             <div>
-              <label className="label">Symbol * <span className="text-xs text-gray-400">(max 5)</span></label>
+              <label className="label">{t('symbol')} * <span className="text-xs text-gray-400">(max 5)</span></label>
               <input {...f('symbol')} maxLength={5} className="input w-full" placeholder="$" required />
             </div>
             <div className="col-span-2">
-              <label className="label">Name *</label>
+              <label className="label">{t('name')} *</label>
               <input {...f('name')} className="input w-full" placeholder="US Dollar" required />
             </div>
             <div className="col-span-2">
@@ -317,8 +317,8 @@ export default function CurrenciesPage() {
 
       <ConfirmDialog
         open={deleteCode !== null}
-        title="Delete Currency"
-        message={`Delete ${deleteCode}? This cannot be undone.`}
+        title={t('delete_currency')}
+        message={t('confirm_delete_currency', { n: deleteCode ?? '' })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteCode && deleteMutation.mutate(deleteCode)}
         onCancel={() => setDeleteCode(null)}

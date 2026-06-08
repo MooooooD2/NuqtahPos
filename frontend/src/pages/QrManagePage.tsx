@@ -46,12 +46,12 @@ export default function QrManagePage() {
   const createMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/qr-tables', payload),
     onSuccess: () => {
-      toast.success('QR table created')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['qr-tables'] })
       setAddModal(false)
       setForm({ ...emptyForm })
     },
-    onError: () => toast.error('Failed to create table'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const toggleMutation = useMutation({
@@ -59,14 +59,14 @@ export default function QrManagePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['qr-tables'] })
     },
-    onError: () => toast.error('Failed to toggle table status'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.table_name.trim()) return toast.error('Table name is required')
+    if (!form.table_name.trim()) return toast.error(t('error'))
     const cap = parseInt(form.capacity)
-    if (!cap || cap < 1) return toast.error('Capacity must be at least 1')
+    if (!cap || cap < 1) return toast.error(t('error'))
     createMutation.mutate({ table_name: form.table_name, capacity: cap })
   }
 
@@ -75,16 +75,15 @@ export default function QrManagePage() {
 
   const copyLink = (table: QrTable) => {
     navigator.clipboard.writeText(getUrl(table)).then(() =>
-      toast.success('Link copied')
-    ).catch(() => toast.error('Failed to copy link'))
+      toast.success(t('record_success'))
+    ).catch(() => toast.error(t('save_failed')))
   }
 
   if (!canManage) {
     return (
       <div className="card p-8 text-center text-gray-400 space-y-3">
         <QrCode className="h-10 w-10 mx-auto opacity-40" />
-        <p className="font-medium">QR Management not accessible</p>
-        <p className="text-sm">Requires manage_qr_orders permission</p>
+        <p className="font-medium">{t('no_permission')}</p>
       </div>
     )
   }
@@ -119,7 +118,7 @@ export default function QrManagePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('active_orders')}</p>
-              <p className="mt-1 text-2xl font-bold text-green-600">{tables.filter((t) => t.is_active).length}</p>
+              <p className="mt-1 text-2xl font-bold text-green-600">{tables.filter((tbl) => tbl.is_active).length}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
               <ToggleRight className="h-6 w-6 text-green-600" />
@@ -131,7 +130,7 @@ export default function QrManagePage() {
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('qr_orders_today')}</p>
               <p className="mt-1 text-2xl font-bold text-primary-600">
-                {tables.reduce((s, t) => s + (t.today_orders ?? 0), 0)}
+                {tables.reduce((s, tbl) => s + (tbl.today_orders ?? 0), 0)}
               </p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-purple-100 dark:bg-purple-900/30">
@@ -157,7 +156,7 @@ export default function QrManagePage() {
                   <p className="font-bold text-gray-900 dark:text-white text-lg">{table.table_name}</p>
                   <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
                     <Users className="h-3.5 w-3.5" />
-                    <span>{table.capacity} seats</span>
+                    <span>{table.capacity} {t('seats')}</span>
                   </div>
                 </div>
                 <span className={clsx('badge', table.is_active ? 'badge-success' : 'badge-danger')}>
@@ -188,11 +187,11 @@ export default function QrManagePage() {
                   onClick={() => copyLink(table)}
                   className="btn btn-secondary flex-1 flex items-center justify-center gap-1.5 text-sm py-1.5"
                 >
-                  <Copy className="h-3.5 w-3.5" /> Copy Link
+                  <Copy className="h-3.5 w-3.5" /> {t('copy_link')}
                 </button>
                 <button
                   disabled
-                  title="Download requires a QR library"
+                  title={t('download')}
                   className="btn btn-secondary flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 opacity-40 cursor-not-allowed"
                 >
                   <Download className="h-3.5 w-3.5" />
@@ -241,7 +240,7 @@ export default function QrManagePage() {
               type="number"
               min="1"
               className="input w-full"
-              placeholder="Number of seats"
+              placeholder={t('qr_capacity')}
               required
             />
           </div>

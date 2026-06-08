@@ -95,21 +95,21 @@ export default function ExpensesPage() {
     mutationFn: (payload: object) =>
       editId ? apiPut(`/expenses/${editId}`, payload) : apiPost('/expenses', payload),
     onSuccess: () => {
-      toast.success(editId ? 'Expense updated' : 'Expense created')
+      toast.success(editId ? t('updated_success') : t('created_success'))
       qc.invalidateQueries({ queryKey: ['expenses'] })
       setModal(null)
     },
-    onError: () => toast.error('Failed to save expense'),
+    onError: () => toast.error(t('save_failed')),
   })
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/expenses/${id}`),
-    onSuccess: () => { toast.success('Expense deleted'); qc.invalidateQueries({ queryKey: ['expenses'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete expense'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['expenses'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.title || !form.amount || !form.date) return toast.error('Title, amount and date are required')
+    if (!form.title || !form.amount || !form.date) return toast.error(t('error'))
     saveMutation.mutate({
       title: form.title,
       amount: parseFloat(form.amount),
@@ -198,7 +198,7 @@ export default function ExpensesPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['#', t('name'), t('category'), t('date'), t('amount'), t('type'), t('name'), ''].map((h) => (
+                  {['#', t('title'), t('category'), t('date'), t('amount'), t('payment_method'), t('created_by'), ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -239,7 +239,7 @@ export default function ExpensesPage() {
         )}
         {(data?.expenses?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">{t('page')} {page} · {data?.expenses?.total} total</span>
+            <span className="text-sm text-gray-500">{t('page')} {page} · {data?.expenses?.total} {t('total')}</span>
             <div className="flex gap-2">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
               <button onClick={() => setPage((p) => p + 1)} disabled={expenses.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
@@ -304,7 +304,7 @@ export default function ExpensesPage() {
       <ConfirmDialog
         open={deleteId !== null}
         title={t('delete') + ' ' + t('expenses')}
-        message="Are you sure? This cannot be undone."
+        message={t('confirm_delete')}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}

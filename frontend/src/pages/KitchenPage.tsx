@@ -102,30 +102,29 @@ export default function KitchenPage() {
     mutationFn: ({ id, action }: { id: number; action: string }) =>
       apiPost(`/kitchen/${id}/${action}`, {}),
     onSuccess: (_d, { action }) => {
-      const labels: Record<string, string> = { accept: 'Order accepted', ready: 'Marked ready', served: 'Order served', cancel: 'Order cancelled' }
-      toast.success(labels[action] ?? 'Updated')
+      toast.success(t('updated_success'))
       qc.invalidateQueries({ queryKey: ['kitchen'] })
       if (action === 'cancel') setCancelId(null)
     },
-    onError: () => toast.error('Action failed'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const createMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/kitchen', payload),
     onSuccess: () => {
-      toast.success('Order created')
+      toast.success(t('created_success'))
       qc.invalidateQueries({ queryKey: ['kitchen'] })
       setAddModal(false)
       setForm({ ...emptyForm })
       setItems([emptyItem()])
     },
-    onError: () => toast.error('Failed to create order'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
     const validItems = items.filter((i) => i.name.trim())
-    if (validItems.length === 0) return toast.error('Add at least one item')
+    if (validItems.length === 0) return toast.error(t('error'))
     createMutation.mutate({
       table_number: form.table_no || undefined,
       order_type: form.order_type,
@@ -144,7 +143,7 @@ export default function KitchenPage() {
       <div className="card p-8 text-center text-gray-400 space-y-3">
         <ChefHat className="h-10 w-10 mx-auto opacity-40" />
         <p className="font-medium">{t('kitchen_display')}</p>
-        <p className="text-sm">Requires view_kitchen permission</p>
+        <p className="text-sm">{t('no_permission')}</p>
       </div>
     )
   }
@@ -167,7 +166,7 @@ export default function KitchenPage() {
               <span className="badge badge-success">{stats.ready} {t('kitchen_ready')}</span>
             </div>
             <button onClick={() => setDisplayMode(false)} className="btn btn-secondary flex items-center gap-1 text-sm">
-              <Minimize2 className="h-4 w-4" /> Exit
+              <Minimize2 className="h-4 w-4" /> {t('exit')}
             </button>
           </div>
         </div>
@@ -194,7 +193,7 @@ export default function KitchenPage() {
             <div className="flex h-full items-center justify-center text-gray-500">
               <div className="text-center space-y-2">
                 <ChefHat className="h-16 w-16 mx-auto opacity-20" />
-                <p className="text-xl">No orders</p>
+                <p className="text-xl">{t('no_orders')}</p>
               </div>
             </div>
           ) : (
@@ -217,9 +216,9 @@ export default function KitchenPage() {
 
         <ConfirmDialog
           open={cancelId !== null}
-          title="Cancel Order"
-          message="Cancel this kitchen order?"
-          confirmLabel="Cancel Order"
+          title={t('kitchen_cancel')}
+          message={t('confirm_cancel_kitchen_order')}
+          confirmLabel={t('kitchen_cancel')}
           loading={actionMutation.isPending}
           onConfirm={() => cancelId && actionMutation.mutate({ id: cancelId, action: 'cancel' })}
           onCancel={() => setCancelId(null)}
@@ -232,14 +231,14 @@ export default function KitchenPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <ChefHat className="h-6 w-6 text-primary-500" /> Kitchen
+          <ChefHat className="h-6 w-6 text-primary-500" /> {t('kitchen')}
         </h1>
         <div className="flex gap-2">
           <button onClick={() => setDisplayMode(true)} className="btn btn-secondary flex items-center gap-2">
-            <Maximize2 className="h-4 w-4" /> Display Mode
+            <Maximize2 className="h-4 w-4" /> {t('display_mode')}
           </button>
           <button onClick={() => setAddModal(true)} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> New Order
+            <Plus className="h-4 w-4" /> {t('new_order')}
           </button>
         </div>
       </div>
@@ -248,7 +247,7 @@ export default function KitchenPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('kitchen_pending')}</p>
               <p className="mt-1 text-2xl font-bold text-yellow-600">{stats.pending}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-yellow-100 dark:bg-yellow-900/30">
@@ -259,7 +258,7 @@ export default function KitchenPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Preparing</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('kitchen_preparing')}</p>
               <p className="mt-1 text-2xl font-bold text-orange-600">{stats.preparing}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
@@ -270,7 +269,7 @@ export default function KitchenPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Ready</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('kitchen_ready')}</p>
               <p className="mt-1 text-2xl font-bold text-green-600">{stats.ready}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
@@ -281,8 +280,8 @@ export default function KitchenPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Avg Prep Time</p>
-              <p className="mt-1 text-2xl font-bold text-blue-600">{stats.avg_prep_min ?? 0}<span className="text-sm font-normal ml-1">min</span></p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('avg_prep_time')}</p>
+              <p className="mt-1 text-2xl font-bold text-blue-600">{stats.avg_prep_min ?? 0}<span className="text-sm font-normal ml-1">{t('min')}</span></p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
               <Clock className="h-6 w-6 text-blue-600" />
@@ -292,16 +291,16 @@ export default function KitchenPage() {
       </div>
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit flex-wrap">
-        {statusTabs.map((t) => (
+        {statusTabs.map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setFilterTab(t)}
+            key={tabKey}
+            onClick={() => setFilterTab(tabKey)}
             className={clsx(
               'px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors',
-              filterTab === t ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
+              filterTab === tabKey ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
             )}
           >
-            {t}
+            {tabKey === 'all' ? t('kitchen_all') : tabKey === 'pending' ? t('kitchen_pending') : tabKey === 'preparing' ? t('kitchen_preparing') : tabKey === 'ready' ? t('kitchen_ready') : t('kitchen_served')}
           </button>
         ))}
       </div>
@@ -311,7 +310,7 @@ export default function KitchenPage() {
       ) : orders.length === 0 ? (
         <div className="card p-12 text-center text-gray-400 space-y-2">
           <ChefHat className="h-10 w-10 mx-auto opacity-40" />
-          <p>No orders found</p>
+          <p>{t('no_orders')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
@@ -333,13 +332,13 @@ export default function KitchenPage() {
       <Modal
         open={addModal}
         onClose={() => setAddModal(false)}
-        title="New Kitchen Order"
+        title={t('kitchen_new_order')}
         size="xl"
         footer={
           <>
-            <button type="button" onClick={() => setAddModal(false)} className="btn btn-secondary">Cancel</button>
+            <button type="button" onClick={() => setAddModal(false)} className="btn btn-secondary">{t('cancel')}</button>
             <button type="button" onClick={handleCreate} disabled={createMutation.isPending} className="btn btn-primary">
-              {createMutation.isPending ? 'Creating…' : 'Create Order'}
+              {createMutation.isPending ? t('creating') : t('create_order')}
             </button>
           </>
         }
@@ -347,42 +346,40 @@ export default function KitchenPage() {
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Table No</label>
+              <label className="label">{t('table_no')}</label>
               <input
                 value={form.table_no}
                 onChange={(e) => setForm((p) => ({ ...p, table_no: e.target.value }))}
                 className="input w-full"
-                placeholder="e.g. T1"
               />
             </div>
             <div>
-              <label className="label">Order Type</label>
+              <label className="label">{t('order_type')}</label>
               <select
                 value={form.order_type}
                 onChange={(e) => setForm((p) => ({ ...p, order_type: e.target.value }))}
                 className="input w-full"
               >
-                <option value="dine_in">Dine In</option>
-                <option value="takeaway">Takeaway</option>
-                <option value="delivery">Delivery</option>
+                <option value="dine_in">{t('dine_in')}</option>
+                <option value="takeaway">{t('takeaway')}</option>
+                <option value="delivery">{t('delivery')}</option>
               </select>
             </div>
             <div className="col-span-2">
-              <label className="label">Notes</label>
+              <label className="label">{t('notes')}</label>
               <input
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                 className="input w-full"
-                placeholder="Optional order notes"
               />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="label mb-0">Items</label>
+              <label className="label mb-0">{t('items')}</label>
               <button type="button" onClick={() => setItems((p) => [...p, emptyItem()])} className="btn btn-secondary text-xs py-1 flex items-center gap-1">
-                <Plus className="h-3 w-3" /> Add Item
+                <Plus className="h-3 w-3" /> {t('add_item')}
               </button>
             </div>
             <div className="space-y-2">
@@ -392,7 +389,7 @@ export default function KitchenPage() {
                     value={it.name}
                     onChange={(e) => updateItem(idx, 'name', e.target.value)}
                     className="input col-span-5"
-                    placeholder="Item name"
+                    placeholder={t('item_name')}
                   />
                   <input
                     type="number"
@@ -400,13 +397,13 @@ export default function KitchenPage() {
                     value={it.quantity}
                     onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)}
                     className="input col-span-2"
-                    placeholder="Qty"
+                    placeholder={t('qty')}
                   />
                   <input
                     value={it.notes}
                     onChange={(e) => updateItem(idx, 'notes', e.target.value)}
                     className="input col-span-4"
-                    placeholder="Notes"
+                    placeholder={t('notes')}
                   />
                   <button
                     type="button"
@@ -425,9 +422,9 @@ export default function KitchenPage() {
 
       <ConfirmDialog
         open={cancelId !== null}
-        title="Cancel Order"
-        message="Cancel this kitchen order? This cannot be undone."
-        confirmLabel="Cancel Order"
+        title={t('kitchen_cancel')}
+        message={t('confirm_cancel_kitchen_order')}
+        confirmLabel={t('kitchen_cancel')}
         loading={actionMutation.isPending}
         onConfirm={() => cancelId && actionMutation.mutate({ id: cancelId, action: 'cancel' })}
         onCancel={() => setCancelId(null)}
@@ -444,6 +441,7 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
+  const { t } = useTranslation('pos')
   const statusColor: Record<string, string> = {
     pending: dark ? 'border-yellow-500' : 'border-yellow-400',
     preparing: dark ? 'border-orange-500' : 'border-orange-400',
@@ -465,7 +463,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             #{order.order_number}
           </p>
           {order.table_number && (
-            <p className={clsx('text-xs', dark ? 'text-gray-400' : 'text-gray-500')}>Table {order.table_number}</p>
+            <p className={clsx('text-xs', dark ? 'text-gray-400' : 'text-gray-500')}>{t('table')} {order.table_number}</p>
           )}
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -507,7 +505,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             disabled={loading}
             className="btn btn-primary text-xs py-1 flex-1"
           >
-            Accept
+            {t('kitchen_accept')}
           </button>
         )}
         {order.status === 'preparing' && (
@@ -516,7 +514,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             disabled={loading}
             className="btn btn-primary text-xs py-1 flex-1 bg-green-600 hover:bg-green-700"
           >
-            Ready
+            {t('kitchen_mark_ready')}
           </button>
         )}
         {order.status === 'ready' && (
@@ -525,7 +523,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             disabled={loading}
             className="btn btn-primary text-xs py-1 flex-1"
           >
-            Served
+            {t('kitchen_mark_served')}
           </button>
         )}
         {order.status !== 'served' && order.status !== 'cancelled' && (
@@ -534,7 +532,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             disabled={loading}
             className="btn text-xs py-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
           >
-            Cancel
+            {t('kitchen_cancel')}
           </button>
         )}
       </div>

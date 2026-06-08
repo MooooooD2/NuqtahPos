@@ -59,11 +59,11 @@ export default function ReturnsPage() {
   const processMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/returns', payload),
     onSuccess: () => {
-      toast.success('Return processed')
+      toast.success(t('record_success'))
       qc.invalidateQueries({ queryKey: ['returns'] })
       closeWizard()
     },
-    onError: () => toast.error('Failed to process return'),
+    onError: () => toast.error(t('record_failed')),
   })
 
   const closeWizard = () => {
@@ -78,20 +78,20 @@ export default function ReturnsPage() {
   }
 
   const searchInvoice = async () => {
-    if (!invoiceSearch.trim()) return toast.error('Enter an invoice number')
+    if (!invoiceSearch.trim()) return toast.error(t('error'))
     setSearchingInvoice(true)
     try {
       const res = await apiGet<{ success: boolean; data?: InvoiceSearchResult; invoice?: InvoiceSearchResult }>(
         '/invoices/search', { number: invoiceSearch.trim() }
       )
       const inv = res.data ?? res.invoice ?? null
-      if (!inv) { toast.error('Invoice not found'); return }
+      if (!inv) { toast.error(t('error')); return }
       setFoundInvoice(inv)
       const itemsRes = await apiGet<{ success: boolean; items: ReturnableItem[] }>(`/invoices/${inv.id}/returnable-items`)
       setReturnableItems(itemsRes.items ?? [])
       setWizardStep(2)
     } catch {
-      toast.error('Invoice not found')
+      toast.error(t('error'))
     } finally {
       setSearchingInvoice(false)
     }
@@ -102,7 +102,7 @@ export default function ReturnsPage() {
     const items = returnableItems
       .filter((item) => (itemQtys[item.id] ?? 0) > 0)
       .map((item) => ({ product_id: item.product_id, quantity: itemQtys[item.id] }))
-    if (items.length === 0) return toast.error('Select at least one item to return')
+    if (items.length === 0) return toast.error(t('error'))
     processMutation.mutate({
       invoice_id: foundInvoice.id,
       items,
@@ -127,7 +127,7 @@ export default function ReturnsPage() {
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Return #, invoice #, customer…" className="input pl-9 w-full" />
+        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder={t('search')} className="input pl-9 w-full" />
       </div>
 
       <div className="card overflow-hidden">
@@ -150,7 +150,7 @@ export default function ReturnsPage() {
                   <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
                     <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.invoice_number}</td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.customer_name ?? 'Walk-in'}</td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.customer_name ?? t('walk_in')}</td>
                     <td className="px-4 py-3">
                       <span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>
                         {r.refund_method.replace('_', ' ')}
@@ -189,7 +189,7 @@ export default function ReturnsPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-500">{t('invoice_number')}:</span> <span className="font-mono font-medium">{viewReturn.invoice_number}</span></div>
-              <div><span className="text-gray-500">{t('name')}:</span> <span className="font-medium">{viewReturn.customer_name ?? 'Walk-in'}</span></div>
+              <div><span className="text-gray-500">{t('name')}:</span> <span className="font-medium">{viewReturn.customer_name ?? t('walk_in')}</span></div>
               <div><span className="text-gray-500">{t('refund_method')}:</span> <span className={clsx('badge ml-1 capitalize', refundBadge[viewReturn.refund_method] ?? 'badge-gray')}>{viewReturn.refund_method.replace('_', ' ')}</span></div>
               <div><span className="text-gray-500">{t('status')}:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[viewReturn.status] ?? 'badge-gray')}>{viewReturn.status}</span></div>
               <div><span className="text-gray-500">{t('amount')}:</span> <span className="font-bold text-red-600">{parseFloat(viewReturn.total_amount).toFixed(2)}</span></div>
@@ -197,13 +197,13 @@ export default function ReturnsPage() {
             </div>
             {viewReturn.items && viewReturn.items.length > 0 && (
               <div>
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Items</p>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('items')}</p>
                 <div className="space-y-2">
                   {viewReturn.items.map((item) => (
                     <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
                       <span className="font-medium text-gray-900 dark:text-white">{item.product_name}</span>
                       <div className="flex gap-4 text-gray-500">
-                        <span>Qty: {item.quantity}</span>
+                        <span>{t('qty')}: {item.quantity}</span>
                         <span>{parseFloat(item.unit_price).toFixed(2)}</span>
                       </div>
                     </div>
@@ -241,7 +241,7 @@ export default function ReturnsPage() {
       >
         {wizardStep === 1 && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">Enter the invoice number to find items eligible for return.</p>
+            <p className="text-sm text-gray-500">{t('invoice_search_hint')}</p>
             <div>
               <label className="label">{t('invoice_number')}</label>
               <input
@@ -258,7 +258,7 @@ export default function ReturnsPage() {
           <div className="space-y-4">
             <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm grid grid-cols-2 gap-2">
               <div><span className="text-gray-500">{t('invoice_number')}:</span> <span className="font-mono font-medium">{foundInvoice.invoice_number}</span></div>
-              <div><span className="text-gray-500">{t('name')}:</span> <span className="font-medium">{foundInvoice.customer_name ?? 'Walk-in'}</span></div>
+              <div><span className="text-gray-500">{t('name')}:</span> <span className="font-medium">{foundInvoice.customer_name ?? t('walk_in')}</span></div>
               <div><span className="text-gray-500">{t('total')}:</span> <span className="font-bold">{parseFloat(foundInvoice.final_total).toFixed(2)}</span></div>
               <div><span className="text-gray-500">{t('date')}:</span> <span>{foundInvoice.created_at?.slice(0, 10)}</span></div>
             </div>
@@ -272,7 +272,7 @@ export default function ReturnsPage() {
                     <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white text-sm">{item.product_name}</p>
-                        <p className="text-xs text-gray-400">Max: {item.returnable_quantity} · Price: {parseFloat(item.unit_price).toFixed(2)}</p>
+                        <p className="text-xs text-gray-400">{t('max')}: {item.returnable_quantity} · {t('selling_price')}: {parseFloat(item.unit_price).toFixed(2)}</p>
                       </div>
                       <input
                         type="number" min="0" max={item.returnable_quantity}
@@ -298,7 +298,7 @@ export default function ReturnsPage() {
             </div>
             <div>
               <label className="label">{t('return_reason')}</label>
-              <input value={reason} onChange={(e) => setReason(e.target.value)} className="input w-full" placeholder="Reason for return (optional)" />
+              <input value={reason} onChange={(e) => setReason(e.target.value)} className="input w-full" placeholder={t('optional_notes')} />
             </div>
           </div>
         )}

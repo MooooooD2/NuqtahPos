@@ -265,8 +265,8 @@ export default function ReportsPage() {
     return (
       <div className="card p-12 text-center">
         <BarChart2 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-        <p className="text-gray-500 font-medium">Access Denied</p>
-        <p className="text-sm text-gray-400 mt-1">You need the <code className="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">view_reports</code> permission.</p>
+        <p className="text-gray-500 font-medium">{t('access_denied')}</p>
+        <p className="text-sm text-gray-400 mt-1">{t('access_denied_msg')}</p>
       </div>
     );
   }
@@ -381,8 +381,8 @@ export default function ReportsPage() {
           ) : is403 ? (
             <EmptyState
               icon={<BarChart2 className="h-10 w-10" />}
-              title="Insufficient permissions"
-              message="You do not have access to this report."
+              title={t('access_denied')}
+              message={t('access_denied_msg')}
             />
           ) : hasError ? (
             <ErrorState error={httpError} />
@@ -440,6 +440,7 @@ function ErrorState({ error }: { error: { response?: { status?: number; data?: u
 // ── Report content dispatcher ────────────────────────────────────────────────
 
 function ReportContent({ type, data }: { type: ReportType; data: Record<string, unknown> }) {
+  const { t } = useTranslation('pos');
   const rows  = extractRows(data);
   const kpis  = extractKpis(type, data);
   const cols  = pickColumns(type, rows);
@@ -467,12 +468,12 @@ function ReportContent({ type, data }: { type: ReportType; data: Record<string, 
         <div className="flex gap-2 flex-wrap">
           {Array.isArray(data.expiring_soon) && (
             <span className="badge badge-warning text-xs px-2 py-1">
-              Expiring soon: {(data.expiring_soon as unknown[]).length}
+              {t('expiring_soon')}: {(data.expiring_soon as unknown[]).length}
             </span>
           )}
           {Array.isArray(data.expired) && (
             <span className="badge badge-danger text-xs px-2 py-1">
-              Already expired: {(data.expired as unknown[]).length}
+              {t('expired')}: {(data.expired as unknown[]).length}
             </span>
           )}
         </div>
@@ -486,8 +487,8 @@ function ReportContent({ type, data }: { type: ReportType; data: Record<string, 
       {empty && (
         <EmptyState
           icon={<BarChart2 className="h-10 w-10" />}
-          title="No data for this period"
-          message="Try adjusting the date range."
+          title={t('no_data')}
+          message={t('select_dates')}
         />
       )}
     </div>
@@ -528,8 +529,8 @@ function GenericTable({ cols, rows }: { cols: string[]; rows: Record<string, unk
       <div className="flex items-center justify-between mt-2 px-1">
         <p className="text-xs text-gray-400">
           {rows.length > displayed.length
-            ? `Showing first ${displayed.length} of ${rows.length} rows`
-            : `${rows.length} row${rows.length !== 1 ? "s" : ""}`}
+            ? `${t('showing_first')} ${displayed.length} ${t('of')} ${rows.length}`
+            : `${rows.length} ${t('rows')}`}
         </p>
         {rows.length > displayed.length && (
           <p className="text-xs text-gray-400">{t('export_csv')}</p>

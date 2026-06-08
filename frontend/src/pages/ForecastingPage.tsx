@@ -85,7 +85,7 @@ export default function ForecastingPage() {
     return (
       <div className="card p-8 text-center text-gray-400">
         <BarChart2 className="h-12 w-12 mx-auto mb-3 opacity-40" />
-        <p>Access to forecasting requires view_reports permission</p>
+        <p>{t('no_permission')}</p>
       </div>
     )
   }
@@ -113,13 +113,13 @@ export default function ForecastingPage() {
               <div>
                 <label className="label">{t('forecast_days')}</label>
                 <select value={forecastDays} onChange={(e) => setForecastDays(e.target.value)} className="input">
-                  {['7', '14', '30', '60', '90'].map((d) => <option key={d} value={d}>{d} days</option>)}
+                  {['7', '14', '30', '60', '90'].map((d) => <option key={d} value={d}>{d} {t('days')}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">{t('historical_data')}</label>
                 <select value={historicalDays} onChange={(e) => setHistoricalDays(e.target.value)} className="input">
-                  {['30', '60', '90', '180'].map((d) => <option key={d} value={d}>{d} days</option>)}
+                  {['30', '60', '90', '180'].map((d) => <option key={d} value={d}>{d} {t('days')}</option>)}
                 </select>
               </div>
               <button onClick={handleGenerate} disabled={salesQuery.isFetching} className="btn btn-primary flex items-center gap-2">
@@ -168,7 +168,7 @@ export default function ForecastingPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('date'), t('revenue_forecast'), 'Lower Bound', 'Upper Bound'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    <tr>{[t('date'), t('revenue_forecast'), t('lower_bound'), t('upper_bound')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {forecastRows.length === 0 ? (
@@ -197,7 +197,7 @@ export default function ForecastingPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('product'), 'Avg Daily Qty', t('product_demand_forecast_30'), 'Current Stock', 'Days Left', 'Needs Reorder'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('product'), t('avg_daily_qty'), t('product_demand_forecast_30'), t('current_stock'), t('days_left'), t('needs_reorder')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {demandRows.length === 0 ? (
@@ -214,7 +214,7 @@ export default function ForecastingPage() {
                       <td className="px-4 py-3">{daysLeftBadge(row.days_stock_left)}</td>
                       <td className="px-4 py-3">
                         <span className={clsx('badge', row.needs_reorder ? 'badge-danger' : 'badge-success')}>
-                          {row.needs_reorder ? 'Yes' : 'No'}
+                          {row.needs_reorder ? t('yes') : t('no')}
                         </span>
                       </td>
                     </tr>
@@ -234,7 +234,7 @@ export default function ForecastingPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{['Urgency', t('product'), 'Current Stock', 'Daily Rate', 'Days Remaining', 'Depleted On', 'Suggested Order'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('urgency'), t('product'), t('current_stock'), t('daily_rate'), t('days_remaining'), t('depleted_on'), t('suggested_order')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {depletionRows.length === 0 ? (

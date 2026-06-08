@@ -61,18 +61,18 @@ export default function PurchasesPage() {
 
   const createMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/purchase-orders', payload),
-    onSuccess: () => { toast.success('Purchase order created'); qc.invalidateQueries({ queryKey: ['purchase-orders'] }); setModal(null) },
-    onError: () => toast.error('Failed to create PO'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['purchase-orders'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
   const actionMutation = useMutation({
     mutationFn: ({ id, action }: { id: number; action: string }) => apiPost(`/purchase-orders/${id}/${action}`, {}),
-    onSuccess: (_, vars) => { toast.success(`PO ${vars.action}d`); qc.invalidateQueries({ queryKey: ['purchase-orders'] }) },
-    onError: () => toast.error('Action failed'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['purchase-orders'] }) },
+    onError: () => toast.error(t('save_failed')),
   })
   const receiveMutation = useMutation({
     mutationFn: ({ id, items }: { id: number; items: object[] }) => apiPost(`/purchase-orders/${id}/receive`, { items }),
-    onSuccess: () => { toast.success('PO received'); qc.invalidateQueries({ queryKey: ['purchase-orders'] }); setReceiveModal(false) },
-    onError: () => toast.error('Failed to receive PO'),
+    onSuccess: () => { toast.success(t('updated_success')); qc.invalidateQueries({ queryKey: ['purchase-orders'] }); setReceiveModal(false) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const openReceiveModal = (po: PO) => {
@@ -88,7 +88,7 @@ export default function PurchasesPage() {
     const items = (receivingPO.items ?? [])
       .map((item) => ({ item_id: item.id, received_quantity: parseInt(receiveQtys[item.id] ?? '0') }))
       .filter((i) => i.received_quantity > 0)
-    if (items.length === 0) return toast.error('Enter at least one received quantity')
+    if (items.length === 0) return toast.error(t('error'))
     receiveMutation.mutate({ id: receivingPO.id, items })
   }
 
@@ -97,9 +97,9 @@ export default function PurchasesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.supplier_id) return toast.error('Supplier required')
+    if (!form.supplier_id) return toast.error(t('error'))
     const validItems = form.items.filter((item) => item.product_id && item.quantity)
-    if (validItems.length === 0) return toast.error('Add at least one item')
+    if (validItems.length === 0) return toast.error(t('error'))
     createMutation.mutate({
       supplier_id: parseInt(form.supplier_id),
       order_date: new Date().toISOString().slice(0, 10),
@@ -123,7 +123,7 @@ export default function PurchasesPage() {
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Search POs…" className="input pl-9 w-full" />
+        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder={t('search')} className="input pl-9 w-full" />
       </div>
 
       <div className="card overflow-hidden">
@@ -195,8 +195,8 @@ export default function PurchasesPage() {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="label mb-0">Items</label>
-              <button type="button" onClick={addItem} className="text-xs text-primary-600 hover:underline flex items-center gap-1"><Plus className="h-3 w-3" /> Add Item</button>
+              <label className="label mb-0">{t('items')}</label>
+              <button type="button" onClick={addItem} className="text-xs text-primary-600 hover:underline flex items-center gap-1"><Plus className="h-3 w-3" /> {t('add_item')}</button>
             </div>
             <div className="space-y-2">
               {form.items.map((item, i) => (
@@ -239,7 +239,7 @@ export default function PurchasesPage() {
                           <input type="number" min="0" max={remaining} value={receiveQtys[item.id] ?? '0'}
                             onChange={(e) => setReceiveQtys((p) => ({ ...p, [item.id]: e.target.value }))}
                             className="input w-20" />
-                          {remaining > 0 && <span className="ml-2 text-xs text-gray-400">of {remaining}</span>}
+                          {remaining > 0 && <span className="ml-2 text-xs text-gray-400">{t('of')} {remaining}</span>}
                         </td>
                       </tr>
                     )

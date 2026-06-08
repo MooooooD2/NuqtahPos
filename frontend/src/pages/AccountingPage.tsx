@@ -44,14 +44,14 @@ export default function AccountingPage() {
 
   const addAccount = useMutation({
     mutationFn: (payload: object) => apiPost('/accounts', payload),
-    onSuccess: () => { toast.success('Account created'); qc.invalidateQueries({ queryKey: ['accounts'] }); setModal(null) },
-    onError: () => toast.error('Failed to create account'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['accounts'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const addJE = useMutation({
     mutationFn: (payload: object) => apiPost('/journal-entries', payload),
-    onSuccess: () => { toast.success('Journal entry created'); qc.invalidateQueries({ queryKey: ['journal-entries'] }); setModal(null) },
-    onError: () => toast.error('Failed to create journal entry'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['journal-entries'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
 
   const addJELine = () => setJeForm((p) => ({ ...p, lines: [...p.lines, { account_id: '', debit: '', credit: '' }] }))
@@ -62,11 +62,11 @@ export default function AccountingPage() {
   const balanced = totalDebit > 0 && Math.abs(totalDebit - totalCredit) < 0.001
 
   const handleCreateJE = () => {
-    if (!jeForm.description) return toast.error('Description required')
+    if (!jeForm.description) return toast.error(t('error'))
     const validLines = jeForm.lines.filter((l) => l.account_id)
-    if (validLines.length < 2) return toast.error('At least 2 account lines required')
-    if (totalDebit === 0) return toast.error('Entry amounts must be non-zero')
-    if (!balanced) return toast.error('Debits must equal credits')
+    if (validLines.length < 2) return toast.error(t('error'))
+    if (totalDebit === 0) return toast.error(t('error'))
+    if (!balanced) return toast.error(t('error'))
     addJE.mutate({
       entry_date: jeForm.date,
       reference: jeForm.reference || undefined,
@@ -93,7 +93,7 @@ export default function AccountingPage() {
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
         {(['accounts', 'journal', 'periods'] as const).map((tab_key) => (
-          <button key={tab_key} onClick={() => setTab(tab_key)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === tab_key ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{tab_key === 'journal' ? t('journal_entry') : tab_key === 'periods' ? 'Fiscal Periods' : t('accounts')}</button>
+          <button key={tab_key} onClick={() => setTab(tab_key)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === tab_key ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{tab_key === 'journal' ? t('journal_entry') : tab_key === 'periods' ? t('fiscal_periods') : t('accounts')}</button>
         ))}
       </div>
 
@@ -128,7 +128,7 @@ export default function AccountingPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('date'), 'Reference', 'Description', t('debit'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('date'), t('reference'), t('description'), t('debit'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {journal.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
@@ -139,7 +139,7 @@ export default function AccountingPage() {
                         <td className="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-48 truncate">{je.description}</td>
                         <td className="px-4 py-3 font-semibold">{parseFloat(je.total_debit ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="px-4 py-3 flex gap-1">
-                          {je.is_locked ? <span className="badge badge-gray text-xs flex items-center gap-1"><Lock className="h-3 w-3" />{t('locked')}</span> : je.is_posted ? <span className="badge badge-success text-xs">Posted</span> : <span className="badge badge-warning text-xs">Draft</span>}
+                          {je.is_locked ? <span className="badge badge-gray text-xs flex items-center gap-1"><Lock className="h-3 w-3" />{t('locked')}</span> : je.is_posted ? <span className="badge badge-success text-xs">{t('posted')}</span> : <span className="badge badge-warning text-xs">{t('draft')}</span>}
                         </td>
                       </tr>
                     ))}
@@ -154,7 +154,7 @@ export default function AccountingPage() {
         <div className="card overflow-hidden">
           {pLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{['Period', 'Start', 'End', t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('period'), t('date_from'), t('date_to'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {periods.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
                   : periods.map((p) => (
@@ -173,7 +173,7 @@ export default function AccountingPage() {
 
       {/* Add Account Modal */}
       <Modal open={modal === 'account'} onClose={() => setModal(null)} title={t('add_account')} size="md"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!accForm.code || !accForm.name) return toast.error('Code and name required'); addAccount.mutate({ account_code: accForm.code, account_name: accForm.name, account_type: accForm.type }) }} disabled={addAccount.isPending} className="btn btn-primary">{addAccount.isPending ? 'Creating…' : t('create')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!accForm.code || !accForm.name) return toast.error(t('error')); addAccount.mutate({ account_code: accForm.code, account_name: accForm.name, account_type: accForm.type }) }} disabled={addAccount.isPending} className="btn btn-primary">{addAccount.isPending ? t('saving') : t('create')}</button></>}>
         <div className="space-y-4">
           <div><label className="label">{t('account_code')} *</label><input value={accForm.code} onChange={(e) => setAccForm((p) => ({ ...p, code: e.target.value }))} className="input w-full" placeholder="e.g. 1000" /></div>
           <div><label className="label">{t('account_name')} *</label><input value={accForm.name} onChange={(e) => setAccForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" /></div>
@@ -188,17 +188,17 @@ export default function AccountingPage() {
 
       {/* Journal Entry Modal */}
       <Modal open={modal === 'journal'} onClose={() => setModal(null)} title={t('journal_entry')} size="xl"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleCreateJE} disabled={addJE.isPending || !balanced} className="btn btn-primary disabled:opacity-50">{addJE.isPending ? 'Creating…' : t('create')}</button></>}>
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleCreateJE} disabled={addJE.isPending || !balanced} className="btn btn-primary disabled:opacity-50">{addJE.isPending ? t('saving') : t('create')}</button></>}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div><label className="label">{t('date')}</label><input value={jeForm.date} type="date" onChange={(e) => setJeForm((p) => ({ ...p, date: e.target.value }))} className="input w-full" /></div>
-            <div><label className="label">Reference</label><input value={jeForm.reference} onChange={(e) => setJeForm((p) => ({ ...p, reference: e.target.value }))} className="input w-full" placeholder="Optional" /></div>
-            <div className="col-span-2"><label className="label">Description *</label><input value={jeForm.description} onChange={(e) => setJeForm((p) => ({ ...p, description: e.target.value }))} className="input w-full" /></div>
+            <div><label className="label">{t('reference')}</label><input value={jeForm.reference} onChange={(e) => setJeForm((p) => ({ ...p, reference: e.target.value }))} className="input w-full" placeholder={t('optional_notes')} /></div>
+            <div className="col-span-2"><label className="label">{t('description')} *</label><input value={jeForm.description} onChange={(e) => setJeForm((p) => ({ ...p, description: e.target.value }))} className="input w-full" /></div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="label mb-0">Lines</label>
+              <label className="label mb-0">{t('je_lines')}</label>
               <button type="button" onClick={addJELine} className="text-xs text-primary-600 hover:underline flex items-center gap-1"><Plus className="h-3 w-3" />{t('add')}</button>
             </div>
             <div className="space-y-2">
@@ -206,7 +206,7 @@ export default function AccountingPage() {
               {jeForm.lines.map((line, i) => (
                 <div key={i} className="grid grid-cols-3 gap-2 items-center">
                   <select value={line.account_id} onChange={(e) => setJeForm((p) => ({ ...p, lines: p.lines.map((l, idx) => idx === i ? { ...l, account_id: e.target.value } : l) }))} className="input text-sm">
-                    <option value="">— Select account —</option>
+                    <option value="">—</option>
                     {accounts.map((a) => <option key={a.id} value={a.id}>{a.account_code} — {a.account_name}</option>)}
                   </select>
                   <input value={line.debit} type="number" step="0.01" min="0" onChange={(e) => setJeForm((p) => ({ ...p, lines: p.lines.map((l, idx) => idx === i ? { ...l, debit: e.target.value } : l) }))} className="input" placeholder="0.00" />
@@ -219,7 +219,7 @@ export default function AccountingPage() {
             </div>
             <div className={clsx('mt-2 p-2 rounded text-xs font-semibold flex justify-between', balanced ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}>
               <span>{t('debit')}: {totalDebit.toFixed(2)}</span>
-              <span className="flex items-center gap-1">{balanced ? '✓ Balanced' : totalDebit === 0 ? 'Enter amounts' : <><RefreshCw className="h-3 w-3" />Unbalanced</>}</span>
+              <span className="flex items-center gap-1">{balanced ? `✓ ${t('balanced')}` : totalDebit === 0 ? t('enter_amounts') : <><RefreshCw className="h-3 w-3" />{t('unbalanced')}</>}</span>
               <span>{t('credit')}: {totalCredit.toFixed(2)}</span>
             </div>
           </div>

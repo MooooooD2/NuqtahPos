@@ -58,41 +58,41 @@ export default function CustomersPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/customers/${editId}`, payload) : apiPost('/customers', payload),
-    onSuccess: () => { toast.success(editId ? 'Customer updated' : 'Customer created'); qc.invalidateQueries({ queryKey: ['customers'] }); setModal(null) },
-    onError: () => toast.error('Failed to save'),
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['customers'] }); setModal(null) },
+    onError: () => toast.error(t('save_failed')),
   })
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/customers/${id}`),
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['customers'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['customers'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
   const saveGroupMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/customer-groups', payload),
-    onSuccess: () => { toast.success('Group created'); qc.invalidateQueries({ queryKey: ['customer-groups'] }); setModal(null) },
-    onError: () => toast.error('Failed'),
+    onSuccess: () => { toast.success(t('created_success')); qc.invalidateQueries({ queryKey: ['customer-groups'] }); setModal(null) },
+    onError: () => toast.error(t('error')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name) return toast.error('Name required')
+    if (!form.name) return toast.error(t('error'))
     saveMutation.mutate({ name: form.name, phone: form.phone || undefined, email: form.email || undefined, address: form.address || undefined, city: form.city || undefined, credit_limit: parseFloat(form.credit_limit) || 0, customer_group_id: form.customer_group_id ? parseInt(form.customer_group_id) : undefined })
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Users className="h-6 w-6 text-primary-500" /> Customers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Users className="h-6 w-6 text-primary-500" /> {t('customers')}</h1>
         {canCreate && (
           <div className="flex gap-2">
-            <button onClick={() => { setGroupForm({ name: '', discount_percent: '0' }); setModal('group') }} className="btn btn-secondary text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Group</button>
-            <button onClick={openAdd} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> Add Customer</button>
+            <button onClick={() => { setGroupForm({ name: '', discount_percent: '0' }); setModal('group') }} className="btn btn-secondary text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> {t('customer_groups')}</button>
+            <button onClick={openAdd} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add_customer')}</button>
           </div>
         )}
       </div>
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
-        {(['customers', 'groups'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === t ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{t}</button>
+        {(['customers', 'groups'] as const).map((tabKey) => (
+          <button key={tabKey} onClick={() => setTab(tabKey)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === tabKey ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{tabKey === 'customers' ? t('customers') : t('customer_groups')}</button>
         ))}
       </div>
 
@@ -100,17 +100,17 @@ export default function CustomersPage() {
         <>
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Search…" className="input pl-9 w-full" />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder={t('search')} className="input pl-9 w-full" />
           </div>
           <div className="card overflow-hidden">
             {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{['Name', 'Phone', 'Email', 'Group', 'Points', 'Balance', 'Credit', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    <tr>{[t('name'), t('phone'), t('email'), t('customer_groups'), t('points'), t('balance'), t('credit_limit'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {customers.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No customers found</td></tr>
+                    {customers.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_customers_found')}</td></tr>
                       : customers.map((c) => (
                         <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{c.name}</td>
@@ -134,10 +134,10 @@ export default function CustomersPage() {
             )}
             {(data?.total ?? 0) > 20 && (
               <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-                <span className="text-sm text-gray-500">Page {page} · {data?.total} total</span>
+                <span className="text-sm text-gray-500">{t('page')} {page} · {data?.total} total</span>
                 <div className="flex gap-2">
-                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-                  <button onClick={() => setPage((p) => p + 1)} disabled={customers.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+                  <button onClick={() => setPage((p) => p + 1)} disabled={customers.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
                 </div>
               </div>
             )}
@@ -148,14 +148,14 @@ export default function CustomersPage() {
       {tab === 'groups' && (
         <div className="card overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700"><tr>{['Group Name', 'Discount %', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+            <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('customer_groups'), t('discount') + ' %', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {groups.length === 0 ? <tr><td colSpan={3} className="px-4 py-12 text-center text-gray-400">No groups yet</td></tr>
+              {groups.length === 0 ? <tr><td colSpan={3} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 : groups.map((g) => (
                   <tr key={g.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{g.name}</td>
                     <td className="px-4 py-3 text-primary-600 font-semibold">{g.discount_percent ?? '0'}%</td>
-                    <td className="px-4 py-3">{canDelete && <button onClick={() => apiDelete(`/customer-groups/${g.id}`).then(() => { qc.invalidateQueries({ queryKey: ['customer-groups'] }); toast.success('Deleted') })} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="h-4 w-4" /></button>}</td>
+                    <td className="px-4 py-3">{canDelete && <button onClick={() => apiDelete(`/customer-groups/${g.id}`).then(() => { qc.invalidateQueries({ queryKey: ['customer-groups'] }); toast.success(t('deleted_success')) })} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="h-4 w-4" /></button>}</td>
                   </tr>
                 ))}
             </tbody>
@@ -163,30 +163,30 @@ export default function CustomersPage() {
         </div>
       )}
 
-      <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? 'Edit Customer' : 'Add Customer'} size="lg"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}</button></>}>
+      <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? t('edit_customer') : t('add_customer')} size="lg"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? t('saving') : editId ? t('update') : t('create')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="label">Full Name *</label><input {...f('name')} className="input w-full" required /></div>
-            <div><label className="label">Phone</label><input {...f('phone')} className="input w-full" /></div>
-            <div><label className="label">Email</label><input {...f('email')} type="email" className="input w-full" /></div>
-            <div><label className="label">City</label><input {...f('city')} className="input w-full" /></div>
-            <div><label className="label">Credit Limit</label><input {...f('credit_limit')} type="number" min="0" step="0.01" className="input w-full" /></div>
-            <div className="col-span-2"><label className="label">Address</label><input {...f('address')} className="input w-full" /></div>
-            <div><label className="label">Customer Group</label><select {...f('customer_group_id')} className="input w-full"><option value="">— No group —</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></div>
+            <div className="col-span-2"><label className="label">{t('name')} *</label><input {...f('name')} className="input w-full" required /></div>
+            <div><label className="label">{t('phone')}</label><input {...f('phone')} className="input w-full" /></div>
+            <div><label className="label">{t('email')}</label><input {...f('email')} type="email" className="input w-full" /></div>
+            <div><label className="label">{t('city')}</label><input {...f('city')} className="input w-full" /></div>
+            <div><label className="label">{t('credit_limit')}</label><input {...f('credit_limit')} type="number" min="0" step="0.01" className="input w-full" /></div>
+            <div className="col-span-2"><label className="label">{t('address')}</label><input {...f('address')} className="input w-full" /></div>
+            <div><label className="label">{t('customer_groups')}</label><select {...f('customer_group_id')} className="input w-full"><option value="">—</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></div>
           </div>
         </form>
       </Modal>
 
-      <Modal open={modal === 'group'} onClose={() => setModal(null)} title="Add Customer Group" size="sm"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={() => { if (!groupForm.name) return toast.error('Name required'); saveGroupMutation.mutate({ name: groupForm.name, discount_percent: parseFloat(groupForm.discount_percent) || 0 }) }} disabled={saveGroupMutation.isPending} className="btn btn-primary">{saveGroupMutation.isPending ? 'Saving…' : 'Create'}</button></>}>
+      <Modal open={modal === 'group'} onClose={() => setModal(null)} title={t('add_customer_group')} size="sm"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={() => { if (!groupForm.name) return toast.error(t('error')); saveGroupMutation.mutate({ name: groupForm.name, discount_percent: parseFloat(groupForm.discount_percent) || 0 }) }} disabled={saveGroupMutation.isPending} className="btn btn-primary">{saveGroupMutation.isPending ? t('saving') : t('create')}</button></>}>
         <div className="space-y-4">
-          <div><label className="label">Group Name *</label><input value={groupForm.name} onChange={(e) => setGroupForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" placeholder="VIP, Wholesale…" /></div>
-          <div><label className="label">Discount %</label><input value={groupForm.discount_percent} type="number" min="0" max="100" onChange={(e) => setGroupForm((p) => ({ ...p, discount_percent: e.target.value }))} className="input w-full" /></div>
+          <div><label className="label">{t('name')} *</label><input value={groupForm.name} onChange={(e) => setGroupForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" /></div>
+          <div><label className="label">{t('discount')} %</label><input value={groupForm.discount_percent} type="number" min="0" max="100" onChange={(e) => setGroupForm((p) => ({ ...p, discount_percent: e.target.value }))} className="input w-full" /></div>
         </div>
       </Modal>
 
-      <ConfirmDialog open={deleteId !== null} title="Delete Customer" message="Delete this customer?" loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+      <ConfirmDialog open={deleteId !== null} title={t('delete_customer')} message={t('confirm_delete')} loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
     </div>
   )
 }

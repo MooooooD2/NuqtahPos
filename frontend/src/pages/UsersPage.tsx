@@ -63,29 +63,29 @@ export default function UsersPage() {
 
   const saveMutation = useMutation({
     mutationFn: (payload: object) => editId ? apiPut(`/users/${editId}`, payload) : apiPost('/users', payload),
-    onSuccess: () => { toast.success(editId ? 'User updated' : 'User created'); qc.invalidateQueries({ queryKey: ['users'] }); setModal(null) },
+    onSuccess: () => { toast.success(editId ? t('updated_success') : t('created_success')); qc.invalidateQueries({ queryKey: ['users'] }); setModal(null) },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to save user'
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('save_failed')
       toast.error(msg)
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`/users/${id}`),
-    onSuccess: () => { toast.success('User deleted'); qc.invalidateQueries({ queryKey: ['users'] }); setDeleteId(null) },
-    onError: () => toast.error('Failed to delete'),
+    onSuccess: () => { toast.success(t('deleted_success')); qc.invalidateQueries({ queryKey: ['users'] }); setDeleteId(null) },
+    onError: () => toast.error(t('delete_failed')),
   })
 
   const toggleActive = useMutation({
     mutationFn: (id: number) => apiPost(`/users/${id}/toggle-active`),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }) },
-    onError: () => toast.error('Failed to toggle status'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editId && (!form.username || !form.name)) return toast.error('Username and full name are required')
-    if (!editId && !form.password) return toast.error('Password required')
+    if (!editId && (!form.username || !form.name)) return toast.error(t('error'))
+    if (!editId && !form.password) return toast.error(t('error'))
     const payload: Record<string, unknown> = { full_name: form.name, role: form.role }
     if (!editId) payload.username = form.username
     if (form.password) payload.password = form.password
@@ -95,13 +95,13 @@ export default function UsersPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><UserCog className="h-6 w-6 text-primary-500" /> Users & Roles</h1>
-        {canManage && tab === 'users' && <button onClick={openAdd} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> Add User</button>}
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><UserCog className="h-6 w-6 text-primary-500" /> {t('users_roles')}</h1>
+        {canManage && tab === 'users' && <button onClick={openAdd} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add_user')}</button>}
       </div>
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
-        {(['users', 'roles'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === t ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{t}</button>
+        {(['users', 'roles'] as const).map((tabKey) => (
+          <button key={tabKey} onClick={() => setTab(tabKey)} className={clsx('px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors', tab === tabKey ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>{tabKey === 'users' ? t('users') : t('roles')}</button>
         ))}
       </div>
 
@@ -111,10 +111,10 @@ export default function UsersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{['Username', 'Full Name', 'Role', 'Status', 'Created', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('username'), t('full_name'), t('role'), t('status'), t('created_at'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {users.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No users found</td></tr>
+                  {users.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_users')}</td></tr>
                     : users.map((u) => (
                       <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white font-mono text-sm">{u.username}</td>
@@ -124,7 +124,7 @@ export default function UsersPage() {
                           <button onClick={() => canManage && toggleActive.mutate(u.id)}
                             className={clsx('flex items-center gap-1.5 text-sm font-medium', u.is_active ? 'text-green-600' : 'text-gray-400', canManage && 'hover:opacity-70 cursor-pointer')}>
                             {u.is_active ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
-                            {u.is_active ? 'Active' : 'Inactive'}
+                            {u.is_active ? t('active') : t('inactive')}
                           </button>
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-xs">{u.created_at?.slice(0, 10)}</td>
@@ -149,17 +149,17 @@ export default function UsersPage() {
         <div className="card overflow-hidden">
           {rolesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{['Role Name', 'Permissions Count', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('role_name'), t('permissions_count'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {roles.length === 0 ? <tr><td colSpan={3} className="px-4 py-10 text-center text-gray-400">No roles</td></tr>
+                {roles.length === 0 ? <tr><td colSpan={3} className="px-4 py-10 text-center text-gray-400">{t('no_roles')}</td></tr>
                   : roles.map((r) => (
                     <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white capitalize">{r.name}</td>
-                      <td className="px-4 py-3 text-gray-500">{r.permissions?.length ?? '—'} permissions</td>
+                      <td className="px-4 py-3 text-gray-500">{r.permissions?.length ?? '—'} {t('permissions')}</td>
                       <td className="px-4 py-3">
                         {canManage && (
                           <button onClick={() => { setSelectedRole(r); setModal('permissions') }} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded flex items-center gap-1 text-xs">
-                            <Shield className="h-4 w-4" /> Permissions
+                            <Shield className="h-4 w-4" /> {t('permissions')}
                           </button>
                         )}
                       </td>
@@ -172,26 +172,26 @@ export default function UsersPage() {
       )}
 
       {/* Add/Edit User Modal */}
-      <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? 'Edit User' : 'Add User'} size="md"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}</button></>}>
+      <Modal open={modal === 'add' || modal === 'edit'} onClose={() => setModal(null)} title={editId ? t('edit_user') : t('add_user')} size="md"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">{saveMutation.isPending ? t('saving') : editId ? t('update') : t('create')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!editId && <div><label className="label">Username *</label><input {...f('username')} className="input w-full font-mono" placeholder="e.g. john.doe" required /></div>}
-          <div><label className="label">Full Name *</label><input {...f('name')} className="input w-full" required /></div>
-          <div><label className="label">{editId ? 'New Password (leave blank to keep)' : 'Password *'}</label><input {...f('password')} type="password" className="input w-full" placeholder={editId ? 'Leave blank to keep current' : 'Min 8 chars with upper, lower, number, symbol'} /></div>
+          {!editId && <div><label className="label">{t('username')} *</label><input {...f('username')} className="input w-full font-mono" required /></div>}
+          <div><label className="label">{t('full_name')} *</label><input {...f('name')} className="input w-full" required /></div>
+          <div><label className="label">{editId ? t('new_password_hint') : t('password')}</label><input {...f('password')} type="password" className="input w-full" /></div>
           <div>
-            <label className="label">Role</label>
+            <label className="label">{t('role')}</label>
             <select {...f('role')} className="input w-full">
-              <option value="cashier">Cashier</option>
-              <option value="warehouse">Warehouse</option>
-              <option value="accountant">Accountant</option>
-              <option value="admin">Admin</option>
+              <option value="cashier">{t('role_cashier')}</option>
+              <option value="warehouse">{t('role_warehouse')}</option>
+              <option value="accountant">{t('role_accountant')}</option>
+              <option value="admin">{t('role_admin')}</option>
             </select>
           </div>
         </form>
       </Modal>
 
       {/* Permissions Modal */}
-      <Modal open={modal === 'permissions'} onClose={() => setModal(null)} title={`Permissions — ${selectedRole?.name ?? ''}`} size="xl">
+      <Modal open={modal === 'permissions'} onClose={() => setModal(null)} title={`${t('permissions')} — ${selectedRole?.name ?? ''}`} size="xl">
         <div className="grid grid-cols-2 gap-1.5">
           {allPerms.map((perm) => {
             const hasIt = selectedRole?.permissions?.some((p) => p.name === perm) ?? false
@@ -202,11 +202,11 @@ export default function UsersPage() {
               </div>
             )
           })}
-          {allPerms.length === 0 && <p className="col-span-2 text-center text-gray-400 py-4">No permissions data</p>}
+          {allPerms.length === 0 && <p className="col-span-2 text-center text-gray-400 py-4">{t('no_permissions')}</p>}
         </div>
       </Modal>
 
-      <ConfirmDialog open={deleteId !== null} title="Delete User" message="Delete this user account?" loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+      <ConfirmDialog open={deleteId !== null} title={t('delete_user')} message={t('confirm_delete')} loading={deleteMutation.isPending} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
     </div>
   )
 }

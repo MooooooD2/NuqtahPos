@@ -75,13 +75,13 @@ export default function InvoicesPage() {
 
   const returnMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/returns', payload),
-    onSuccess: () => { toast.success('Return processed'); qc.invalidateQueries({ queryKey: ['invoices'] }); setReturnModal(false); setViewInvoice(null) },
-    onError: () => toast.error('Failed to process return'),
+    onSuccess: () => { toast.success(t('record_success')); qc.invalidateQueries({ queryKey: ['invoices'] }); setReturnModal(false); setViewInvoice(null) },
+    onError: () => toast.error(t('record_failed')),
   })
 
   const handleReturn = () => {
     const filtered = returnItems.filter((i) => i.quantity > 0)
-    if (filtered.length === 0) return toast.error('Select items to return')
+    if (filtered.length === 0) return toast.error(t('error'))
     const items = filtered.map((ri) => {
       const item = returnableItems.find((x) => x.id === ri.item_id)
       return { product_id: item?.product_id, quantity: ri.quantity }
@@ -119,14 +119,14 @@ export default function InvoicesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{['Invoice #', 'Customer', 'Cashier', 'Method', 'Total', 'Status', 'Date', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                <tr>{[t('invoice_number'), t('invoice_customer_col'), t('cashier_col'), t('method_col'), t('total'), t('status'), t('date'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {invoices.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No invoices found</td></tr>
+                {invoices.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_invoices_found')}</td></tr>
                   : invoices.map((inv) => (
                     <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3 font-mono text-xs text-primary-600">{inv.invoice_number}</td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{inv.customer_name ?? 'Walk-in'}</td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{inv.customer_name ?? t('walk_in')}</td>
                       <td className="px-4 py-3 text-gray-500">{inv.cashier_name ?? '—'}</td>
                       <td className="px-4 py-3"><span className="badge badge-gray capitalize">{inv.payment_method ?? '—'}</span></td>
                       <td className="px-4 py-3 font-semibold">{parseFloat(inv.final_total ?? '0').toFixed(2)}</td>
@@ -149,10 +149,10 @@ export default function InvoicesPage() {
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page} · {data?.total} total</span>
+            <span className="text-sm text-gray-500">{t('page')} {page} · {data?.total} total</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={invoices.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={invoices.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
@@ -161,20 +161,20 @@ export default function InvoicesPage() {
       {/* View Invoice Modal */}
       <Modal open={!!viewInvoice && !returnModal} onClose={() => setViewInvoice(null)} title={`Invoice #${viewInvoice?.invoice_number ?? ''}`} size="lg"
         footer={<>
-          <button onClick={() => setViewInvoice(null)} className="btn btn-secondary">Close</button>
-          {viewInvoice && <button onClick={() => handlePrint(viewInvoice)} className="btn btn-secondary flex items-center gap-2"><Printer className="h-4 w-4" />Print</button>}
+          <button onClick={() => setViewInvoice(null)} className="btn btn-secondary">{t('close')}</button>
+          {viewInvoice && <button onClick={() => handlePrint(viewInvoice)} className="btn btn-secondary flex items-center gap-2"><Printer className="h-4 w-4" />{t('print')}</button>}
           {canReturn && (viewInvoice?.status === 'paid' || viewInvoice?.status === 'completed') && (
-            <button onClick={() => setReturnModal(true)} className="btn bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"><RotateCcw className="h-4 w-4" />Return</button>
+            <button onClick={() => setReturnModal(true)} className="btn bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"><RotateCcw className="h-4 w-4" />{t('returns')}</button>
           )}
         </>}>
         {viewInvoice && (
           <div className="space-y-3 text-sm">
             <div className="grid grid-cols-2 gap-3">
-              <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{viewInvoice.customer_name ?? 'Walk-in'}</span></div>
-              <div><span className="text-gray-500">Status:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[viewInvoice.status ?? ''] ?? 'badge-gray')}>{viewInvoice.status}</span></div>
-              <div><span className="text-gray-500">Payment:</span> <span className="capitalize">{viewInvoice.payment_method}</span></div>
-              <div><span className="text-gray-500">Total:</span> <span className="font-bold text-primary-600">{parseFloat(viewInvoice.final_total ?? '0').toFixed(2)}</span></div>
-              <div><span className="text-gray-500">Date:</span> <span>{viewInvoice.created_at?.slice(0, 16)}</span></div>
+              <div><span className="text-gray-500">{t('customer')}:</span> <span className="font-medium">{viewInvoice.customer_name ?? t('walk_in')}</span></div>
+              <div><span className="text-gray-500">{t('status')}:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[viewInvoice.status ?? ''] ?? 'badge-gray')}>{viewInvoice.status}</span></div>
+              <div><span className="text-gray-500">{t('payment_method')}:</span> <span className="capitalize">{viewInvoice.payment_method}</span></div>
+              <div><span className="text-gray-500">{t('total')}:</span> <span className="font-bold text-primary-600">{parseFloat(viewInvoice.final_total ?? '0').toFixed(2)}</span></div>
+              <div><span className="text-gray-500">{t('date')}:</span> <span>{viewInvoice.created_at?.slice(0, 16)}</span></div>
             </div>
           </div>
         )}
@@ -183,20 +183,20 @@ export default function InvoicesPage() {
       {/* Return Modal */}
       <Modal open={returnModal && !!viewInvoice} onClose={() => { setReturnModal(false) }} title={`Return — Invoice #${viewInvoice?.invoice_number ?? ''}`} size="lg"
         footer={<>
-          <button onClick={() => setReturnModal(false)} className="btn btn-secondary">Cancel</button>
-          <button onClick={handleReturn} disabled={returnMutation.isPending} className="btn bg-orange-500 hover:bg-orange-600 text-white">{returnMutation.isPending ? 'Processing…' : 'Process Return'}</button>
+          <button onClick={() => setReturnModal(false)} className="btn btn-secondary">{t('cancel')}</button>
+          <button onClick={handleReturn} disabled={returnMutation.isPending} className="btn bg-orange-500 hover:bg-orange-600 text-white">{returnMutation.isPending ? t('processing') : t('process_return')}</button>
         </>}>
         <div className="space-y-3">
           <div className="flex items-center gap-3 mb-1">
-            <label className="text-sm text-gray-500 font-medium">Refund Method:</label>
+            <label className="text-sm text-gray-500 font-medium">{t('refund_method')}:</label>
             <select value={refundMethod} onChange={(e) => setRefundMethod(e.target.value as typeof refundMethod)} className="input py-1 text-sm">
-              <option value="cash">Cash</option>
-              <option value="store_credit">Store Credit</option>
-              <option value="exchange">Exchange</option>
+              <option value="cash">{t('cash')}</option>
+              <option value="store_credit">{t('store_credit')}</option>
+              <option value="exchange">{t('exchange')}</option>
             </select>
           </div>
           <p className="text-sm text-gray-500">Select quantities to return:</p>
-          {returnableItems.length === 0 ? <p className="text-center text-gray-400 py-4">No returnable items</p>
+          {returnableItems.length === 0 ? <p className="text-center text-gray-400 py-4">{t('no_returnable_items')}</p>
             : returnableItems.map((item) => {
               const ri = returnItems.find((x) => x.item_id === item.id)
               const qty = ri?.quantity ?? 0
@@ -229,7 +229,7 @@ export default function InvoicesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 flex items-center gap-3">
               <div className="h-5 w-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-gray-600 dark:text-gray-300">Loading invoice…</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">{t('loading')}</span>
             </div>
           </div>
         ) : (

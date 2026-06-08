@@ -109,16 +109,16 @@ export default function PurchaseReturnsPage() {
 
   const createMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/purchase-returns', payload),
-    onSuccess: () => { toast.success('Return recorded'); qc.invalidateQueries({ queryKey: ['purchase-returns'] }); setModal(null) },
-    onError: () => toast.error('Failed to record return'),
+    onSuccess: () => { toast.success(t('record_success')); qc.invalidateQueries({ queryKey: ['purchase-returns'] }); setModal(null) },
+    onError: () => toast.error(t('record_failed')),
   })
 
   const handleSubmit = () => {
-    if (!selectedPO) return toast.error('No PO selected')
+    if (!selectedPO) return toast.error(t('error'))
     const items = returnableItems
       .filter((i) => parseInt(returnQtys[i.id] ?? '0') > 0)
       .map((i) => ({ product_id: i.product_id, quantity: parseInt(returnQtys[i.id]) }))
-    if (items.length === 0) return toast.error('Select at least one item to return')
+    if (items.length === 0) return toast.error(t('error'))
     createMutation.mutate({ purchase_order_id: selectedPO.id, items, refund_method: refundMethod, reason: reason || undefined })
   }
 
@@ -143,7 +143,7 @@ export default function PurchaseReturnsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {[t('return_number'), 'Supplier', t('date'), 'Total', t('refund_method'), 'Status', 'Recorded By', ''].map((h) => (
+                  {[t('return_number'), t('supplier'), t('date'), t('total'), t('refund_method'), t('status'), t('recorded_by'), ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -179,10 +179,10 @@ export default function PurchaseReturnsPage() {
         )}
         {(data?.purchase_returns?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page}</span>
+            <span className="text-sm text-gray-500">{t('page')} {page}</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={returns.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={returns.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
@@ -225,7 +225,7 @@ export default function PurchaseReturnsPage() {
             </ul>
           )}
           {!poLoading && poSearch.length >= 2 && pos.length === 0 && (
-            <p className="text-center text-gray-400 py-4">No purchase orders found</p>
+            <p className="text-center text-gray-400 py-4">{t('no_data')}</p>
           )}
         </div>
       </Modal>
@@ -234,12 +234,12 @@ export default function PurchaseReturnsPage() {
       <Modal
         open={modal === 'new-step2'}
         onClose={() => setModal(null)}
-        title={`New Return — PO ${selectedPO?.po_number ?? ''}`}
+        title={`${t('new_purchase_return')} — PO ${selectedPO?.po_number ?? ''}`}
         size="xl"
         footer={
           <>
             <button onClick={() => setModal('new-step1')} className="btn btn-secondary flex items-center gap-1">
-              <ArrowLeft className="h-4 w-4" /> Back
+              <ArrowLeft className="h-4 w-4" /> {t('back')}
             </button>
             <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={createMutation.isPending} className="btn btn-primary">
@@ -257,7 +257,7 @@ export default function PurchaseReturnsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      {['Product', 'Ordered', 'Returnable', t('quantity'), t('unit_price')].map((h) => (
+                      {[t('product'), t('ordered'), t('returnable'), t('quantity'), t('unit_price')].map((h) => (
                         <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                       ))}
                     </tr>
@@ -290,13 +290,13 @@ export default function PurchaseReturnsPage() {
                 <div>
                   <label className="label">{t('refund_method')} *</label>
                   <select value={refundMethod} onChange={(e) => setRefundMethod(e.target.value as 'credit_note' | 'cash')} className="input w-full">
-                    <option value="credit_note">Credit Note</option>
-                    <option value="cash">Cash</option>
+                    <option value="credit_note">{t('credit_note')}</option>
+                    <option value="cash">{t('cash')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="label">Reason</label>
-                  <input value={reason} onChange={(e) => setReason(e.target.value)} className="input w-full" placeholder="Optional reason" />
+                  <label className="label">{t('return_reason')}</label>
+                  <input value={reason} onChange={(e) => setReason(e.target.value)} className="input w-full" placeholder={t('optional_notes')} />
                 </div>
               </div>
             </>
@@ -323,20 +323,20 @@ export default function PurchaseReturnsPage() {
                 </span>
               </div>
               <div>
-                <span className="text-gray-500">Status:</span>{' '}
+                <span className="text-gray-500">{t('status')}:</span>{' '}
                 <span className={clsx('badge ml-1 capitalize', statusBadge[viewReturn.status] ?? 'badge-gray')}>{viewReturn.status}</span>
               </div>
               <div><span className="text-gray-500">{t('amount')}:</span> <span className="font-bold text-primary-600">{parseFloat(viewReturn.total ?? '0').toFixed(2)}</span></div>
-              {viewReturn.reason && <div className="col-span-2"><span className="text-gray-500">Reason:</span> <span>{viewReturn.reason}</span></div>}
+              {viewReturn.reason && <div className="col-span-2"><span className="text-gray-500">{t('return_reason')}:</span> <span>{viewReturn.reason}</span></div>}
             </div>
             {viewReturn.items && viewReturn.items.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Returned Items</h3>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('returned_items')}</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        {['Product', t('quantity'), t('unit_price')].map((h) => (
+                        {[t('product'), t('quantity'), t('unit_price')].map((h) => (
                           <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                         ))}
                       </tr>

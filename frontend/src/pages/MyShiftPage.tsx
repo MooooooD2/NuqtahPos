@@ -60,8 +60,8 @@ export default function MyShiftPage() {
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 1000)
-    return () => clearInterval(t)
+    const timer = setInterval(() => setTick((n) => n + 1), 1000)
+    return () => clearInterval(timer)
   }, [])
 
   const { data: currentData, isLoading: currentLoading } = useQuery({
@@ -83,41 +83,41 @@ export default function MyShiftPage() {
   const clockInMutation = useMutation({
     mutationFn: () => apiPost('/shifts/clock-in', {}),
     onSuccess: () => {
-      toast.success('Clocked in successfully')
+      toast.success(t('record_success'))
       qc.invalidateQueries({ queryKey: ['my-shift-current'] })
       qc.invalidateQueries({ queryKey: ['my-shift-history'] })
     },
-    onError: () => toast.error('Failed to clock in'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const breakStartMutation = useMutation({
     mutationFn: () => apiPost('/shifts/break/start', {}),
     onSuccess: () => {
-      toast.success('Break started')
+      toast.success(t('updated_success'))
       qc.invalidateQueries({ queryKey: ['my-shift-current'] })
     },
-    onError: () => toast.error('Failed to start break'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const breakEndMutation = useMutation({
     mutationFn: () => apiPost('/shifts/break/end', {}),
     onSuccess: () => {
-      toast.success('Break ended')
+      toast.success(t('updated_success'))
       qc.invalidateQueries({ queryKey: ['my-shift-current'] })
     },
-    onError: () => toast.error('Failed to end break'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const clockOutMutation = useMutation({
     mutationFn: (payload: object) => apiPost('/shifts/clock-out', payload),
     onSuccess: () => {
-      toast.success('Clocked out successfully')
+      toast.success(t('record_success'))
       qc.invalidateQueries({ queryKey: ['my-shift-current'] })
       qc.invalidateQueries({ queryKey: ['my-shift-history'] })
       setClockOutModal(false)
       setClockOutForm({ ...emptyClockOut })
     },
-    onError: () => toast.error('Failed to clock out'),
+    onError: () => toast.error(t('save_failed')),
   })
 
   const handleClockOut = (e: React.FormEvent) => {
@@ -176,7 +176,7 @@ export default function MyShiftPage() {
               <div className="card p-4 bg-yellow-50 dark:bg-yellow-900/20 space-y-1">
                 <p className="text-xs text-yellow-600">{t('break_started')}</p>
                 <p className="font-semibold text-yellow-700 dark:text-yellow-400">{formatTime(shift.break_started_at)}</p>
-                <p className="text-xs text-yellow-500">{formatElapsed(shift.break_started_at)} elapsed</p>
+                <p className="text-xs text-yellow-500">{formatElapsed(shift.break_started_at)} {t('elapsed')}</p>
               </div>
             )}
           </div>
@@ -189,7 +189,7 @@ export default function MyShiftPage() {
                 className="btn btn-secondary flex items-center gap-2"
               >
                 <Coffee className="h-4 w-4" />
-                {breakStartMutation.isPending ? 'Starting…' : 'Start Break'}
+                {breakStartMutation.isPending ? t('saving') : t('start_break')}
               </button>
             ) : (
               <button
@@ -198,14 +198,14 @@ export default function MyShiftPage() {
                 className="btn btn-secondary flex items-center gap-2"
               >
                 <CheckCircle className="h-4 w-4" />
-                {breakEndMutation.isPending ? 'Ending…' : 'End Break'}
+                {breakEndMutation.isPending ? t('saving') : t('end_break')}
               </button>
             )}
             <button
               onClick={() => setClockOutModal(true)}
               className="btn flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
             >
-              <LogOut className="h-4 w-4" /> Clock Out
+              <LogOut className="h-4 w-4" /> {t('clock_out')}
             </button>
           </div>
         </div>
@@ -215,8 +215,8 @@ export default function MyShiftPage() {
             <LogIn className="h-12 w-12 text-gray-400" />
           </div>
           <div className="text-center space-y-1">
-            <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">No Active Shift</p>
-            <p className="text-sm text-gray-500">You have no active shift. Click to start your shift.</p>
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">{t('no_shift_active')}</p>
+            <p className="text-sm text-gray-500">{t('no_shift_active_msg')}</p>
           </div>
           <button
             onClick={() => clockInMutation.mutate()}
@@ -224,7 +224,7 @@ export default function MyShiftPage() {
             className="btn btn-primary text-base px-8 py-3 flex items-center gap-2"
           >
             <LogIn className="h-5 w-5" />
-            {clockInMutation.isPending ? 'Clocking In…' : 'Clock In'}
+            {clockInMutation.isPending ? t('saving') : t('clock_in')}
           </button>
         </div>
       )}
@@ -232,7 +232,7 @@ export default function MyShiftPage() {
       <div className="card overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary-500" /> Shift History
+            <Clock className="h-4 w-4 text-primary-500" /> {t('shift_history')}
           </h2>
         </div>
         {historyLoading ? (
@@ -242,7 +242,7 @@ export default function MyShiftPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['Date', 'Clock In', 'Clock Out', 'Hours Worked', 'Status'].map((h) => (
+                  {[t('date'), t('clock_in'), t('clock_out'), t('hours_worked'), t('status')].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -250,13 +250,13 @@ export default function MyShiftPage() {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {history.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-gray-400">No shift history found</td>
+                    <td colSpan={5} className="px-4 py-12 text-center text-gray-400">{t('no_shift_history')}</td>
                   </tr>
                 ) : history.map((rec) => (
                   <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{rec.date}</td>
                     <td className="px-4 py-3 text-gray-500">{formatTime(rec.clock_in_at)}</td>
-                    <td className="px-4 py-3 text-gray-500">{rec.clock_out_at ? formatTime(rec.clock_out_at) : <span className="text-green-500 font-medium">Active</span>}</td>
+                    <td className="px-4 py-3 text-gray-500">{rec.clock_out_at ? formatTime(rec.clock_out_at) : <span className="text-green-500 font-medium">{t('shift_active')}</span>}</td>
                     <td className="px-4 py-3">
                       {rec.hours_worked ? (
                         <span className="badge badge-info">{rec.hours_worked}h</span>
@@ -278,20 +278,20 @@ export default function MyShiftPage() {
       <Modal
         open={clockOutModal}
         onClose={() => setClockOutModal(false)}
-        title="Clock Out"
+        title={t('clock_out')}
         size="sm"
         footer={
           <>
-            <button onClick={() => setClockOutModal(false)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setClockOutModal(false)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleClockOut} disabled={clockOutMutation.isPending} className="btn bg-red-600 hover:bg-red-700 text-white">
-              {clockOutMutation.isPending ? 'Clocking Out…' : 'Clock Out'}
+              {clockOutMutation.isPending ? t('saving') : t('clock_out')}
             </button>
           </>
         }
       >
         <form onSubmit={handleClockOut} className="space-y-4">
           <div>
-            <label className="label">Cash Collected</label>
+            <label className="label">{t('cash_collected')}</label>
             <input
               type="number"
               step="0.01"
@@ -303,13 +303,12 @@ export default function MyShiftPage() {
             />
           </div>
           <div>
-            <label className="label">Cashier Note</label>
+            <label className="label">{t('cashier_note')}</label>
             <textarea
               value={clockOutForm.cashier_note}
               onChange={(e) => setClockOutForm((p) => ({ ...p, cashier_note: e.target.value }))}
               className="input w-full"
               rows={3}
-              placeholder="Optional end-of-shift note"
             />
           </div>
         </form>
