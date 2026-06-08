@@ -22,57 +22,97 @@ interface NavItem {
   adminOnly?: boolean
 }
 
-const navItems: NavItem[] = [
-  { labelKey: 'dashboard',           path: '/',                  icon: LayoutDashboard },
-  { labelKey: 'pos',                 path: '/pos',               icon: ShoppingCart,    permission: 'view_pos' },
-  { labelKey: 'products',            path: '/products',          icon: Package,         permission: ['view_products', 'view_warehouse'] },
-  { labelKey: 'inventory',           path: '/inventory',         icon: Boxes,           permission: 'view_warehouse' },
-  { labelKey: 'customers',           path: '/customers',         icon: Users,           permission: ['view_customers', 'view_pos'] },
-  { labelKey: 'suppliers',           path: '/suppliers',         icon: Truck,           permission: 'view_warehouse' },
-  { labelKey: 'supplier_payments',   path: '/supplier-payments', icon: CreditCard,      permission: 'view_warehouse' },
-  { labelKey: 'supplier_accounts',   path: '/supplier-accounts', icon: Receipt,         permission: 'view_warehouse' },
-  { labelKey: 'purchase_orders',     path: '/purchases',         icon: ShoppingBag,     permission: 'view_warehouse' },
-  { labelKey: 'purchase_returns',    path: '/purchase-returns',  icon: PackageX,        permission: 'view_warehouse' },
-  { labelKey: 'invoices',            path: '/invoices',          icon: FileText,        permission: ['view_pos', 'view_reports'] },
-  { labelKey: 'returns',             path: '/returns',           icon: RotateCcw,       permission: 'view_returns' },
-  { labelKey: 'expenses',            path: '/expenses',          icon: DollarSign,      permission: 'view_pos' },
-  { labelKey: 'cash_register_reconciliation', path: '/cash-register', icon: Banknote,  permission: 'view_pos' },
-  { labelKey: 'promotions',          path: '/promotions',        icon: Tag,             permission: 'view_reports' },
-  { labelKey: 'pricing_rules',       path: '/pricing-rules',     icon: Zap,             permission: 'view_reports' },
-  { labelKey: 'cashback',            path: '/cashback',          icon: Gift,            permission: 'manage_cashback' },
-  { labelKey: 'accounting',          path: '/accounting',        icon: BookOpen,        permission: 'view_accounting' },
-  { labelKey: 'crm',                 path: '/crm',               icon: Heart,           permission: 'view_warehouse' },
-  { labelKey: 'hr_module',           path: '/hr',                icon: Users2,          permission: 'manage_hr' },
-  { labelKey: 'warehouse',           path: '/warehouse',         icon: Warehouse,       permission: 'view_warehouse' },
-  { labelKey: 'reports',             path: '/reports',           icon: BarChart3,       permission: 'view_reports' },
-  { labelKey: 'profit_reports',      path: '/profit-reports',    icon: TrendingUp,      permission: 'view_reports' },
-  { labelKey: 'ai_forecasting_title',path: '/forecasting',       icon: LineChart,       permission: 'view_reports' },
-  { labelKey: 'users_roles',         path: '/users',             icon: UserCog,         permission: 'manage_roles' },
-  { labelKey: 'branches',            path: '/branches',          icon: GitBranch,       permission: 'manage_roles' },
-  { labelKey: 'whatsapp',            path: '/whatsapp',          icon: MessageCircle,   permission: 'manage_roles' },
-  { labelKey: 'device_sessions',     path: '/device-sessions',   icon: Monitor },
-  { labelKey: 'kitchen_display',     path: '/kitchen',           icon: UtensilsCrossed, permission: 'view_kitchen' },
-  { labelKey: 'qr_tables',           path: '/qr',                icon: QrCode,          permission: 'manage_qr_orders' },
-  { labelKey: 'waste_management',    path: '/waste',             icon: Trash2,          permission: 'manage_waste' },
-  { labelKey: 'financial_reports',   path: '/financial-reports', icon: PieChart,        permission: 'view_accounting' },
-  { labelKey: 'currencies',          path: '/currencies',        icon: Coins,           permission: 'manage_roles' },
-  { labelKey: 'my_shift',            path: '/my-shift',          icon: Clock },
-  { labelKey: 'settings',            path: '/settings',          icon: Settings,        permission: 'manage_settings' },
+interface NavGroup {
+  groupKey: string
+  items: NavItem[]
+}
+
+const navGroups: NavGroup[] = [
+  {
+    groupKey: 'nav_group_main',
+    items: [
+      { labelKey: 'dashboard',  path: '/',         icon: LayoutDashboard },
+      { labelKey: 'pos',        path: '/pos',       icon: ShoppingCart, permission: 'view_pos' },
+      { labelKey: 'my_shift',   path: '/my-shift',  icon: Clock },
+    ],
+  },
+  {
+    groupKey: 'nav_group_sales',
+    items: [
+      { labelKey: 'invoices',      path: '/invoices',       icon: FileText,   permission: ['view_pos', 'view_reports'] },
+      { labelKey: 'returns',       path: '/returns',        icon: RotateCcw,  permission: 'view_returns' },
+      { labelKey: 'customers',     path: '/customers',      icon: Users,      permission: ['view_customers', 'view_pos'] },
+      { labelKey: 'promotions',    path: '/promotions',     icon: Tag,        permission: 'view_reports' },
+      { labelKey: 'pricing_rules', path: '/pricing-rules',  icon: Zap,        permission: 'view_reports' },
+      { labelKey: 'cashback',      path: '/cashback',       icon: Gift,       permission: 'manage_cashback' },
+      { labelKey: 'crm',           path: '/crm',            icon: Heart,      permission: 'view_warehouse' },
+    ],
+  },
+  {
+    groupKey: 'nav_group_inventory',
+    items: [
+      { labelKey: 'products',         path: '/products',   icon: Package,   permission: ['view_products', 'view_warehouse'] },
+      { labelKey: 'inventory',        path: '/inventory',  icon: Boxes,     permission: 'view_warehouse' },
+      { labelKey: 'warehouse',        path: '/warehouse',  icon: Warehouse, permission: 'view_warehouse' },
+      { labelKey: 'waste_management', path: '/waste',      icon: Trash2,    permission: 'manage_waste' },
+    ],
+  },
+  {
+    groupKey: 'nav_group_purchasing',
+    items: [
+      { labelKey: 'suppliers',          path: '/suppliers',          icon: Truck,       permission: 'view_warehouse' },
+      { labelKey: 'purchase_orders',    path: '/purchases',          icon: ShoppingBag, permission: 'view_warehouse' },
+      { labelKey: 'purchase_returns',   path: '/purchase-returns',   icon: PackageX,    permission: 'view_warehouse' },
+      { labelKey: 'supplier_payments',  path: '/supplier-payments',  icon: CreditCard,  permission: 'view_warehouse' },
+      { labelKey: 'supplier_accounts',  path: '/supplier-accounts',  icon: Receipt,     permission: 'view_warehouse' },
+    ],
+  },
+  {
+    groupKey: 'nav_group_finance',
+    items: [
+      { labelKey: 'expenses',                      path: '/expenses',          icon: DollarSign, permission: 'view_pos' },
+      { labelKey: 'cash_register_reconciliation',  path: '/cash-register',     icon: Banknote,   permission: 'view_pos' },
+      { labelKey: 'accounting',                    path: '/accounting',         icon: BookOpen,   permission: 'view_accounting' },
+      { labelKey: 'financial_reports',             path: '/financial-reports',  icon: PieChart,   permission: 'view_accounting' },
+      { labelKey: 'reports',                       path: '/reports',            icon: BarChart3,  permission: 'view_reports' },
+      { labelKey: 'profit_reports',                path: '/profit-reports',     icon: TrendingUp, permission: 'view_reports' },
+    ],
+  },
+  {
+    groupKey: 'nav_group_operations',
+    items: [
+      { labelKey: 'kitchen_display',    path: '/kitchen',     icon: UtensilsCrossed, permission: 'view_kitchen' },
+      { labelKey: 'qr_tables',          path: '/qr',          icon: QrCode,          permission: 'manage_qr_orders' },
+      { labelKey: 'whatsapp',           path: '/whatsapp',    icon: MessageCircle,   permission: 'manage_roles' },
+      { labelKey: 'ai_forecasting_title', path: '/forecasting', icon: LineChart,     permission: 'view_reports' },
+    ],
+  },
+  {
+    groupKey: 'nav_group_admin',
+    items: [
+      { labelKey: 'users_roles',     path: '/users',           icon: UserCog,   permission: 'manage_roles' },
+      { labelKey: 'branches',        path: '/branches',        icon: GitBranch, permission: 'manage_roles' },
+      { labelKey: 'hr_module',       path: '/hr',              icon: Users2,    permission: 'manage_hr' },
+      { labelKey: 'currencies',      path: '/currencies',      icon: Coins,     permission: 'manage_roles' },
+      { labelKey: 'device_sessions', path: '/device-sessions', icon: Monitor },
+      { labelKey: 'settings',        path: '/settings',        icon: Settings,  permission: 'manage_settings' },
+    ],
+  },
 ]
 
 export default function Sidebar() {
   const { sidebarCollapsed, sidebarMobileOpen, toggleSidebar, setSidebarMobileOpen } = useUIStore()
   const user = useAuthStore((s) => s.user)
   const location = useLocation()
-  const { hasPermission, isAdmin } = usePermission()
+  const { hasPermission } = usePermission()
   const { t } = useTranslation('pos')
 
-  const visibleItems = navItems.filter((item) => {
+  const isVisible = (item: NavItem) => {
     if (!item.permission) return true
-    if (item.adminOnly && !isAdmin) return false
+    if (item.adminOnly && user?.role !== 'admin') return false
     const perms = Array.isArray(item.permission) ? item.permission : [item.permission]
     return hasPermission(...perms)
-  })
+  }
 
   return (
     <>
@@ -112,37 +152,56 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-          {visibleItems.map((item) => {
-            const label = t(item.labelKey)
-            const isActive = item.path === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(item.path)
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+          {navGroups.map((group) => {
+            const visibleItems = group.items.filter(isVisible)
+            if (visibleItems.length === 0) return null
             return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setSidebarMobileOpen(false)}
-                className={clsx(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group',
-                  isActive
-                    ? 'bg-primary-600 text-white'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white',
-                  sidebarCollapsed && 'justify-center',
+              <div key={group.groupKey}>
+                {/* Section label — hidden when collapsed */}
+                {!sidebarCollapsed && (
+                  <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 select-none">
+                    {t(group.groupKey)}
+                  </p>
                 )}
-                title={sidebarCollapsed ? label : undefined}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!sidebarCollapsed && <span>{label}</span>}
-              </NavLink>
+                {sidebarCollapsed && (
+                  <div className="border-t border-slate-700/60 mx-2 mb-1" />
+                )}
+                <div className="space-y-0.5">
+                  {visibleItems.map((item) => {
+                    const label = t(item.labelKey)
+                    const isActive = item.path === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(item.path)
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setSidebarMobileOpen(false)}
+                        className={clsx(
+                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white',
+                          sidebarCollapsed && 'justify-center',
+                        )}
+                        title={sidebarCollapsed ? label : undefined}
+                      >
+                        <item.icon className={clsx('h-4 w-4 flex-shrink-0', isActive ? 'text-white' : 'text-slate-400 group-hover:text-white')} />
+                        {!sidebarCollapsed && <span className="truncate">{label}</span>}
+                      </NavLink>
+                    )
+                  })}
+                </div>
+              </div>
             )
           })}
         </nav>
 
         {/* User info */}
         {!sidebarCollapsed && user && (
-          <div className="p-4 border-t border-slate-700 flex-shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="p-3 border-t border-slate-700 flex-shrink-0">
+            <div className="flex items-center gap-3 px-1">
               <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                 {user.name.charAt(0).toUpperCase()}
               </div>
@@ -150,6 +209,13 @@ export default function Sidebar() {
                 <p className="text-sm font-medium text-white truncate">{user.name}</p>
                 <p className="text-xs text-slate-400 truncate capitalize">{user.role}</p>
               </div>
+            </div>
+          </div>
+        )}
+        {sidebarCollapsed && user && (
+          <div className="p-3 border-t border-slate-700 flex justify-center flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold" title={user.name}>
+              {user.name.charAt(0).toUpperCase()}
             </div>
           </div>
         )}

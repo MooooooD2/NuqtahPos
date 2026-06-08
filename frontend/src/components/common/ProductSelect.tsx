@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/services/api'
 import { Search, X, ChevronDown } from 'lucide-react'
@@ -34,6 +35,7 @@ export default function ProductSelect({
   const [selectedName, setSelectedName] = useState('')
   const [open, setOpen]               = useState(false)
   const containerRef                  = useRef<HTMLDivElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
 
   // Reset display when parent clears value
   useEffect(() => {
@@ -42,6 +44,32 @@ export default function ProductSelect({
       setQuery('')
     }
   }, [value])
+
+  // Recalculate fixed position whenever the dropdown opens or the page scrolls/resizes
+  useEffect(() => {
+    if (!open || !containerRef.current) return
+
+    const updatePos = () => {
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        minWidth: 220,
+        zIndex: 99999,
+      })
+    }
+
+    updatePos()
+    window.addEventListener('scroll', updatePos, true)
+    window.addEventListener('resize', updatePos)
+    return () => {
+      window.removeEventListener('scroll', updatePos, true)
+      window.removeEventListener('resize', updatePos)
+    }
+  }, [open])
 
   const { data, isFetching } = useQuery({
     queryKey: ['product-select', query],
@@ -80,6 +108,33 @@ export default function ProductSelect({
     }, 150)
   }
 
+  const dropdown = open && !disabled && (
+    <div
+      style={dropdownStyle}
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+    >
+      {isFetching && (
+        <p className="px-3 py-2 text-sm text-gray-400">{t('searching')}</p>
+      )}
+      {!isFetching && products.length === 0 && (
+        <p className="px-3 py-2 text-sm text-gray-400">{t('no_products_found')}</p>
+      )}
+      {products.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          onMouseDown={() => handleSelect(p)}
+          className="w-full text-left px-3 py-2 text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 flex items-center justify-between gap-3 border-b border-gray-50 dark:border-gray-700 last:border-0"
+        >
+          <span className="font-medium text-gray-900 dark:text-white truncate">{p.name}</span>
+          <span className="text-xs text-gray-400 shrink-0 font-mono">
+            {p.barcode ?? `#${p.id}`}
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+
   return (
     <div ref={containerRef} className={clsx('relative', className)}>
       {/* Input row */}
@@ -108,30 +163,8 @@ export default function ProductSelect({
         )}
       </div>
 
-      {/* Dropdown */}
-      {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full min-w-[220px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {isFetching && (
-            <p className="px-3 py-2 text-sm text-gray-400">{t('searching')}</p>
-          )}
-          {!isFetching && products.length === 0 && (
-            <p className="px-3 py-2 text-sm text-gray-400">{t('no_products_found')}</p>
-          )}
-          {products.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onMouseDown={() => handleSelect(p)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 flex items-center justify-between gap-3 border-b border-gray-50 dark:border-gray-700 last:border-0"
-            >
-              <span className="font-medium text-gray-900 dark:text-white truncate">{p.name}</span>
-              <span className="text-xs text-gray-400 shrink-0 font-mono">
-                {p.barcode ?? `#${p.id}`}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Dropdown rendered in a portal to escape modal overflow clipping */}
+      {dropdown && createPortal(dropdown, document.body)}
     </div>
   )
 }

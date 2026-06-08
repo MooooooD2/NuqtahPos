@@ -209,12 +209,20 @@ export default function PosPage() {
       const inv = data.invoice
       const customerId = cart.customer?.id
       const cbUsed = cashbackToUse
+      // Capture cash values before clearing state
+      const isCashPayment = cart.payment_method === 'cash'
+      const capturedTendered = tendered
+      const capturedChange = Math.max(0, change)
       toast.success(`${t('complete_sale')} #${inv?.invoice_number ?? '—'}`)
       await openCashDrawer()
       cart.clearCart(); setPayModal(false); setTenderedAmount(''); setCashbackToUse(0); setCashbackBalance(0)
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       setTimeout(() => qc.invalidateQueries({ queryKey: ['notifications'] }), 800)
-      if (inv) setPrintInvoice(inv)
+      if (inv) setPrintInvoice({
+        ...inv,
+        cash_received: isCashPayment && capturedTendered > 0 ? capturedTendered : inv.cash_received,
+        change_amount: isCashPayment && capturedTendered > 0 ? capturedChange : inv.change_amount,
+      })
       // Redeem cashback points after invoice is created
       if (cbUsed > 0 && customerId && inv?.id) {
         apiPost('/cashback/redeem', { customer_id: customerId, amount: cbUsed, invoice_id: inv.id })
@@ -229,6 +237,7 @@ export default function PosPage() {
 
   const handleCheckout = () => {
     if (cart.items.length === 0) return
+    const isCash = cart.payment_method === 'cash'
     const payload = {
       customer_id: cart.customer?.id ?? null,
       items: cart.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, unit_price: i.unit_price, discount_amount: i.discount_amount })),
@@ -236,6 +245,8 @@ export default function PosPage() {
       discount_amount: cart.discount_amount + cashbackToUse,
       discount_percent: cart.discount_percent,
       notes: cart.notes || undefined,
+      cash_received: isCash && tendered > 0 ? tendered : undefined,
+      change_amount: isCash && tendered > 0 ? Math.max(0, change) : undefined,
     }
     if (!isOnline) { enqueue('invoice', payload); cart.clearCart(); setPayModal(false); toast.success('Saved offline'); return }
     checkoutMutation.mutate(payload)
@@ -567,20 +578,52 @@ export default function PosPage() {
             </div>
 
             {cart.payment_method === 'cash' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('tendered')}</label>
-                <input type="number" value={tenderedAmount} onChange={(e) => setTenderedAmount(e.target.value)}
-                  className="input w-full text-lg font-semibold text-center" placeholder="0.00" autoFocus />
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('cash_received')}</label>
+                  <input
+                    type="number" value={tenderedAmount}
+                    onChange={(e) => setTenderedAmount(e.target.value)}
+                    className="input w-full text-2xl font-bold text-center mt-1" placeholder="0.00" autoFocus
+                  />
+                </div>
+
+                {/* Quick amount buttons — exact + round-ups */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  <button
+                    onClick={() => setTenderedAmount(finalTotal.toFixed(2))}
+                    className="col-span-4 btn btn-secondary text-sm py-1.5 font-semibold text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-700"
+                  >
+                    {t('exact_amount')} · {finalTotal.toFixed(2)}
+                  </button>
+                  {[
+                    Math.ceil(finalTotal / 10) * 10,
+                    Math.ceil(finalTotal / 50) * 50,
+                    Math.ceil(finalTotal / 100) * 100,
+                    Math.ceil(finalTotal / 500) * 500,
+                  ]
+                    .filter((v, i, a) => v !== finalTotal && a.indexOf(v) === i)
+                    .slice(0, 4)
+                    .map((amt) => (
+                      <button key={amt} onClick={() => setTenderedAmount(String(amt))} className="btn btn-secondary text-sm py-1.5">{amt}</button>
+                    ))
+                  }
+                </div>
+
+                {/* Change display */}
                 {tenderedAmount && (
-                  <div className={clsx('text-center py-2 rounded-lg font-bold text-lg', change >= 0 ? 'bg-green-50 text-green-700 dark:bg-green-900/20' : 'bg-red-50 text-red-700')}>
-                    {t('change_due')}: {change.toFixed(2)}
+                  <div className={clsx(
+                    'rounded-xl p-3 text-center border-2',
+                    change >= 0
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700',
+                  )}>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">{t('change_due')}</p>
+                    <p className={clsx('text-3xl font-bold', change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
+                      {change >= 0 ? change.toFixed(2) : `${t('short_by')} ${Math.abs(change).toFixed(2)}`}
+                    </p>
                   </div>
                 )}
-                <div className="grid grid-cols-4 gap-1">
-                  {[10, 20, 50, 100].map((amt) => (
-                    <button key={amt} onClick={() => setTenderedAmount(String(amt))} className="btn btn-secondary text-xs py-1">{amt}</button>
-                  ))}
-                </div>
               </div>
             )}
 

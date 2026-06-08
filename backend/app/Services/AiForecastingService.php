@@ -116,9 +116,13 @@ class AiForecastingService
                 ->limit($topN)
                 ->get();
 
+            // Batch-load all needed products to avoid N+1 queries
+            $productIds = $productStats->pluck('product_id')->toArray();
+            $products   = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
             $results = [];
             foreach ($productStats as $stat) {
-                $product = Product::find($stat->product_id);
+                $product = $products->get($stat->product_id);
                 if (! $product) {
                     continue;
                 }

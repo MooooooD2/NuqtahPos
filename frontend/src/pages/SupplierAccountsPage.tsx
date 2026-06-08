@@ -35,7 +35,7 @@ export default function SupplierAccountsPage() {
       date_to: dateTo || undefined,
     }),
     staleTime: 0,
-    enabled: selectedId !== null && loadTrigger > 0,
+    enabled: selectedId !== null,
   })
 
   const suppliers = (suppliersData?.data ?? []).filter((s) =>
@@ -54,7 +54,7 @@ export default function SupplierAccountsPage() {
 
   const getMovementLabel = (type: string) => {
     const map: Record<string, string> = { purchase_order: t('move_purchase_order'), payment: t('move_payment'), purchase_return: t('move_purchase_return'), adjustment: t('move_adjustment') }
-    return map[type] ?? type
+    return map[type] ?? type ?? '—'
   }
 
   if (!canView) return <div className="card p-8 text-center text-gray-400">{t('no_permission')}</div>
@@ -107,7 +107,7 @@ export default function SupplierAccountsPage() {
             <div className="overflow-y-auto max-h-[60vh] divide-y divide-gray-100 dark:divide-gray-700">
               {suppliers.length === 0 ? <div className="px-4 py-10 text-center text-gray-400 text-sm">{t('no_data')}</div>
                 : suppliers.map((s) => (
-                  <button key={s.id} onClick={() => { setSelectedId(s.id); setLoadTrigger(0) }}
+                  <button key={s.id} onClick={() => { setSelectedId(s.id); setDateFrom(''); setDateTo('') }}
                     className={clsx('w-full text-left px-4 py-3 transition-colors', selectedId === s.id ? 'bg-primary-50 dark:bg-primary-900/20 border-l-2 border-primary-500' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50')}>
                     <p className={clsx('font-medium text-sm', selectedId === s.id ? 'text-primary-700 dark:text-primary-400' : 'text-gray-900 dark:text-white')}>{s.name}</p>
                     {s.phone && <p className="text-xs text-gray-400 mt-0.5">{s.phone}</p>}
@@ -138,7 +138,7 @@ export default function SupplierAccountsPage() {
                     <label className="label text-xs">{t('date_to')}</label>
                     <input value={dateTo} type="date" onChange={(e) => setDateTo(e.target.value)} className="input text-sm" />
                   </div>
-                  <button onClick={() => setLoadTrigger((n) => n + 1)} className="btn btn-primary text-sm">{t('load_statement')}</button>
+                  <button onClick={() => setLoadTrigger((n) => n + 1)} className="btn btn-primary text-sm flex items-center gap-1">{t('load_statement')}</button>
                   {entries.length > 0 && (
                     <button onClick={() => window.print()} className="btn btn-secondary text-sm flex items-center gap-1"><Printer className="h-4 w-4" />{t('print')}</button>
                   )}
@@ -146,7 +146,7 @@ export default function SupplierAccountsPage() {
               </div>
 
               <div className="card overflow-hidden">
-                {stmtLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : loadTrigger === 0 ? (
+                {stmtLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : entries.length === 0 ? (
                   <div className="px-4 py-12 text-center text-gray-400 text-sm">{t('no_movements')}</div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -160,11 +160,13 @@ export default function SupplierAccountsPage() {
                             const bal = parseFloat(entry.balance)
                             return (
                               <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <td className="px-4 py-3 text-gray-500 text-xs">{entry.date?.slice(0, 10)}</td>
+                                <td className="px-4 py-3 text-gray-500 text-xs">{entry.date?.slice(0, 10) || '—'}</td>
                                 <td className="px-4 py-3">
-                                  <span className={clsx('badge text-xs', movementBadge[entry.movement_type] ?? 'badge-gray')}>
-                                    {getMovementLabel(entry.movement_type)}
-                                  </span>
+                                  {entry.movement_type ? (
+                                    <span className={clsx('badge text-xs', movementBadge[entry.movement_type] ?? 'badge-gray')}>
+                                      {getMovementLabel(entry.movement_type)}
+                                    </span>
+                                  ) : <span className="text-gray-400">—</span>}
                                 </td>
                                 <td className="px-4 py-3 font-mono text-xs text-primary-600">{entry.reference || '—'}</td>
                                 <td className="px-4 py-3 text-red-600 font-medium">{parseFloat(entry.debit) > 0 ? parseFloat(entry.debit).toFixed(2) : '—'}</td>

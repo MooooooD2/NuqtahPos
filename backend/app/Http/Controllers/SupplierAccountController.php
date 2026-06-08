@@ -21,8 +21,11 @@ class SupplierAccountController extends Controller
     {
         $this->authorize('view_supplier_payments');
 
-        $totals = $this->supplierAccountRepo->totalsBySupplier((int) $supplier->id);
-        $entries = $this->supplierAccountRepo->entriesBySupplier((int) $supplier->id);
+        $dateFrom = request('date_from');
+        $dateTo   = request('date_to');
+
+        $totals  = $this->supplierAccountRepo->totalsBySupplier((int) $supplier->id, $dateFrom, $dateTo);
+        $entries = $this->supplierAccountRepo->entriesBySupplier((int) $supplier->id, $dateFrom, $dateTo);
 
         $totalDebt    = (float) $totals->total_debt;
         $totalPayment = (float) $totals->total_payment;

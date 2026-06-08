@@ -11,7 +11,7 @@ interface SupplierAccountRepositoryInterface
 
     public function create(array $data): SupplierAccount;
 
-    public function totalsBySupplier(int $supplierId): object;
+    public function totalsBySupplier(int $supplierId, ?string $dateFrom = null, ?string $dateTo = null): object;
 
-    public function entriesBySupplier(int $supplierId): Collection;
+    public function entriesBySupplier(int $supplierId, ?string $dateFrom = null, ?string $dateTo = null): Collection;
 }

@@ -58,22 +58,26 @@ export default function ForecastingPage() {
     salesQuery.refetch()
   }
 
+  const trendLabel: Record<string, string> = { growing: t('trend_growing'), declining: t('trend_declining'), stable: t('trend_stable') }
   const trendBadge = (trend: string) => {
-    if (trend === 'growing') return <span className="badge badge-success capitalize">{trend}</span>
-    if (trend === 'declining') return <span className="badge badge-danger capitalize">{trend}</span>
-    return <span className="badge badge-info capitalize">{trend}</span>
+    const label = trendLabel[trend] ?? trend
+    if (trend === 'growing') return <span className="badge badge-success">{label}</span>
+    if (trend === 'declining') return <span className="badge badge-danger">{label}</span>
+    return <span className="badge badge-info">{label}</span>
   }
 
   const daysLeftBadge = (days: number) => {
-    if (days <= 3) return <span className="badge badge-danger">{days}d</span>
-    if (days <= 7) return <span className="badge badge-warning">{days}d</span>
-    return <span className="badge badge-success">{days}d</span>
+    const label = `${days} ${t('days')}`
+    if (days <= 3) return <span className="badge badge-danger">{label}</span>
+    if (days <= 7) return <span className="badge badge-warning">{label}</span>
+    return <span className="badge badge-success">{label}</span>
   }
 
+  const urgencyLabel: Record<string, string> = { critical: t('urgency_critical'), high: t('urgency_high'), medium: t('urgency_medium'), low: t('urgency_low') }
   const urgencyBadge = (urgency: string) => {
     const map: Record<string, string> = { critical: 'badge-danger', high: 'badge-warning', medium: 'badge-warning', low: 'badge-success' }
     const style = map[urgency] ?? 'badge-gray'
-    return <span className={clsx('badge capitalize', style)}>{urgency}</span>
+    return <span className={clsx('badge', style)}>{urgencyLabel[urgency] ?? urgency}</span>
   }
 
   const salesData = salesQuery.data?.data

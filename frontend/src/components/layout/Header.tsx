@@ -11,11 +11,12 @@ import {
   ChevronDown, User, Check, CheckCheck, Trash2,
   AlertTriangle, Package, ShoppingCart, DollarSign, UserCheck,
   Info, TrendingDown, Clock, RefreshCw, Zap,
-  RotateCcw, ShoppingBag, Calendar,
+  RotateCcw, ShoppingBag, Calendar, Globe,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 
 export interface AppNotification {
   id: string
@@ -128,7 +129,7 @@ function timeAgo(dateStr: string, tFn: (key: string, opts?: Record<string, unkno
 }
 
 export default function Header() {
-  const { theme, setTheme, setSidebarMobileOpen } = useUIStore()
+  const { theme, setTheme, setSidebarMobileOpen, language, setLanguage } = useUIStore()
   const { user, logout } = useAuthStore()
   const { isOnline, syncQueue, clearQueue, setOffline } = useOfflineStore()
   const { isAdmin } = usePermission()
@@ -265,9 +266,24 @@ export default function Header() {
         {/* ── Theme toggle ─────────────────────────────────────────────── */}
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          title={theme === 'dark' ? t('switch_light') : t('switch_dark')}
           className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
         >
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
+
+        {/* ── Language toggle ───────────────────────────────────────────── */}
+        <button
+          onClick={() => {
+            const next = language === 'en' ? 'ar' : 'en'
+            setLanguage(next)
+            i18n.changeLanguage(next)
+          }}
+          title={language === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400 text-xs font-bold tracking-wide"
+        >
+          <Globe className="h-4 w-4 flex-shrink-0" />
+          <span>{language === 'en' ? 'AR' : 'EN'}</span>
         </button>
 
         {/* ── Notifications ────────────────────────────────────────────── */}
