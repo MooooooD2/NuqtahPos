@@ -940,5 +940,65 @@
   "role_accountant": "محاسب",
   "role_admin": "مدير",
   "new_password_hint": "كلمة مرور جديدة (اتركها فارغة للاحتفاظ بالحالية)",
-  "created_at": "تاريخ الإنشاء"
+  "created_at": "تاريخ الإنشاء",
+
+  "invoice_settings": "إعدادات الفاتورة",
+  "pos_settings": "إعدادات نقطة البيع",
+  "accounting_settings": "ربط الخزينة بالمحاسبة",
+  "printing_settings": "الطباعة الحرارية",
+  "loyalty_settings": "نقاط الولاء",
+  "inventory_settings": "المخزون",
+  "tax_settings": "إعدادات الضريبة",
+
+  "tax_enabled": "تفعيل الضريبة",
+  "tax_name_ar": "اسم الضريبة (عربي)",
+  "tax_name_en": "اسم الضريبة (إنجليزي)",
+  "show_tax_invoice": "إظهار الضريبة في الفاتورة",
+
+  "pos_sound": "صوت عند مسح الباركود",
+  "low_stock_alert": "تنبيه المخزون المنخفض",
+  "max_discount_percent": "الحد الأقصى للخصم (%)",
+  "default_payment": "طريقة الدفع الافتراضية",
+
+  "loyalty_enabled": "تفعيل نقاط الولاء",
+  "loyalty_earn_rate": "كل كم جنيه = نقطة",
+  "loyalty_redeem_value": "قيمة النقطة عند الاسترداد",
+  "loyalty_min_redeem": "الحد الأدنى للنقاط للاسترداد",
+
+  "max_daily_withdrawal": "الحد الأقصى للسحب اليومي",
+  "min_cash_balance": "الحد الأدنى لرصيد الخزينة (تنبيه)",
+  "cash_account_code": "كود حساب الخزينة (للربط المحاسبي)",
+  "revenue_account_code": "كود حساب الإيرادات (للربط المحاسبي)",
+  "profit_margin_target": "نسبة هامش الربح المستهدفة %",
+
+  "inventory_valuation_method": "طريقة تقييم المخزون",
+  "weighted_average": "المتوسط المرجح",
+
+  "print_on_sale": "طباعة تلقائية عند البيع",
+  "print_on_return": "طباعة تلقائية عند المرتجع",
+  "print_on_shift_close": "طباعة تقرير الوردية عند الإغلاق",
+  "receipt_template": "قالب الإيصال",
+  "receipt_copies": "عدد نسخ الإيصال",
+  "receipt_show_qr": "إظهار QR كود الضريبة",
+  "receipt_show_barcode": "إظهار الباركود على الإيصال",
+  "print_fallback_browser": "الطباعة عبر المتصفح عند الفشل",
+  "tax_registration_number": "رقم التسجيل الضريبي على الإيصال",
+  "kitchen_printer_id": "معرف طابعة المطبخ",
+  "barcode_printer_id": "معرف طابعة الباركود",
+
+  "default_language": "اللغة الافتراضية",
+  "default_value": "افتراضي",
+
+  "treasury_limits": "حدود الخزينة",
+  "accounting_link_auto": "الربط المحاسبي — تلقائي عند إغلاق الجلسة",
+  "profitability_settings": "إعدادات الربحية",
+  "auto_trigger": "التشغيل التلقائي",
+  "receipt_settings": "إعدادات الإيصال",
+  "connected_printers": "الطابعات المتصلة",
+
+  "zero_means_unlimited": "الحد الأقصى للمبلغ المسحوب يومياً من الخزينة (0 = لا حد)",
+  "zero_means_no_alert": "تنبيه عند انخفاض الرصيد النقدي عن هذا الحد (0 = لا تنبيه)",
+  "example_1001": "كود حساب النقدية في دفتر الأستاذ (مثال: 1001)",
+  "example_4001": "كود حساب الإيرادات في دفتر الأستاذ (مثال: 4001)",
+  "accounting_link_info": "عند إغلاق جلسة الكاشير، سيتم تلقائياً إنشاء قيد محاسبي في حساب الخزينة وحساب الإيرادات المحددين أدناه. اتركوها فارغة لتعطيل الربط."
 }

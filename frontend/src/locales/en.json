@@ -941,5 +941,65 @@
   "role_accountant": "Accountant",
   "role_admin": "Admin",
   "new_password_hint": "New Password (leave blank to keep)",
-  "created_at": "Created"
+  "created_at": "Created",
+
+  "invoice_settings": "Invoice Settings",
+  "pos_settings": "POS Settings",
+  "accounting_settings": "Accounting Link",
+  "printing_settings": "Thermal Printing",
+  "loyalty_settings": "Loyalty Points",
+  "inventory_settings": "Inventory",
+  "tax_settings": "Tax Settings",
+
+  "tax_enabled": "Enable Tax",
+  "tax_name_ar": "Tax Name (Arabic)",
+  "tax_name_en": "Tax Name (English)",
+  "show_tax_invoice": "Show Tax on Invoice",
+
+  "pos_sound": "Beep on Scan",
+  "low_stock_alert": "Low Stock Alert",
+  "max_discount_percent": "Maximum Discount (%)",
+  "default_payment": "Default Payment Method",
+
+  "loyalty_enabled": "Enable Loyalty Points",
+  "loyalty_earn_rate": "Spend per Point (EGP)",
+  "loyalty_redeem_value": "Point Redeem Value (EGP)",
+  "loyalty_min_redeem": "Minimum Points to Redeem",
+
+  "max_daily_withdrawal": "Max Daily Withdrawal",
+  "min_cash_balance": "Min Cash Balance (Alert)",
+  "cash_account_code": "Cash Account Code",
+  "revenue_account_code": "Revenue Account Code",
+  "profit_margin_target": "Target Profit Margin %",
+
+  "inventory_valuation_method": "Inventory Valuation Method",
+  "weighted_average": "Weighted Average",
+
+  "print_on_sale": "Auto Print on Sale",
+  "print_on_return": "Auto Print on Return",
+  "print_on_shift_close": "Print Shift Report on Close",
+  "receipt_template": "Receipt Template",
+  "receipt_copies": "Receipt Copies",
+  "receipt_show_qr": "Show ETA QR Code",
+  "receipt_show_barcode": "Show Barcode on Receipt",
+  "print_fallback_browser": "Fallback to Browser Print",
+  "tax_registration_number": "Tax Registration Number on Receipt",
+  "kitchen_printer_id": "Kitchen Printer ID",
+  "barcode_printer_id": "Barcode Printer ID",
+
+  "default_language": "Default Language",
+  "default_value": "Default",
+
+  "treasury_limits": "Treasury Limits",
+  "accounting_link_auto": "Accounting Link — Auto on Session Close",
+  "profitability_settings": "Profitability Settings",
+  "auto_trigger": "Auto Trigger",
+  "receipt_settings": "Receipt Settings",
+  "connected_printers": "Connected Printers",
+
+  "zero_means_unlimited": "Max amount withdrawable per day from cash register (0 = unlimited)",
+  "zero_means_no_alert": "Alert when cash balance drops below this amount (0 = no alert)",
+  "example_1001": "Cash account code in ledger (example: 1001)",
+  "example_4001": "Revenue account code in ledger (example: 4001)",
+  "accounting_link_info": "When a cashier session is closed, a journal entry will be automatically created in the cash and revenue accounts defined below. Leave them empty to disable the link."
 }
