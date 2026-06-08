@@ -216,6 +216,7 @@ class WarehouseController extends Controller
     public function transfers(Request $request): JsonResponse
     {
         $query = WarehouseTransfer::with(['fromWarehouse:id,name,code', 'toWarehouse:id,name,code', 'requestedBy:id,full_name'])
+            ->withCount('items')
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->warehouse_id, fn ($q) => $q->where(function ($q2) use ($request) {
                 $q2->where('from_warehouse_id', $request->warehouse_id)

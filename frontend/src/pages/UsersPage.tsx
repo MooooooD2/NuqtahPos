@@ -8,13 +8,16 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { UserCog, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Shield } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
-interface AppUser { id: number; username: string; full_name?: string; email?: string; role: string; is_active: boolean; created_at: string; permissions?: string[] }
-interface Role { id: number; name: string; permissions?: string[] }
+interface AppUser { id: number; username: string; full_name?: string; email?: string; role: string; is_active: boolean; created_at: string }
+interface PermissionObj { id: number; name: string; guard_name: string }
+interface Role { id: number; name: string; permissions?: PermissionObj[] }
 
 const emptyForm = { username: '', name: '', email: '', password: '', role: 'cashier', branch_id: '' }
 
 export default function UsersPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission, isAdmin } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'users' | 'roles'>('users')
@@ -36,14 +39,14 @@ export default function UsersPage() {
   })
   const { data: permsData } = useQuery({
     queryKey: ['all-permissions'],
-    queryFn: () => apiGet<{ success: boolean; data: string[] }>('/permissions'),
+    queryFn: () => apiGet<{ success: boolean; data: PermissionObj[] }>('/permissions'),
     staleTime: 300_000,
     enabled: modal === 'permissions',
   })
 
   const users = usersData?.data ?? []
   const roles = rolesData?.data ?? []
-  const allPerms = permsData?.data ?? []
+  const allPerms = permsData?.data?.map((p) => p.name) ?? []
 
   const canManage = hasPermission('manage_roles') || isAdmin
 
@@ -191,7 +194,7 @@ export default function UsersPage() {
       <Modal open={modal === 'permissions'} onClose={() => setModal(null)} title={`Permissions — ${selectedRole?.name ?? ''}`} size="xl">
         <div className="grid grid-cols-2 gap-1.5">
           {allPerms.map((perm) => {
-            const hasIt = selectedRole?.permissions?.includes(perm) ?? false
+            const hasIt = selectedRole?.permissions?.some((p) => p.name === perm) ?? false
             return (
               <div key={perm} className={clsx('flex items-center gap-2 p-2 rounded text-xs', hasIt ? 'bg-primary-50 dark:bg-primary-900/20' : 'bg-gray-50 dark:bg-gray-700')}>
                 <div className={clsx('h-2 w-2 rounded-full flex-shrink-0', hasIt ? 'bg-primary-500' : 'bg-gray-300')} />

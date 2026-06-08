@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
@@ -11,7 +12,7 @@ import toast from 'react-hot-toast'
 
 interface KitchenItem {
   id: number
-  name: string
+  product_name: string
   quantity: number
   notes?: string
   status?: string
@@ -19,7 +20,7 @@ interface KitchenItem {
 interface Order {
   id: number
   order_number: string
-  table_no?: string
+  table_number?: string
   order_type: string
   status: string
   notes?: string
@@ -28,9 +29,10 @@ interface Order {
 }
 interface KitchenStats {
   pending: number
-  cooking: number
+  preparing: number
   ready: number
-  avg_prep_time: number
+  served_today: number
+  avg_prep_min: number
 }
 interface KitchenResponse {
   orders: Order[]
@@ -41,7 +43,7 @@ interface NewItemRow { name: string; quantity: number; notes: string }
 const emptyItem = (): NewItemRow => ({ name: '', quantity: 1, notes: '' })
 const emptyForm = { table_no: '', order_type: 'dine_in', notes: '' }
 
-const statusTabs = ['all', 'pending', 'cooking', 'ready', 'served'] as const
+const statusTabs = ['all', 'pending', 'preparing', 'ready', 'served'] as const
 type StatusTab = typeof statusTabs[number]
 
 const typeBadge: Record<string, string> = {
@@ -50,9 +52,9 @@ const typeBadge: Record<string, string> = {
   delivery: 'badge badge-gray',
 }
 const typeLabel: Record<string, string> = {
-  dine_in: 'Dine In',
-  takeaway: 'Takeaway',
-  delivery: 'Delivery',
+  dine_in: 'dine_in',
+  takeaway: 'takeaway',
+  delivery: 'delivery',
 }
 
 function elapsed(created_at: string): string {
@@ -63,6 +65,7 @@ function elapsed(created_at: string): string {
 }
 
 export default function KitchenPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [displayMode, setDisplayMode] = useState(false)
@@ -91,7 +94,7 @@ export default function KitchenPage() {
   })
 
   const orders = data?.orders ?? []
-  const stats = data?.stats ?? { pending: 0, cooking: 0, ready: 0, avg_prep_time: 0 }
+  const stats = data?.stats ?? { pending: 0, preparing: 0, ready: 0, served_today: 0, avg_prep_min: 0 }
 
   const canView = hasPermission('view_kitchen')
 
@@ -134,13 +137,13 @@ export default function KitchenPage() {
   const updateItem = (idx: number, field: keyof NewItemRow, value: string | number) =>
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)))
 
-  const displayTabs = ['all', 'pending', 'cooking', 'ready'] as const
+  const displayTabs = ['all', 'pending', 'preparing', 'ready'] as const
 
   if (!canView && !displayMode) {
     return (
       <div className="card p-8 text-center text-gray-400 space-y-3">
         <ChefHat className="h-10 w-10 mx-auto opacity-40" />
-        <p className="font-medium">Kitchen module not accessible</p>
+        <p className="font-medium">{t('kitchen_display')}</p>
         <p className="text-sm">Requires view_kitchen permission</p>
       </div>
     )
@@ -152,16 +155,16 @@ export default function KitchenPage() {
         <div className="flex items-center justify-between px-6 py-3 bg-gray-800 border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center gap-3">
             <ChefHat className="h-6 w-6 text-orange-400" />
-            <span className="text-white font-bold text-lg">POS Kitchen Display</span>
+            <span className="text-white font-bold text-lg">{t('kitchen_display')}</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-300 text-sm font-mono">
               {now.toLocaleTimeString()}
             </span>
             <div className="flex gap-2">
-              <span className="badge badge-warning">{stats.pending} Pending</span>
-              <span className="badge badge-info">{stats.cooking} Cooking</span>
-              <span className="badge badge-success">{stats.ready} Ready</span>
+              <span className="badge badge-warning">{stats.pending} {t('kitchen_pending')}</span>
+              <span className="badge badge-info">{stats.preparing} {t('kitchen_preparing')}</span>
+              <span className="badge badge-success">{stats.ready} {t('kitchen_ready')}</span>
             </div>
             <button onClick={() => setDisplayMode(false)} className="btn btn-secondary flex items-center gap-1 text-sm">
               <Minimize2 className="h-4 w-4" /> Exit
@@ -170,16 +173,16 @@ export default function KitchenPage() {
         </div>
 
         <div className="flex gap-1 px-4 py-2 bg-gray-800 border-b border-gray-700 flex-shrink-0">
-          {displayTabs.map((t) => (
+          {displayTabs.map((tab) => (
             <button
-              key={t}
-              onClick={() => setFilterTab(t as StatusTab)}
+              key={tab}
+              onClick={() => setFilterTab(tab as StatusTab)}
               className={clsx(
                 'px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-colors',
-                filterTab === t ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700',
+                filterTab === tab ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700',
               )}
             >
-              {t}
+              {tab === 'all' ? t('kitchen_all') : tab === 'pending' ? t('kitchen_pending') : tab === 'preparing' ? t('kitchen_preparing') : t('kitchen_ready')}
             </button>
           ))}
         </div>
@@ -256,8 +259,8 @@ export default function KitchenPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Cooking</p>
-              <p className="mt-1 text-2xl font-bold text-orange-600">{stats.cooking}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Preparing</p>
+              <p className="mt-1 text-2xl font-bold text-orange-600">{stats.preparing}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
               <ChefHat className="h-6 w-6 text-orange-600" />
@@ -279,7 +282,7 @@ export default function KitchenPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Avg Prep Time</p>
-              <p className="mt-1 text-2xl font-bold text-blue-600">{stats.avg_prep_time ?? 0}<span className="text-sm font-normal ml-1">min</span></p>
+              <p className="mt-1 text-2xl font-bold text-blue-600">{stats.avg_prep_min ?? 0}<span className="text-sm font-normal ml-1">min</span></p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
               <Clock className="h-6 w-6 text-blue-600" />
@@ -334,8 +337,8 @@ export default function KitchenPage() {
         size="xl"
         footer={
           <>
-            <button onClick={() => setAddModal(false)} className="btn btn-secondary">Cancel</button>
-            <button onClick={handleCreate} disabled={createMutation.isPending} className="btn btn-primary">
+            <button type="button" onClick={() => setAddModal(false)} className="btn btn-secondary">Cancel</button>
+            <button type="button" onClick={handleCreate} disabled={createMutation.isPending} className="btn btn-primary">
               {createMutation.isPending ? 'Creating…' : 'Create Order'}
             </button>
           </>
@@ -443,7 +446,7 @@ interface OrderCardProps {
 function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
   const statusColor: Record<string, string> = {
     pending: dark ? 'border-yellow-500' : 'border-yellow-400',
-    cooking: dark ? 'border-orange-500' : 'border-orange-400',
+    preparing: dark ? 'border-orange-500' : 'border-orange-400',
     ready: dark ? 'border-green-500' : 'border-green-400',
     served: dark ? 'border-gray-600' : 'border-gray-300',
   }
@@ -461,8 +464,8 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
           <p className={clsx('font-bold text-lg', dark ? 'text-white' : 'text-gray-900 dark:text-white')}>
             #{order.order_number}
           </p>
-          {order.table_no && (
-            <p className={clsx('text-xs', dark ? 'text-gray-400' : 'text-gray-500')}>Table {order.table_no}</p>
+          {order.table_number && (
+            <p className={clsx('text-xs', dark ? 'text-gray-400' : 'text-gray-500')}>Table {order.table_number}</p>
           )}
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -482,7 +485,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
               x{item.quantity}
             </span>
             <div>
-              <span>{item.name}</span>
+              <span>{item.product_name}</span>
               {item.notes && (
                 <p className={clsx('text-xs italic', dark ? 'text-gray-500' : 'text-gray-400')}>{item.notes}</p>
               )}
@@ -507,7 +510,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             Accept
           </button>
         )}
-        {order.status === 'cooking' && (
+        {order.status === 'preparing' && (
           <button
             onClick={() => onAction('ready')}
             disabled={loading}
@@ -525,7 +528,7 @@ function OrderCard({ order, dark, onAction, loading }: OrderCardProps) {
             Served
           </button>
         )}
-        {order.status !== 'served' && (
+        {order.status !== 'served' && order.status !== 'cancelled' && (
           <button
             onClick={() => onAction('cancel')}
             disabled={loading}

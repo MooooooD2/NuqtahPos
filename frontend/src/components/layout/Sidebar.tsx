@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useUIStore } from '@/stores/uiStore'
 import { useAuthStore } from '@/stores/authStore'
 import { usePermission } from '@/hooks/usePermission'
+import { useTranslation } from 'react-i18next'
 import { clsx } from 'clsx'
 import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Users, Truck,
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react'
 
 interface NavItem {
-  label: string
+  labelKey: string
   path: string
   icon: React.ComponentType<{ className?: string }>
   permission?: string | string[]
@@ -22,41 +23,41 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard',          path: '/',                 icon: LayoutDashboard },
-  { label: 'POS',                path: '/pos',              icon: ShoppingCart,    permission: 'view_pos' },
-  { label: 'Products',           path: '/products',         icon: Package,         permission: ['view_products', 'view_warehouse'] },
-  { label: 'Inventory',          path: '/inventory',        icon: Boxes,           permission: 'view_warehouse' },
-  { label: 'Customers',          path: '/customers',        icon: Users,           permission: ['view_customers', 'view_pos'] },
-  { label: 'Suppliers',          path: '/suppliers',        icon: Truck,           permission: 'view_warehouse' },
-  { label: 'Supplier Payments',  path: '/supplier-payments',icon: CreditCard,      permission: 'view_warehouse' },
-  { label: 'Supplier Accounts',  path: '/supplier-accounts',icon: Receipt,         permission: 'view_warehouse' },
-  { label: 'Purchases',          path: '/purchases',        icon: ShoppingBag,     permission: 'view_warehouse' },
-  { label: 'Purchase Returns',   path: '/purchase-returns', icon: PackageX,        permission: 'view_warehouse' },
-  { label: 'Invoices',           path: '/invoices',         icon: FileText,        permission: ['view_pos', 'view_reports'] },
-  { label: 'Returns',            path: '/returns',          icon: RotateCcw,       permission: 'view_returns' },
-  { label: 'Expenses',           path: '/expenses',         icon: DollarSign,      permission: 'view_pos' },
-  { label: 'Cash Register',      path: '/cash-register',    icon: Banknote,        permission: 'view_pos' },
-  { label: 'Promotions',         path: '/promotions',       icon: Tag,             permission: 'view_reports' },
-  { label: 'Pricing Rules',      path: '/pricing-rules',    icon: Zap,             permission: 'view_reports' },
-  { label: 'Cashback',           path: '/cashback',         icon: Gift,            permission: 'manage_cashback' },
-  { label: 'Accounting',         path: '/accounting',       icon: BookOpen,        permission: 'view_accounting' },
-  { label: 'CRM',                path: '/crm',              icon: Heart,           permission: 'view_warehouse' },
-  { label: 'HR',                 path: '/hr',               icon: Users2,          permission: 'manage_hr' },
-  { label: 'Warehouse',          path: '/warehouse',        icon: Warehouse,       permission: 'view_warehouse' },
-  { label: 'Reports',            path: '/reports',          icon: BarChart3,       permission: 'view_reports' },
-  { label: 'Profit Reports',     path: '/profit-reports',   icon: TrendingUp,      permission: 'view_reports' },
-  { label: 'Forecasting',        path: '/forecasting',      icon: LineChart,       permission: 'view_reports' },
-  { label: 'Users',              path: '/users',            icon: UserCog,         permission: 'manage_roles' },
-  { label: 'Branches',           path: '/branches',         icon: GitBranch,       permission: 'manage_roles' },
-  { label: 'WhatsApp',           path: '/whatsapp',         icon: MessageCircle,   permission: 'manage_roles' },
-  { label: 'Device Sessions',    path: '/device-sessions',  icon: Monitor },
-  { label: 'Kitchen',            path: '/kitchen',          icon: UtensilsCrossed, permission: 'view_kitchen' },
-  { label: 'QR Tables',          path: '/qr',               icon: QrCode,          permission: 'manage_qr_orders' },
-  { label: 'Waste Recording',    path: '/waste',            icon: Trash2,          permission: 'manage_waste' },
-  { label: 'Financial Reports',  path: '/financial-reports',icon: PieChart,        permission: 'view_accounting' },
-  { label: 'Currencies',         path: '/currencies',       icon: Coins,           permission: 'manage_roles' },
-  { label: 'My Shift',           path: '/my-shift',         icon: Clock },
-  { label: 'Settings',           path: '/settings',         icon: Settings,        permission: 'manage_settings' },
+  { labelKey: 'dashboard',           path: '/',                  icon: LayoutDashboard },
+  { labelKey: 'pos',                 path: '/pos',               icon: ShoppingCart,    permission: 'view_pos' },
+  { labelKey: 'products',            path: '/products',          icon: Package,         permission: ['view_products', 'view_warehouse'] },
+  { labelKey: 'inventory',           path: '/inventory',         icon: Boxes,           permission: 'view_warehouse' },
+  { labelKey: 'customers',           path: '/customers',         icon: Users,           permission: ['view_customers', 'view_pos'] },
+  { labelKey: 'suppliers',           path: '/suppliers',         icon: Truck,           permission: 'view_warehouse' },
+  { labelKey: 'supplier_payments',   path: '/supplier-payments', icon: CreditCard,      permission: 'view_warehouse' },
+  { labelKey: 'supplier_accounts',   path: '/supplier-accounts', icon: Receipt,         permission: 'view_warehouse' },
+  { labelKey: 'purchase_orders',     path: '/purchases',         icon: ShoppingBag,     permission: 'view_warehouse' },
+  { labelKey: 'purchase_returns',    path: '/purchase-returns',  icon: PackageX,        permission: 'view_warehouse' },
+  { labelKey: 'invoices',            path: '/invoices',          icon: FileText,        permission: ['view_pos', 'view_reports'] },
+  { labelKey: 'returns',             path: '/returns',           icon: RotateCcw,       permission: 'view_returns' },
+  { labelKey: 'expenses',            path: '/expenses',          icon: DollarSign,      permission: 'view_pos' },
+  { labelKey: 'cash_register_reconciliation', path: '/cash-register', icon: Banknote,  permission: 'view_pos' },
+  { labelKey: 'promotions',          path: '/promotions',        icon: Tag,             permission: 'view_reports' },
+  { labelKey: 'pricing_rules',       path: '/pricing-rules',     icon: Zap,             permission: 'view_reports' },
+  { labelKey: 'cashback',            path: '/cashback',          icon: Gift,            permission: 'manage_cashback' },
+  { labelKey: 'accounting',          path: '/accounting',        icon: BookOpen,        permission: 'view_accounting' },
+  { labelKey: 'crm',                 path: '/crm',               icon: Heart,           permission: 'view_warehouse' },
+  { labelKey: 'hr_module',           path: '/hr',                icon: Users2,          permission: 'manage_hr' },
+  { labelKey: 'warehouse',           path: '/warehouse',         icon: Warehouse,       permission: 'view_warehouse' },
+  { labelKey: 'reports',             path: '/reports',           icon: BarChart3,       permission: 'view_reports' },
+  { labelKey: 'profit_reports',      path: '/profit-reports',    icon: TrendingUp,      permission: 'view_reports' },
+  { labelKey: 'ai_forecasting_title',path: '/forecasting',       icon: LineChart,       permission: 'view_reports' },
+  { labelKey: 'users_roles',         path: '/users',             icon: UserCog,         permission: 'manage_roles' },
+  { labelKey: 'branches',            path: '/branches',          icon: GitBranch,       permission: 'manage_roles' },
+  { labelKey: 'whatsapp',            path: '/whatsapp',          icon: MessageCircle,   permission: 'manage_roles' },
+  { labelKey: 'device_sessions',     path: '/device-sessions',   icon: Monitor },
+  { labelKey: 'kitchen_display',     path: '/kitchen',           icon: UtensilsCrossed, permission: 'view_kitchen' },
+  { labelKey: 'qr_tables',           path: '/qr',                icon: QrCode,          permission: 'manage_qr_orders' },
+  { labelKey: 'waste_management',    path: '/waste',             icon: Trash2,          permission: 'manage_waste' },
+  { labelKey: 'financial_reports',   path: '/financial-reports', icon: PieChart,        permission: 'view_accounting' },
+  { labelKey: 'currencies',          path: '/currencies',        icon: Coins,           permission: 'manage_roles' },
+  { labelKey: 'my_shift',            path: '/my-shift',          icon: Clock },
+  { labelKey: 'settings',            path: '/settings',          icon: Settings,        permission: 'manage_settings' },
 ]
 
 export default function Sidebar() {
@@ -64,6 +65,7 @@ export default function Sidebar() {
   const user = useAuthStore((s) => s.user)
   const location = useLocation()
   const { hasPermission, isAdmin } = usePermission()
+  const { t } = useTranslation('pos')
 
   const visibleItems = navItems.filter((item) => {
     if (!item.permission) return true
@@ -84,9 +86,10 @@ export default function Sidebar() {
 
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-30 flex flex-col bg-sidebar-bg transition-all duration-300',
+          'fixed inset-y-0 z-30 flex flex-col bg-sidebar-bg transition-all duration-300',
           sidebarCollapsed ? 'w-16' : 'w-64',
           sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          'ltr:left-0 rtl:right-0 rtl:translate-x-full rtl:lg:translate-x-0',
         )}
       >
         {/* Logo */}
@@ -94,7 +97,7 @@ export default function Sidebar() {
           {!sidebarCollapsed && (
             <div className="flex items-center gap-2 min-w-0">
               <Store className="h-7 w-7 text-primary-400 flex-shrink-0" />
-              <span className="text-lg font-bold text-white truncate">POS Enterprise</span>
+              <span className="text-lg font-bold text-white truncate">{t('app_name')}</span>
             </div>
           )}
           {sidebarCollapsed && <Store className="h-7 w-7 text-primary-400 mx-auto" />}
@@ -102,13 +105,16 @@ export default function Sidebar() {
             onClick={toggleSidebar}
             className="hidden lg:flex items-center justify-center h-7 w-7 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors flex-shrink-0"
           >
-            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {sidebarCollapsed
+              ? <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+              : <ChevronLeft className="h-4 w-4 rtl:rotate-180" />}
           </button>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
           {visibleItems.map((item) => {
+            const label = t(item.labelKey)
             const isActive = item.path === '/'
               ? location.pathname === '/'
               : location.pathname.startsWith(item.path)
@@ -124,10 +130,10 @@ export default function Sidebar() {
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white',
                   sidebarCollapsed && 'justify-center',
                 )}
-                title={sidebarCollapsed ? item.label : undefined}
+                title={sidebarCollapsed ? label : undefined}
               >
                 <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!sidebarCollapsed && <span>{item.label}</span>}
+                {!sidebarCollapsed && <span>{label}</span>}
               </NavLink>
             )
           })}

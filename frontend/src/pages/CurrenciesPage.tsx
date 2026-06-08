@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -22,6 +23,7 @@ interface Currency {
 const emptyForm = { code: '', symbol: '', name: '', exchange_rate: '', is_base: false }
 
 export default function CurrenciesPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState(false)
@@ -42,6 +44,13 @@ export default function CurrenciesPage() {
 
   const currencies = data?.currencies ?? []
   const canManage = hasPermission('manage_roles')
+
+  useEffect(() => {
+    if (currencies.length > 0) {
+      if (!convFrom) setConvFrom(currencies[0].code)
+      if (!convTo) setConvTo(currencies.length > 1 ? currencies[1].code : currencies[0].code)
+    }
+  }, [currencies.length])
 
   const openAdd = () => { setForm({ ...emptyForm }); setModal(true) }
 
@@ -121,17 +130,17 @@ export default function CurrenciesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Coins className="h-6 w-6 text-primary-500" /> Currencies
+          <Coins className="h-6 w-6 text-primary-500" /> {t('currencies')}
         </h1>
         <div className="flex gap-2">
           {canManage && (
             <button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending} className="btn btn-secondary flex items-center gap-2 text-sm">
-              <RefreshCw className={clsx('h-4 w-4', syncMutation.isPending && 'animate-spin')} /> Sync Rates
+              <RefreshCw className={clsx('h-4 w-4', syncMutation.isPending && 'animate-spin')} /> {t('sync_rates')}
             </button>
           )}
           {canManage && (
             <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Add Currency
+              <Plus className="h-4 w-4" /> {t('add_currency')}
             </button>
           )}
         </div>
@@ -147,14 +156,14 @@ export default function CurrenciesPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    {['Code', 'Name', 'Symbol', 'Exchange Rate', 'Rate Updated', 'Status', ''].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    {['Code', 'Name', 'Symbol', t('exchange_rate'), 'Rate Updated', 'Status', ''].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {currencies.length === 0 ? (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">No currencies found</td></tr>
+                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                   ) : currencies.map((cur) => (
                     <tr key={cur.code} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3">
@@ -189,7 +198,7 @@ export default function CurrenciesPage() {
                       <td className="px-4 py-3 text-gray-400 text-xs">{cur.rate_updated_at?.slice(0, 10) ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className={clsx('badge', cur.is_active ? 'badge-success' : 'badge-gray')}>
-                          {cur.is_active ? 'Active' : 'Inactive'}
+                          {cur.is_active ? t('active_status') : t('inactive_status')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -220,10 +229,10 @@ export default function CurrenciesPage() {
         {/* Right: converter */}
         <div className="card p-5 space-y-4 self-start">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <ArrowRightLeft className="h-5 w-5 text-primary-500" /> Currency Converter
+            <ArrowRightLeft className="h-5 w-5 text-primary-500" /> {t('convert_currency')}
           </h2>
           <div>
-            <label className="label">Amount</label>
+            <label className="label">{t('amount')}</label>
             <input
               type="number"
               min="0"
@@ -235,25 +244,25 @@ export default function CurrenciesPage() {
             />
           </div>
           <div>
-            <label className="label">From</label>
+            <label className="label">{t('from_currency')}</label>
             <select value={convFrom} onChange={(e) => { setConvFrom(e.target.value); setConvResult(null) }} className="input w-full">
               <option value="">— Select currency —</option>
               {currencies.map((c) => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">To</label>
+            <label className="label">{t('to_currency')}</label>
             <select value={convTo} onChange={(e) => { setConvTo(e.target.value); setConvResult(null) }} className="input w-full">
               <option value="">— Select currency —</option>
               {currencies.map((c) => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
             </select>
           </div>
           <button onClick={handleConvert} className="btn btn-primary w-full flex items-center justify-center gap-2">
-            <ArrowRightLeft className="h-4 w-4" /> Convert
+            <ArrowRightLeft className="h-4 w-4" /> {t('convert')}
           </button>
           {convResult !== null && (
             <div className="rounded-lg bg-primary-50 dark:bg-primary-900/20 p-4 text-center">
-              <p className="text-sm text-gray-500 mb-1">{convAmount} {convFrom} =</p>
+              <p className="text-sm text-gray-500 mb-1">{t('conversion_result')}: {convAmount} {convFrom} =</p>
               <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{convResult} {convTo}</p>
             </div>
           )}
@@ -263,13 +272,13 @@ export default function CurrenciesPage() {
       <Modal
         open={modal}
         onClose={() => setModal(false)}
-        title="Add Currency"
+        title={t('add_currency')}
         size="md"
         footer={
           <>
-            <button onClick={() => setModal(false)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(false)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={createMutation.isPending} className="btn btn-primary">
-              {createMutation.isPending ? 'Creating…' : 'Create'}
+              {createMutation.isPending ? '…' : t('save')}
             </button>
           </>
         }
@@ -277,7 +286,7 @@ export default function CurrenciesPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Code * <span className="text-xs text-gray-400">(3 chars)</span></label>
+              <label className="label">{t('currency_code')} * <span className="text-xs text-gray-400">(3 chars)</span></label>
               <input {...f('code')} maxLength={3} className="input w-full uppercase" placeholder="USD" required />
             </div>
             <div>
@@ -289,7 +298,7 @@ export default function CurrenciesPage() {
               <input {...f('name')} className="input w-full" placeholder="US Dollar" required />
             </div>
             <div className="col-span-2">
-              <label className="label">Exchange Rate *</label>
+              <label className="label">{t('exchange_rate')} *</label>
               <input {...f('exchange_rate')} type="number" step="0.0001" min="0.0001" className="input w-full" placeholder="1.0000" required />
             </div>
             <div className="col-span-2 flex items-center gap-3">
@@ -300,7 +309,7 @@ export default function CurrenciesPage() {
                 onChange={(e) => setForm((p) => ({ ...p, is_base: e.target.checked }))}
                 className="h-4 w-4 rounded border-gray-300 text-primary-600"
               />
-              <label htmlFor="is_base" className="label mb-0 cursor-pointer">Mark as base currency</label>
+              <label htmlFor="is_base" className="label mb-0 cursor-pointer">{t('mark_base')}</label>
             </div>
           </div>
         </form>

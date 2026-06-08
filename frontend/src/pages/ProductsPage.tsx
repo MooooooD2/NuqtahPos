@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import JsBarcode from "jsbarcode";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/services/api";
@@ -56,6 +57,7 @@ const makeEan13 = () => {
 };
 
 export default function ProductsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission();
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
@@ -207,7 +209,7 @@ export default function ProductsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Package className="h-6 w-6 text-primary-500" /> Products
+          <Package className="h-6 w-6 text-primary-500" /> {t('products')}
           {data?.total !== undefined && (
             <span className="text-sm font-normal text-gray-400">
               ({data.total})
@@ -219,7 +221,7 @@ export default function ProductsPage() {
             onClick={openAdd}
             className="btn btn-primary flex items-center gap-2"
           >
-            <Plus className="h-4 w-4" /> Add Product
+            <Plus className="h-4 w-4" /> {t('add_product')}
           </button>
         )}
       </div>
@@ -232,7 +234,7 @@ export default function ProductsPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          placeholder="Search products…"
+          placeholder={t('search') + '…'}
           className="input pl-9 w-full"
         />
       </div>
@@ -248,13 +250,13 @@ export default function ProductsPage() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   {[
-                    "Name",
-                    "Barcode",
-                    "Category",
-                    "Price",
-                    "Cost",
-                    "Stock",
-                    "Status",
+                    t('name'),
+                    t('barcode'),
+                    t('category'),
+                    t('selling_price'),
+                    t('cost_price'),
+                    t('current_stock'),
+                    t('status'),
                     "",
                   ].map((h) => (
                     <th
@@ -273,7 +275,7 @@ export default function ProductsPage() {
                       colSpan={8}
                       className="px-4 py-12 text-center text-gray-400"
                     >
-                      No products found
+                      {t('no_data')}
                     </td>
                   </tr>
                 ) : (
@@ -321,7 +323,7 @@ export default function ProductsPage() {
                             p.quantity > 0 ? "badge-success" : "badge-danger",
                           )}
                         >
-                          {p.quantity > 0 ? "In Stock" : "Out"}
+                          {p.quantity > 0 ? t('active_status') : t('out_of_stock')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -353,21 +355,21 @@ export default function ProductsPage() {
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page}</span>
+            <span className="text-sm text-gray-500">{t('page')} {page}</span>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="btn btn-secondary text-sm py-1 disabled:opacity-40"
               >
-                Prev
+                {t('prev')}
               </button>
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={products.length < 20}
                 className="btn btn-secondary text-sm py-1 disabled:opacity-40"
               >
-                Next
+                {t('next')}
               </button>
             </div>
           </div>
@@ -377,7 +379,7 @@ export default function ProductsPage() {
       <Modal
         open={modal !== null}
         onClose={() => setModal(null)}
-        title={modal === "edit" ? "Edit Product" : "Add Product"}
+        title={modal === "edit" ? t('edit_product') : t('add_product')}
         size="lg"
         footer={
           <>
@@ -385,7 +387,7 @@ export default function ProductsPage() {
               onClick={() => setModal(null)}
               className="btn btn-secondary"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               onClick={handleSubmit}
@@ -395,8 +397,8 @@ export default function ProductsPage() {
               {saveMutation.isPending
                 ? "Saving…"
                 : modal === "edit"
-                  ? "Update"
-                  : "Create"}
+                  ? t('update')
+                  : t('create')}
             </button>
           </>
         }
@@ -404,7 +406,7 @@ export default function ProductsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="label">Product Name *</label>
+              <label className="label">{t('name')} *</label>
               <input
                 {...f("name")}
                 className="input w-full"
@@ -413,7 +415,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="label">Selling Price *</label>
+              <label className="label">{t('selling_price')} *</label>
               <input
                 {...f("price")}
                 type="number"
@@ -425,7 +427,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="label">Cost Price</label>
+              <label className="label">{t('cost_price')}</label>
               <input
                 {...f("cost_price")}
                 type="number"
@@ -436,7 +438,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="label">Category</label>
+              <label className="label">{t('category')}</label>
               <select {...f("category")} className="input w-full">
                 <option value="">— Select category —</option>
                 {categories.map((c) => (
@@ -447,7 +449,7 @@ export default function ProductsPage() {
               </select>
             </div>
             <div>
-              <label className="label">Barcode</label>
+              <label className="label">{t('barcode')}</label>
               <div className="flex gap-2">
                 <input
                   {...f("barcode")}
@@ -529,7 +531,7 @@ export default function ProductsPage() {
               )}
             </div>
             <div>
-              <label className="label">Min Stock Alert</label>
+              <label className="label">{t('min_stock')}</label>
               <input
                 {...f("min_stock")}
                 type="number"
@@ -539,7 +541,7 @@ export default function ProductsPage() {
             </div>
             {modal === "add" ? (
               <div>
-                <label className="label">Initial Quantity</label>
+                <label className="label">{t('quantity')}</label>
                 <input
                   {...f("initial_quantity")}
                   type="number"
@@ -549,7 +551,7 @@ export default function ProductsPage() {
               </div>
             ) : (
               <div>
-                <label className="label">Quantity</label>
+                <label className="label">{t('current_stock')}</label>
                 <input
                   {...f("quantity")}
                   type="number"
@@ -564,7 +566,7 @@ export default function ProductsPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Delete Product"
+        title={t('delete_product')}
         message="Are you sure? This cannot be undone."
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}

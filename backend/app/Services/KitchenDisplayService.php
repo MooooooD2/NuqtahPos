@@ -156,12 +156,11 @@ class KitchenDisplayService
     /**
      * Get active orders for KDS display.
      */
-    public function getActiveOrders(?int $branchId = null): \Illuminate\Database\Eloquent\Collection
+    public function getActiveOrders(?int $branchId = null, ?string $status = null): \Illuminate\Database\Eloquent\Collection
     {
         return KitchenOrder::with('items')
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
-            ->active()
-            ->orderBy('status')  // pending first, then preparing, then ready
+            ->when($status !== null, fn ($q) => $q->where('status', $status), fn ($q) => $q->active())
             ->orderBy('created_at')
             ->get()
             ->map(function ($order) {

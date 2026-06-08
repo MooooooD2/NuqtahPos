@@ -74,15 +74,18 @@ class TaxCategoryController extends Controller
      */
     public function report(Request $request): JsonResponse
     {
-        $request->validate([
-            'from' => 'required|date',
-            'to' => 'required|date|after_or_equal:from',
-        ]);
+        // Accept start_date/end_date (consistent with other report endpoints) or from/to (legacy)
+        $from = $request->input('start_date') ?? $request->input('from');
+        $to   = $request->input('end_date')   ?? $request->input('to');
+
+        if (! $from || ! $to) {
+            return response()->json(['message' => 'start_date and end_date are required'], 422);
+        }
 
         $rows = InvoiceItem::query()
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->where('invoices.status', 'completed')
-            ->whereBetween('invoices.date', [$request->from, $request->to])
+            ->whereBetween('invoices.date', [$from, $to])
             ->select(
                 'invoice_items.tax_rate',
                 DB::raw('SUM(invoice_items.subtotal)   AS taxable_amount'),
@@ -94,8 +97,8 @@ class TaxCategoryController extends Controller
             ->get();
 
         return response()->json([
-            'from' => $request->from,
-            'to' => $request->to,
+            'from' => $from,
+            'to' => $to,
             'by_rate' => $rows->map(fn ($r) => [
                 'tax_rate' => (float) $r->tax_rate,
                 'taxable_amount' => round((float) $r->taxable_amount, 2),

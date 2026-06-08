@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -28,6 +29,7 @@ const statusBadge: Record<string, string> = { completed: 'badge-success', pendin
 const refundMethods = ['cash', 'store_credit', 'exchange']
 
 export default function ReturnsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
@@ -113,12 +115,12 @@ export default function ReturnsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <RotateCcw className="h-6 w-6 text-primary-500" /> Returns
+          <RotateCcw className="h-6 w-6 text-primary-500" /> {t('returns')}
           {data?.total !== undefined && <span className="text-sm font-normal text-gray-400">({data.total})</span>}
         </h1>
         {canProcess && (
           <button onClick={() => { setWizardOpen(true); setWizardStep(1) }} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Process Return
+            <Plus className="h-4 w-4" /> {t('process_return')}
           </button>
         )}
       </div>
@@ -136,14 +138,14 @@ export default function ReturnsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['Return #', 'Invoice #', 'Customer', 'Refund Method', 'Amount', 'Status', 'Date', ''].map((h) => (
+                  {[t('return_number'), t('invoice_number'), t('name'), t('refund_method'), t('amount'), t('status'), t('date'), ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {returns.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No returns found</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 ) : returns.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
@@ -172,10 +174,10 @@ export default function ReturnsPage() {
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page} · {data?.total} total</span>
+            <span className="text-sm text-gray-500">{t('page')} {page} · {data?.total} total</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={returns.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={returns.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
@@ -186,12 +188,12 @@ export default function ReturnsPage() {
         {viewReturn && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-gray-500">Invoice:</span> <span className="font-mono font-medium">{viewReturn.invoice_number}</span></div>
-              <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{viewReturn.customer_name ?? 'Walk-in'}</span></div>
-              <div><span className="text-gray-500">Refund Method:</span> <span className={clsx('badge ml-1 capitalize', refundBadge[viewReturn.refund_method] ?? 'badge-gray')}>{viewReturn.refund_method.replace('_', ' ')}</span></div>
-              <div><span className="text-gray-500">Status:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[viewReturn.status] ?? 'badge-gray')}>{viewReturn.status}</span></div>
-              <div><span className="text-gray-500">Total:</span> <span className="font-bold text-red-600">{parseFloat(viewReturn.total_amount).toFixed(2)}</span></div>
-              <div><span className="text-gray-500">Date:</span> <span>{viewReturn.created_at?.slice(0, 10)}</span></div>
+              <div><span className="text-gray-500">{t('invoice_number')}:</span> <span className="font-mono font-medium">{viewReturn.invoice_number}</span></div>
+              <div><span className="text-gray-500">{t('name')}:</span> <span className="font-medium">{viewReturn.customer_name ?? 'Walk-in'}</span></div>
+              <div><span className="text-gray-500">{t('refund_method')}:</span> <span className={clsx('badge ml-1 capitalize', refundBadge[viewReturn.refund_method] ?? 'badge-gray')}>{viewReturn.refund_method.replace('_', ' ')}</span></div>
+              <div><span className="text-gray-500">{t('status')}:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[viewReturn.status] ?? 'badge-gray')}>{viewReturn.status}</span></div>
+              <div><span className="text-gray-500">{t('amount')}:</span> <span className="font-bold text-red-600">{parseFloat(viewReturn.total_amount).toFixed(2)}</span></div>
+              <div><span className="text-gray-500">{t('date')}:</span> <span>{viewReturn.created_at?.slice(0, 10)}</span></div>
             </div>
             {viewReturn.items && viewReturn.items.length > 0 && (
               <div>
@@ -217,21 +219,21 @@ export default function ReturnsPage() {
       <Modal
         open={wizardOpen}
         onClose={closeWizard}
-        title={wizardStep === 1 ? 'Process Return — Step 1: Find Invoice' : 'Process Return — Step 2: Select Items'}
+        title={wizardStep === 1 ? t('process_return') + ' — 1' : t('process_return') + ' — 2'}
         size="lg"
         footer={
           wizardStep === 1 ? (
             <>
-              <button onClick={closeWizard} className="btn btn-secondary">Cancel</button>
+              <button onClick={closeWizard} className="btn btn-secondary">{t('cancel')}</button>
               <button onClick={searchInvoice} disabled={searchingInvoice} className="btn btn-primary flex items-center gap-2">
-                {searchingInvoice ? 'Searching…' : <><ArrowRight className="h-4 w-4" /> Find Invoice</>}
+                {searchingInvoice ? t('loading') : <><ArrowRight className="h-4 w-4" /> {t('search')}</>}
               </button>
             </>
           ) : (
             <>
-              <button onClick={() => setWizardStep(1)} className="btn btn-secondary">Back</button>
+              <button onClick={() => setWizardStep(1)} className="btn btn-secondary">{t('prev')}</button>
               <button onClick={handleProcessReturn} disabled={processMutation.isPending} className="btn btn-primary">
-                {processMutation.isPending ? 'Processing…' : 'Process Return'}
+                {processMutation.isPending ? t('loading') : t('process_return')}
               </button>
             </>
           )
@@ -241,7 +243,7 @@ export default function ReturnsPage() {
           <div className="space-y-4">
             <p className="text-sm text-gray-500">Enter the invoice number to find items eligible for return.</p>
             <div>
-              <label className="label">Invoice Number</label>
+              <label className="label">{t('invoice_number')}</label>
               <input
                 value={invoiceSearch}
                 onChange={(e) => setInvoiceSearch(e.target.value)}
@@ -255,15 +257,15 @@ export default function ReturnsPage() {
         {wizardStep === 2 && foundInvoice && (
           <div className="space-y-4">
             <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm grid grid-cols-2 gap-2">
-              <div><span className="text-gray-500">Invoice:</span> <span className="font-mono font-medium">{foundInvoice.invoice_number}</span></div>
-              <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{foundInvoice.customer_name ?? 'Walk-in'}</span></div>
-              <div><span className="text-gray-500">Total:</span> <span className="font-bold">{parseFloat(foundInvoice.final_total).toFixed(2)}</span></div>
-              <div><span className="text-gray-500">Date:</span> <span>{foundInvoice.created_at?.slice(0, 10)}</span></div>
+              <div><span className="text-gray-500">{t('invoice_number')}:</span> <span className="font-mono font-medium">{foundInvoice.invoice_number}</span></div>
+              <div><span className="text-gray-500">{t('name')}:</span> <span className="font-medium">{foundInvoice.customer_name ?? 'Walk-in'}</span></div>
+              <div><span className="text-gray-500">{t('total')}:</span> <span className="font-bold">{parseFloat(foundInvoice.final_total).toFixed(2)}</span></div>
+              <div><span className="text-gray-500">{t('date')}:</span> <span>{foundInvoice.created_at?.slice(0, 10)}</span></div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Returnable Items</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('returns')}</p>
               {returnableItems.length === 0 ? (
-                <p className="text-center text-gray-400 py-4">No returnable items</p>
+                <p className="text-center text-gray-400 py-4">{t('no_data')}</p>
               ) : (
                 <div className="space-y-2">
                   {returnableItems.map((item) => (
@@ -284,7 +286,7 @@ export default function ReturnsPage() {
               )}
             </div>
             <div>
-              <label className="label">Refund Method</label>
+              <label className="label">{t('refund_method')}</label>
               <div className="flex gap-3">
                 {refundMethods.map((m) => (
                   <label key={m} className="flex items-center gap-1.5 cursor-pointer text-sm capitalize">
@@ -295,7 +297,7 @@ export default function ReturnsPage() {
               </div>
             </div>
             <div>
-              <label className="label">Reason</label>
+              <label className="label">{t('return_reason')}</label>
               <input value={reason} onChange={(e) => setReason(e.target.value)} className="input w-full" placeholder="Reason for return (optional)" />
             </div>
           </div>

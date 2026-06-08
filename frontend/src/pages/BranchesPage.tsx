@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -14,6 +15,7 @@ interface Branch { id: number; name: string; code: string; address?: string; pho
 const emptyForm = { name: '', code: '', address: '', phone: '', is_default: false, is_active: true }
 
 export default function BranchesPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'add' | 'edit' | null>(null)
@@ -69,21 +71,21 @@ export default function BranchesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <GitBranch className="h-6 w-6 text-primary-500" /> Branches
+          <GitBranch className="h-6 w-6 text-primary-500" /> {t('branches')}
         </h1>
         {canManage && (
           <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Add Branch
+            <Plus className="h-4 w-4" /> {t('new_branch')}
           </button>
         )}
       </div>
 
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
+        <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div>
       ) : branches.length === 0 ? (
         <div className="card p-12 text-center text-gray-400">
           <GitBranch className="h-10 w-10 mx-auto mb-2 opacity-30" />
-          <p>No branches found</p>
+          <p>{t('no_data')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -95,7 +97,7 @@ export default function BranchesPage() {
                   <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span className="badge badge-gray font-mono text-xs">{branch.code}</span>
                     {branch.is_default && (
-                      <span className="badge badge-warning flex items-center gap-0.5"><Star className="h-3 w-3" /> Default</span>
+                      <span className="badge badge-warning flex items-center gap-0.5"><Star className="h-3 w-3" /> {t('main_branch')}</span>
                     )}
                     <span className={clsx('badge', branch.is_active ? 'badge-success' : 'badge-gray')}>
                       {branch.is_active ? 'Active' : 'Inactive'}
@@ -124,7 +126,7 @@ export default function BranchesPage() {
               {canManage && (
                 <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-gray-700 mt-auto">
                   <button onClick={() => openEdit(branch)} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 px-2 py-1.5 rounded transition-colors">
-                    <Pencil className="h-3.5 w-3.5" /> Edit
+                    <Pencil className="h-3.5 w-3.5" /> {t('edit')}
                   </button>
                   <button
                     onClick={() => !branch.is_default && setDeleteId(branch.id)}
@@ -132,7 +134,7 @@ export default function BranchesPage() {
                     title={branch.is_default ? 'Cannot delete the default branch' : 'Delete branch'}
                     className={clsx('flex items-center gap-1.5 text-xs px-2 py-1.5 rounded transition-colors', branch.is_default ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20')}
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                    <Trash2 className="h-3.5 w-3.5" /> {t('delete')}
                   </button>
                 </div>
               )}
@@ -144,13 +146,13 @@ export default function BranchesPage() {
       <Modal
         open={modal === 'add' || modal === 'edit'}
         onClose={() => setModal(null)}
-        title={editId ? 'Edit Branch' : 'Add Branch'}
+        title={editId ? t('edit') : t('new_branch')}
         size="md"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">
-              {saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}
+              {saveMutation.isPending ? t('loading') : t('save')}
             </button>
           </>
         }
@@ -158,19 +160,19 @@ export default function BranchesPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="label">Branch Name *</label>
+              <label className="label">{t('name')} *</label>
               <input {...sf('name')} className="input w-full" placeholder="e.g. Main Branch" required />
             </div>
             <div className="col-span-2">
-              <label className="label">Branch Code *</label>
+              <label className="label">{t('branch_code')} *</label>
               <input {...sf('code')} className="input w-full font-mono" placeholder="e.g. BR001" required />
             </div>
             <div className="col-span-2">
-              <label className="label">Address</label>
+              <label className="label">{t('address')}</label>
               <input {...sf('address')} className="input w-full" placeholder="Street, City" />
             </div>
             <div className="col-span-2">
-              <label className="label">Phone</label>
+              <label className="label">{t('phone')}</label>
               <input {...sf('phone')} className="input w-full" placeholder="+1 555 000 0000" />
             </div>
             <div className="flex items-center gap-2">

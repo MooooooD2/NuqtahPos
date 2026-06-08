@@ -20,7 +20,7 @@ class User extends Authenticatable
     // #7 is_active و role في fillable لكن id و remember_token ليسا
     protected $fillable = [
         'username', 'email', 'password', 'full_name', 'role', 'is_active', 'language',
-        'branch_id',
+        'branch_id', 'phone', 'hire_date',
         'google2fa_secret', 'google2fa_enabled', 'google2fa_recovery_codes',
     ];
 

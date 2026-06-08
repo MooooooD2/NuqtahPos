@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -15,10 +16,11 @@ export default function ConfirmDialog({
   open, onConfirm, onCancel,
   title = 'Confirm Action',
   message = 'Are you sure you want to proceed?',
-  confirmLabel = 'Confirm',
+  confirmLabel,
   danger = true,
   loading = false,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation('pos')
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -34,14 +36,14 @@ export default function ConfirmDialog({
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{message}</p>
           </div>
         </div>
-        <div className="mt-6 flex justify-end gap-2">
-          <button onClick={onCancel} className="btn btn-secondary" disabled={loading}>Cancel</button>
+        <div className="mt-6 flex justify-end rtl:justify-start gap-2">
+          <button onClick={onCancel} className="btn btn-secondary" disabled={loading}>{t('cancel')}</button>
           <button
             onClick={onConfirm}
             disabled={loading}
             className={danger ? 'btn bg-red-600 hover:bg-red-700 text-white disabled:opacity-50' : 'btn btn-primary'}
           >
-            {loading ? 'Processing…' : confirmLabel}
+            {loading ? t('loading') : (confirmLabel ?? t('confirm'))}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -47,6 +48,7 @@ const refundBadge: Record<string, string> = { credit_note: 'badge-info', cash: '
 const statusBadge: Record<string, string> = { pending: 'badge-warning', approved: 'badge-success', rejected: 'badge-danger', completed: 'badge-success' }
 
 export default function PurchaseReturnsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
@@ -124,31 +126,31 @@ export default function PurchaseReturnsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <RotateCcw className="h-6 w-6 text-primary-500" /> Purchase Returns
+          <RotateCcw className="h-6 w-6 text-primary-500" /> {t('purchase_returns')}
         </h1>
         {canManage && (
           <button onClick={openNew} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> New Return
+            <Plus className="h-4 w-4" /> {t('new_purchase_return')}
           </button>
         )}
       </div>
 
       <div className="card overflow-hidden">
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
+          <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['Return #', 'Supplier', 'Return Date', 'Total', 'Refund Method', 'Status', 'Recorded By', ''].map((h) => (
+                  {[t('return_number'), 'Supplier', t('date'), 'Total', t('refund_method'), 'Status', 'Recorded By', ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {returns.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No purchase returns found</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 ) : returns.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
@@ -190,12 +192,12 @@ export default function PurchaseReturnsPage() {
       <Modal
         open={modal === 'new-step1'}
         onClose={() => setModal(null)}
-        title="New Purchase Return — Step 1: Find PO"
+        title={t('new_purchase_return')}
         size="md"
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Search PO Number</label>
+            <label className="label">{t('po_number')}</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -239,9 +241,9 @@ export default function PurchaseReturnsPage() {
             <button onClick={() => setModal('new-step1')} className="btn btn-secondary flex items-center gap-1">
               <ArrowLeft className="h-4 w-4" /> Back
             </button>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={createMutation.isPending} className="btn btn-primary">
-              {createMutation.isPending ? 'Submitting…' : 'Submit Return'}
+              {createMutation.isPending ? t('loading') : t('save')}
             </button>
           </>
         }
@@ -255,14 +257,14 @@ export default function PurchaseReturnsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      {['Product', 'Ordered', 'Returnable', 'Return Qty', 'Unit Cost'].map((h) => (
+                      {['Product', 'Ordered', 'Returnable', t('quantity'), t('unit_price')].map((h) => (
                         <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {returnableItems.length === 0 ? (
-                      <tr><td colSpan={5} className="px-3 py-8 text-center text-gray-400">No returnable items</td></tr>
+                      <tr><td colSpan={5} className="px-3 py-8 text-center text-gray-400">{t('no_data')}</td></tr>
                     ) : returnableItems.map((item) => (
                       <tr key={item.id}>
                         <td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{item.product_name}</td>
@@ -286,7 +288,7 @@ export default function PurchaseReturnsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Refund Method *</label>
+                  <label className="label">{t('refund_method')} *</label>
                   <select value={refundMethod} onChange={(e) => setRefundMethod(e.target.value as 'credit_note' | 'cash')} className="input w-full">
                     <option value="credit_note">Credit Note</option>
                     <option value="cash">Cash</option>
@@ -312,10 +314,10 @@ export default function PurchaseReturnsPage() {
         {viewReturn && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="text-gray-500">Supplier:</span> <span className="font-medium">{viewReturn.supplier?.name ?? '—'}</span></div>
-              <div><span className="text-gray-500">Date:</span> <span>{viewReturn.return_date?.slice(0, 10)}</span></div>
+              <div><span className="text-gray-500">{t('select_supplier')}:</span> <span className="font-medium">{viewReturn.supplier?.name ?? '—'}</span></div>
+              <div><span className="text-gray-500">{t('date')}:</span> <span>{viewReturn.return_date?.slice(0, 10)}</span></div>
               <div>
-                <span className="text-gray-500">Refund Method:</span>{' '}
+                <span className="text-gray-500">{t('refund_method')}:</span>{' '}
                 <span className={clsx('badge ml-1 capitalize', refundBadge[viewReturn.refund_method] ?? 'badge-gray')}>
                   {viewReturn.refund_method?.replace('_', ' ')}
                 </span>
@@ -324,7 +326,7 @@ export default function PurchaseReturnsPage() {
                 <span className="text-gray-500">Status:</span>{' '}
                 <span className={clsx('badge ml-1 capitalize', statusBadge[viewReturn.status] ?? 'badge-gray')}>{viewReturn.status}</span>
               </div>
-              <div><span className="text-gray-500">Total:</span> <span className="font-bold text-primary-600">{parseFloat(viewReturn.total ?? '0').toFixed(2)}</span></div>
+              <div><span className="text-gray-500">{t('amount')}:</span> <span className="font-bold text-primary-600">{parseFloat(viewReturn.total ?? '0').toFixed(2)}</span></div>
               {viewReturn.reason && <div className="col-span-2"><span className="text-gray-500">Reason:</span> <span>{viewReturn.reason}</span></div>}
             </div>
             {viewReturn.items && viewReturn.items.length > 0 && (
@@ -334,7 +336,7 @@ export default function PurchaseReturnsPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        {['Product', 'Qty', 'Unit Cost'].map((h) => (
+                        {['Product', t('quantity'), t('unit_price')].map((h) => (
                           <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                         ))}
                       </tr>

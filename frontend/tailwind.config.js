@@ -32,7 +32,7 @@ export default {
         ring: "hsl(var(--ring))",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui"],
+        sans: ["Inter", "Cairo", "ui-sans-serif", "system-ui"],
         mono: ["JetBrains Mono", "ui-monospace"],
       },
       animation: {

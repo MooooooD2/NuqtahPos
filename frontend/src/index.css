@@ -71,7 +71,58 @@
   .badge-gray    { @apply badge bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300; }
 }
 
-/* Scrollbar */
+/* ── RTL (Arabic) global fixes ──────────────────────────────────────────── */
+
+/* Cairo font in RTL mode */
+[dir="rtl"] {
+  font-family: "Cairo", "ui-sans-serif", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+/* Right-align all table cells */
+[dir="rtl"] table th,
+[dir="rtl"] table td {
+  text-align: right;
+}
+
+/* Right-align form labels */
+[dir="rtl"] .label {
+  text-align: right;
+}
+
+/* RTL direction for native selects */
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Search input wrappers — flip icon and compensate padding using :has() */
+[dir="rtl"] .relative:has(> svg.absolute.left-3) > svg.absolute {
+  left: auto !important;
+  right: 0.75rem !important;
+}
+[dir="rtl"] .relative:has(> svg.absolute.left-3) > input,
+[dir="rtl"] .relative:has(> svg.absolute.left-3) > textarea {
+  padding-left: 0.75rem !important;
+  padding-right: 2.25rem !important;
+}
+[dir="rtl"] .relative:has(> svg.absolute.left-2) > svg.absolute {
+  left: auto !important;
+  right: 0.5rem !important;
+}
+[dir="rtl"] .relative:has(> svg.absolute.left-2) > input {
+  padding-left: 0.5rem !important;
+  padding-right: 2rem !important;
+}
+/* Flip clear/chevron buttons that are on the right side of icon-inputs */
+[dir="rtl"] .relative:has(> svg.absolute.left-3) > button.absolute.right-2,
+[dir="rtl"] .relative:has(> svg.absolute.left-3) > svg.absolute.right-2 {
+  right: auto !important;
+  left: 0.5rem !important;
+}
+
+/* ── Scrollbar */
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { @apply bg-transparent; }
 ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full dark:bg-gray-600; }

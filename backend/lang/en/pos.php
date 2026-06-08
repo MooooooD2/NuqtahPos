@@ -51,6 +51,7 @@ return [
     'invoice_not_completed' => 'Cannot return items from an incomplete invoice.',
     'return_creation_failed' => 'An error occurred while creating the return.',
     'insufficient_stock' => 'Insufficient stock for: :name',
+    'in_stock' => 'available',
     'sale_completed' => 'Sale completed successfully',
     'sale_deduction' => 'Sale deduction',
 

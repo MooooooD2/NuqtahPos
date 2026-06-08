@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -68,6 +69,7 @@ function formatDiscount(rule: Rule) {
 }
 
 export default function PricingRulesPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'add' | 'edit' | null>(null)
@@ -173,11 +175,11 @@ export default function PricingRulesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Percent className="h-6 w-6 text-primary-500" /> Pricing Rules
+          <Percent className="h-6 w-6 text-primary-500" /> {t('pricing_rules')}
         </h1>
         {canManage && (
           <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> New Rule
+            <Plus className="h-4 w-4" /> {t('pricing_new_rule')}
           </button>
         )}
       </div>
@@ -185,7 +187,7 @@ export default function PricingRulesPage() {
       {hasActiveHappyHour && (
         <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-amber-700 dark:text-amber-300 text-sm font-medium">
           <AlertCircle className="h-4 w-4 shrink-0" />
-          Happy Hour is currently active — discounted pricing is in effect.
+          {t('pricing_happy_hour')}
         </div>
       )}
 
@@ -197,14 +199,14 @@ export default function PricingRulesPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['Name', 'Type', 'Discount', 'Priority', 'Status', 'Active Now', ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                  {[t('name'), 'Type', t('discount'), 'Priority', t('status'), t('pricing_active_now'), ''].map((h, i) => (
+                    <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {rules.length === 0 ? (
-                  <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">No pricing rules found</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 ) : rules.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3">
@@ -222,7 +224,7 @@ export default function PricingRulesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={clsx('badge', r.is_active ? 'badge-success' : 'badge-gray')}>
-                        {r.is_active ? 'Active' : 'Inactive'}
+                        {r.is_active ? t('active_status') : t('inactive_status')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -264,13 +266,13 @@ export default function PricingRulesPage() {
       <Modal
         open={modal === 'add' || modal === 'edit'}
         onClose={() => setModal(null)}
-        title={editId ? 'Edit Pricing Rule' : 'New Pricing Rule'}
+        title={editId ? t('edit') : t('pricing_new_rule')}
         size="lg"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">
-              {saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}
+              {saveMutation.isPending ? '…' : t('save')}
             </button>
           </>
         }
@@ -278,7 +280,7 @@ export default function PricingRulesPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="label">Name *</label>
+              <label className="label">{t('name')} *</label>
               <input value={form.name} onChange={set('name')} className="input w-full" required />
             </div>
             <div>

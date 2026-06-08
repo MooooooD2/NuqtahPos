@@ -52,6 +52,7 @@ return [
     'invoice_not_completed' => 'لا يمكن إرجاع بنود من فاتورة غير مكتملة.',
     'return_creation_failed' => 'حدث خطأ أثناء إنشاء المرتجع.',
     'insufficient_stock' => 'مخزون غير كافٍ لـ: :name',
+    'in_stock' => 'متاح',
     'sale_completed' => 'تم إتمام عملية البيع بنجاح',
     'sale_deduction' => 'خصم مبيعات',
 

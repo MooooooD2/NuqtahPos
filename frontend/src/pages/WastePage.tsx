@@ -7,6 +7,7 @@ import ProductSelect from '@/components/common/ProductSelect'
 import { Trash2, Search, ClipboardList } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 interface WasteRecord {
   id: number
@@ -32,6 +33,7 @@ const reasonBadge: Record<Reason, string> = {
 const emptyForm = { product_id: '', product_name: '', quantity: '', reason: 'expired' as Reason, notes: '' }
 
 export default function WastePage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [form, setForm] = useState({ ...emptyForm })
@@ -102,7 +104,7 @@ export default function WastePage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Trash2 className="h-6 w-6 text-primary-500" /> Waste Management
+          <Trash2 className="h-6 w-6 text-primary-500" /> {t('waste_management')}
           {data?.total !== undefined && <span className="text-sm font-normal text-gray-400">({data.total})</span>}
         </h1>
       </div>
@@ -111,18 +113,18 @@ export default function WastePage() {
         {/* Left: Record Waste form */}
         <div className="card p-5 space-y-4 sticky top-4">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <ClipboardList className="h-5 w-5 text-primary-500" /> Record Waste
+            <ClipboardList className="h-5 w-5 text-primary-500" /> {t('waste_recording')}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label">Product *</label>
+              <label className="label">{t('product')} *</label>
               <ProductSelect
                 value={form.product_id}
                 onChange={(id, name) => setForm((p) => ({ ...p, product_id: id, product_name: name }))}
               />
             </div>
             <div>
-              <label className="label">Quantity *</label>
+              <label className="label">{t('waste_quantity')} *</label>
               <input
                 type="number"
                 min="1"
@@ -134,7 +136,7 @@ export default function WastePage() {
               />
             </div>
             <div>
-              <label className="label">Reason *</label>
+              <label className="label">{t('waste_reason')} *</label>
               <select
                 value={form.reason}
                 onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value as Reason }))}
@@ -142,12 +144,12 @@ export default function WastePage() {
                 required
               >
                 {reasons.map((r) => (
-                  <option key={r} value={r} className="capitalize">{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                  <option key={r} value={r} className="capitalize">{t(`waste_reason_${r}` as any)}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="label">Notes</label>
+              <label className="label">{t('notes')}</label>
               <textarea
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
@@ -158,7 +160,7 @@ export default function WastePage() {
             </div>
             <button type="submit" disabled={recordMutation.isPending} className="btn btn-primary w-full flex items-center justify-center gap-2">
               {recordMutation.isPending ? <LoadingSpinner size="sm" /> : <Trash2 className="h-4 w-4" />}
-              {recordMutation.isPending ? 'Recording…' : 'Record Waste'}
+              {recordMutation.isPending ? 'Recording…' : t('record_waste')}
             </button>
           </form>
         </div>
@@ -167,15 +169,15 @@ export default function WastePage() {
         <div className="lg:col-span-2 space-y-3">
           <div className="flex flex-wrap gap-2 items-end">
             <div>
-              <label className="label">Date From</label>
+              <label className="label">{t('date_from')}</label>
               <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="input" />
             </div>
             <div>
-              <label className="label">Date To</label>
+              <label className="label">{t('date_to')}</label>
               <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="input" />
             </div>
             <button onClick={handleSearch} className="btn btn-secondary flex items-center gap-2">
-              <Search className="h-4 w-4" /> Search
+              <Search className="h-4 w-4" /> {t('search')}
             </button>
             {(searchFrom || searchTo) && (
               <button onClick={() => { setDateFrom(''); setDateTo(''); setSearchFrom(''); setSearchTo(''); setPage(1) }} className="btn btn-secondary text-sm">Clear</button>
@@ -190,14 +192,14 @@ export default function WastePage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      {['Date', 'Product', 'Qty', 'Reason', 'Waste Value', 'Recorded By'].map((h) => (
+                      {[t('date'), t('product'), t('quantity'), t('waste_reason'), t('waste_value'), t('recorded_by')].map((h) => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {records.length === 0 ? (
-                      <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No waste records found</td></tr>
+                      <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                     ) : records.map((rec) => (
                       <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 text-gray-500 text-xs">{rec.created_at?.slice(0, 10)}</td>
@@ -216,10 +218,10 @@ export default function WastePage() {
             )}
             {(data?.total ?? 0) > 20 && (
               <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-                <span className="text-sm text-gray-500">Page {page} · {data?.total} total</span>
+                <span className="text-sm text-gray-500">{t('page')} {page} · {data?.total} total</span>
                 <div className="flex gap-2">
-                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-                  <button onClick={() => setPage((p) => p + 1)} disabled={records.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+                  <button onClick={() => setPage((p) => p + 1)} disabled={records.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
                 </div>
               </div>
             )}

@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { ShoppingCart, TrendingUp, Users, AlertTriangle } from 'lucide-react'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import { useTranslation } from 'react-i18next'
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
 
@@ -20,6 +21,7 @@ interface DashData {
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation('pos')
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashData>('/dashboard-data'),
@@ -35,17 +37,17 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Welcome back — here's what's happening today</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard')}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('welcome')}</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Today's Sales",   value: `${todaySales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, icon: TrendingUp,    color: 'blue' },
-          { label: 'Invoices Today',  value: stats.today_sales_count ?? 0,                                              icon: ShoppingCart,  color: 'green' },
-          { label: 'Total Products',  value: stats.total_products ?? 0,                                                 icon: Users,         color: 'purple' },
-          { label: 'Low Stock Items', value: stats.low_stock_count ?? 0,                                                icon: AlertTriangle, color: 'red' },
+          { label: t('today_sales'),    value: `${todaySales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, icon: TrendingUp,    color: 'blue' },
+          { label: t('recent_invoices'), value: stats.today_sales_count ?? 0,                                           icon: ShoppingCart,  color: 'green' },
+          { label: t('total_products'), value: stats.total_products ?? 0,                                               icon: Users,         color: 'purple' },
+          { label: t('low_stock'),      value: stats.low_stock_count ?? 0,                                              icon: AlertTriangle, color: 'red' },
         ].map((card) => (
           <div key={card.label} className="card p-5">
             <div className="flex items-center justify-between">

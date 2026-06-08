@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -14,6 +15,7 @@ const movementBadge: Record<string, string> = { purchase_order: 'badge-info', pa
 const movementLabel: Record<string, string> = { purchase_order: 'Purchase Order', payment: 'Payment', purchase_return: 'Purchase Return', adjustment: 'Adjustment' }
 
 export default function SupplierAccountsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -56,7 +58,7 @@ export default function SupplierAccountsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Building2 className="h-6 w-6 text-primary-500" /> Supplier Accounts</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Building2 className="h-6 w-6 text-primary-500" /> {t('supplier_accounts')}</h1>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -65,7 +67,7 @@ export default function SupplierAccountsPage() {
             <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <p className="text-xs text-gray-500">Total Debt</p>
+            <p className="text-xs text-gray-500">{t('total_debt')}</p>
             <p className="text-xl font-bold text-red-600">{totalDebt.toFixed(2)}</p>
           </div>
         </div>
@@ -74,7 +76,7 @@ export default function SupplierAccountsPage() {
             <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <p className="text-xs text-gray-500">Total Paid</p>
+            <p className="text-xs text-gray-500">{t('total_paid')}</p>
             <p className="text-xl font-bold text-green-600">{totalPaid.toFixed(2)}</p>
           </div>
         </div>
@@ -83,7 +85,7 @@ export default function SupplierAccountsPage() {
             <Scale className="h-5 w-5 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
-            <p className="text-xs text-gray-500">Net Balance</p>
+            <p className="text-xs text-gray-500">{t('current_balance')}</p>
             <p className={clsx('text-xl font-bold', netBalance > 0 ? 'text-orange-600' : netBalance < 0 ? 'text-green-600' : 'text-gray-500')}>{netBalance.toFixed(2)}</p>
           </div>
         </div>
@@ -94,12 +96,12 @@ export default function SupplierAccountsPage() {
           <div className="p-3 border-b dark:border-gray-700">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search suppliers…" className="input pl-9 w-full text-sm" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('select_supplier')} className="input pl-9 w-full text-sm" />
             </div>
           </div>
-          {suppliersLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
+          {suppliersLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : (
             <div className="overflow-y-auto max-h-[60vh] divide-y divide-gray-100 dark:divide-gray-700">
-              {suppliers.length === 0 ? <div className="px-4 py-10 text-center text-gray-400 text-sm">No suppliers found</div>
+              {suppliers.length === 0 ? <div className="px-4 py-10 text-center text-gray-400 text-sm">{t('no_data')}</div>
                 : suppliers.map((s) => (
                   <button key={s.id} onClick={() => { setSelectedId(s.id); setLoadTrigger(0) }}
                     className={clsx('w-full text-left px-4 py-3 transition-colors', selectedId === s.id ? 'bg-primary-50 dark:bg-primary-900/20 border-l-2 border-primary-500' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50')}>
@@ -115,7 +117,7 @@ export default function SupplierAccountsPage() {
           {!selectedId ? (
             <div className="card p-12 text-center text-gray-400">
               <Building2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p>Select a supplier to view their account statement</p>
+              <p>{t('select_supplier')}</p>
             </div>
           ) : (
             <>
@@ -140,16 +142,16 @@ export default function SupplierAccountsPage() {
               </div>
 
               <div className="card overflow-hidden">
-                {stmtLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : loadTrigger === 0 ? (
-                  <div className="px-4 py-12 text-center text-gray-400 text-sm">Click "Load Statement" to fetch account data</div>
+                {stmtLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : loadTrigger === 0 ? (
+                  <div className="px-4 py-12 text-center text-gray-400 text-sm">{t('no_movements')}</div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>{['Date', 'Type', 'Reference', 'Debit', 'Credit', 'Balance'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                        <tr>{[t('date'), 'Type', t('invoice_number'), t('debt'), t('paid'), t('current_balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {entries.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No entries in this period</td></tr>
+                        {entries.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_movements')}</td></tr>
                           : entries.map((entry) => {
                             const bal = parseFloat(entry.balance)
                             return (
@@ -171,7 +173,7 @@ export default function SupplierAccountsPage() {
                       {entries.length > 0 && totals && (
                         <tfoot className="bg-gray-50 dark:bg-gray-700 border-t-2 dark:border-gray-600">
                           <tr>
-                            <td colSpan={3} className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">Totals</td>
+                            <td colSpan={3} className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">{t('current_balance')}</td>
                             <td className="px-4 py-3 font-bold text-red-600">{parseFloat(totals.total_debt).toFixed(2)}</td>
                             <td className="px-4 py-3 font-bold text-green-600">{parseFloat(totals.total_paid).toFixed(2)}</td>
                             <td className={clsx('px-4 py-3 font-bold', parseFloat(totals.balance) > 0 ? 'text-red-600' : parseFloat(totals.balance) < 0 ? 'text-green-600' : 'text-gray-500')}>{parseFloat(totals.balance).toFixed(2)}</td>

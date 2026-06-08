@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
@@ -23,6 +24,7 @@ const statusBadge: Record<string, string> = { draft: 'badge-gray', pending: 'bad
 const emptyPO = { supplier_id: '', expected_date: '', notes: '', items: [{ product_id: '', product_name: '', quantity: '1', unit_cost: '' }] }
 
 export default function PurchasesPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [searchParams] = useSearchParams()
@@ -115,8 +117,8 @@ export default function PurchasesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><ShoppingBag className="h-6 w-6 text-primary-500" /> Purchase Orders</h1>
-        {canCreate && <button onClick={() => { setForm({ ...emptyPO }); setModal('add') }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> New PO</button>}
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><ShoppingBag className="h-6 w-6 text-primary-500" /> {t('purchase_orders')}</h1>
+        {canCreate && <button onClick={() => { setForm({ ...emptyPO }); setModal('add') }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> {t('create_po')}</button>}
       </div>
 
       <div className="relative max-w-sm">
@@ -129,10 +131,10 @@ export default function PurchasesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{['PO #', 'Supplier', 'Status', 'Total', 'Expected', 'Date', 'Actions'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                <tr>{[t('po_number'), t('select_supplier'), t('status'), t('total'), t('expected_date'), t('date'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {orders.length === 0 ? <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">No purchase orders found</td></tr>
+                {orders.length === 0 ? <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                   : orders.map((po) => (
                     <tr key={po.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3 font-mono text-xs text-primary-600">{po.po_number}</td>
@@ -166,29 +168,29 @@ export default function PurchasesPage() {
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page}</span>
+            <span className="text-sm text-gray-500">{t('page')} {page}</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={orders.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={orders.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
       </div>
 
       {/* Create PO Modal */}
-      <Modal open={modal === 'add'} onClose={() => setModal(null)} title="New Purchase Order" size="xl"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={createMutation.isPending} className="btn btn-primary">{createMutation.isPending ? 'Creating…' : 'Create PO'}</button></>}>
+      <Modal open={modal === 'add'} onClose={() => setModal(null)} title={t('create_po')} size="xl"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={createMutation.isPending} className="btn btn-primary">{createMutation.isPending ? t('loading') : t('create_po')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Supplier *</label>
+              <label className="label">{t('select_supplier')} *</label>
               <select value={form.supplier_id} onChange={(e) => setForm((p) => ({ ...p, supplier_id: e.target.value }))} className="input w-full">
-                <option value="">— Select supplier —</option>
+                <option value="">— {t('select_supplier')} —</option>
                 {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-            <div><label className="label">Expected Date</label><input value={form.expected_date} type="date" onChange={(e) => setForm((p) => ({ ...p, expected_date: e.target.value }))} className="input w-full" /></div>
-            <div className="col-span-2"><label className="label">Notes</label><input value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" /></div>
+            <div><label className="label">{t('expected_date')}</label><input value={form.expected_date} type="date" onChange={(e) => setForm((p) => ({ ...p, expected_date: e.target.value }))} className="input w-full" /></div>
+            <div className="col-span-2"><label className="label">{t('notes')}</label><input value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} className="input w-full" /></div>
           </div>
 
           <div>
@@ -204,8 +206,8 @@ export default function PurchasesPage() {
                     onChange={(id, name) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, product_id: id, product_name: name } : x) }))}
                     className="flex-1"
                   />
-                  <input value={item.quantity} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, quantity: e.target.value } : x) }))} className="input w-20" placeholder="Qty" type="number" min="1" />
-                  <input value={item.unit_cost} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, unit_cost: e.target.value } : x) }))} className="input w-28" placeholder="Unit Cost" type="number" step="0.01" />
+                  <input value={item.quantity} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, quantity: e.target.value } : x) }))} className="input w-20" placeholder={t('quantity')} type="number" min="1" />
+                  <input value={item.unit_cost} onChange={(e) => setForm((p) => ({ ...p, items: p.items.map((x, idx) => idx === i ? { ...x, unit_cost: e.target.value } : x) }))} className="input w-28" placeholder={t('unit_price')} type="number" step="0.01" />
                   {form.items.length > 1 && <button type="button" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600"><XCircle className="h-4 w-4" /></button>}
                 </div>
               ))}
@@ -215,17 +217,17 @@ export default function PurchasesPage() {
       </Modal>
 
       {/* Receive PO Modal */}
-      <Modal open={receiveModal} onClose={() => setReceiveModal(false)} title={`Receive PO #${receivingPO?.po_number ?? ''}`} size="lg"
-        footer={<><button onClick={() => setReceiveModal(false)} className="btn btn-secondary">Cancel</button><button onClick={handleReceive} disabled={receiveMutation.isPending} className="btn btn-primary">{receiveMutation.isPending ? 'Saving…' : 'Confirm Receipt'}</button></>}>
+      <Modal open={receiveModal} onClose={() => setReceiveModal(false)} title={`${t('receive_po')} #${receivingPO?.po_number ?? ''}`} size="lg"
+        footer={<><button onClick={() => setReceiveModal(false)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleReceive} disabled={receiveMutation.isPending} className="btn btn-primary">{receiveMutation.isPending ? t('loading') : t('receive_po')}</button></>}>
         {receivingPO && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{['Product', 'Ordered', 'Already Received', 'Receiving Now'].map((h) => <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                <tr>{[t('name'), t('quantity'), t('po_status_received'), t('receive_po')].map((h) => <th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {(receivingPO.items ?? []).length === 0
-                  ? <tr><td colSpan={4} className="px-3 py-8 text-center text-gray-400">No items</td></tr>
+                  ? <tr><td colSpan={4} className="px-3 py-8 text-center text-gray-400">{t('no_data')}</td></tr>
                   : (receivingPO.items ?? []).map((item) => {
                     const remaining = item.quantity - (item.received_quantity ?? 0)
                     return (
@@ -253,10 +255,10 @@ export default function PurchasesPage() {
         {selectedPO && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="text-gray-500">Supplier:</span> <span className="font-medium">{selectedPO.supplier?.name}</span></div>
-              <div><span className="text-gray-500">Status:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[selectedPO.status] ?? 'badge-gray')}>{selectedPO.status}</span></div>
-              <div><span className="text-gray-500">Expected:</span> <span>{selectedPO.expected_date?.slice(0, 10) ?? '—'}</span></div>
-              <div><span className="text-gray-500">Total:</span> <span className="font-bold text-primary-600">{parseFloat(selectedPO.total ?? '0').toFixed(2)}</span></div>
+              <div><span className="text-gray-500">{t('select_supplier')}:</span> <span className="font-medium">{selectedPO.supplier?.name}</span></div>
+              <div><span className="text-gray-500">{t('status')}:</span> <span className={clsx('badge ml-1 capitalize', statusBadge[selectedPO.status] ?? 'badge-gray')}>{selectedPO.status}</span></div>
+              <div><span className="text-gray-500">{t('expected_date')}:</span> <span>{selectedPO.expected_date?.slice(0, 10) ?? '—'}</span></div>
+              <div><span className="text-gray-500">{t('total')}:</span> <span className="font-bold text-primary-600">{parseFloat(selectedPO.total ?? '0').toFixed(2)}</span></div>
             </div>
             {selectedPO.notes && <p className="text-sm text-gray-500 bg-gray-50 dark:bg-gray-700 p-3 rounded">{selectedPO.notes}</p>}
           </div>

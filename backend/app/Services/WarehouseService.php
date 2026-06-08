@@ -108,10 +108,17 @@ class WarehouseService
                     ->lockForUpdate()
                     ->first();
 
-                if (! $stock || $stock->quantity < $item['quantity']) {
-                    $product = Product::find($item['product_id']);
+                // Available = total stock minus already-reserved quantity
+                $available = $stock ? max(0, $stock->quantity - ($stock->reserved_qty ?? 0)) : 0;
 
-                    throw new Exception(__('pos.insufficient_stock', ['name' => $product?->name ?? "#{$item['product_id']}"]));
+                if ($available < $item['quantity']) {
+                    $product = Product::find($item['product_id']);
+                    $name = $product?->name ?? "#{$item['product_id']}";
+
+                    throw new Exception(
+                        __('pos.insufficient_stock', ['name' => $name])
+                        . " ({$available} " . __('pos.in_stock') . ')',
+                    );
                 }
 
                 // Reserve stock

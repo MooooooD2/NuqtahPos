@@ -230,15 +230,11 @@ class ReportController extends Controller
 
     public function agedReceivables()
     {
-        Gate::authorize('report.aged');
-
         return response()->json($this->reportService->agedReceivables());
     }
 
     public function agedPayables()
     {
-        Gate::authorize('report.aged');
-
         return response()->json($this->reportService->agedPayables());
     }
 
@@ -257,7 +253,6 @@ class ReportController extends Controller
 
     public function cashierPerformance(Request $request)
     {
-        Gate::authorize('report.cashier-performance');
         $data = $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',

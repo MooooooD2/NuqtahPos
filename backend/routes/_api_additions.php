@@ -78,6 +78,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr
                     'users.id',
                     'users.full_name',
                     'users.username',
+                    'users.email',
+                    'users.phone',
+                    'users.hire_date',
                     'users.role',
                     'users.is_active',
                     'users.branch_id',
@@ -115,12 +118,12 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr
                 'id'           => $u->id,
                 'name'         => $u->full_name ?: $u->username,
                 'email'        => $u->email ?? null,
-                'phone'        => null,
+                'phone'        => $u->phone ?? null,
                 'position'     => $u->role,
                 'department'   => match ($u->role) { 'admin' => 'Management', 'cashier' => 'Sales', default => 'Operations' },
                 'salary'       => $u->basic_salary ? number_format((float) $u->basic_salary, 2, '.', '') : '0.00',
                 'status'       => $u->is_active ? 'active' : 'inactive',
-                'hire_date'    => $u->effective_from ?? null,
+                'hire_date'    => $u->hire_date ?? $u->effective_from ?? null,
                 'branch_name'  => $u->branch_name ?? null,
             ]);
 
@@ -444,11 +447,14 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('hr')->name('api.hr
                 ->orderByDesc('payroll_runs.year')->orderByDesc('payroll_runs.month')
                 ->take(50)->get()
                 ->map(fn ($r) => array_merge((array) $r, [
-                    'branch' => ['name' => $r->branch_name],
+                    'branch'         => ['name' => $r->branch_name],
                     'employee_count' => DB::table('payroll_slips')->where('payroll_run_id', $r->id)->count(),
+                    'period'         => sprintf('%04d-%02d', $r->year, $r->month),
+                    'gross_salary'   => $r->total_gross,
+                    'net_salary'     => $r->total_net,
                 ]));
 
-            return response()->json(['runs' => $runs]);
+            return response()->json(['success' => true, 'runs' => $runs]);
         })->name('payroll.runs');
 
         Route::post('/payroll/generate', function (Illuminate\Http\Request $req) {
@@ -785,13 +791,15 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 // ═══════════════════════════════════════════════════════════════════════════
 // QR Table Management API
 // ═══════════════════════════════════════════════════════════════════════════
-Route::middleware(['auth:sanctum', 'permission:manage_qr_orders', 'throttle:60,1'])->prefix('qr-tables')->name('api.qr-tables.')->group(function () {
-    Route::get('/', function () {
-        $today = now()->toDateString();
-        $tables = \App\Models\QrTable::withCount(['orders as today_orders' => fn ($q) => $q->whereDate('created_at', $today)])->orderBy('table_name')->get();
-        return response()->json(['success' => true, 'data' => $tables]);
-    })->name('index');
+// Read — any authenticated user can list tables
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/qr-tables', function () {
+    $today = now()->toDateString();
+    $tables = \App\Models\QrTable::withCount(['orders as today_orders' => fn ($q) => $q->whereDate('created_at', $today)])->orderBy('table_name')->get();
+    return response()->json(['success' => true, 'data' => $tables]);
+})->name('api.qr-tables.index');
 
+// Write — require manage_qr_orders permission
+Route::middleware(['auth:sanctum', 'permission:manage_qr_orders', 'throttle:60,1'])->prefix('qr-tables')->name('api.qr-tables.')->group(function () {
     Route::post('/', function (Illuminate\Http\Request $req) {
         $data = $req->validate(['table_name' => 'required|string|max:100', 'capacity' => 'required|integer|min:1']);
         $token = \Illuminate\Support\Str::random(32);

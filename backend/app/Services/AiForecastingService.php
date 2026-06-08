@@ -31,7 +31,7 @@ class AiForecastingService
         return Cache::remember($cacheKey, 3600, function () use ($days, $historyDays) {
             $historical = $this->getDailySalesHistory($historyDays);
 
-            if ($historical->count() < 7) {
+            if ($historical->count() < 3) {
                 return ['error' => __('pos.forecast_insufficient_data')];
             }
 

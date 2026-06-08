@@ -62,6 +62,33 @@ class CustomerController extends Controller
         return $this->success(['customers' => $customers]);
     }
 
+    /**
+     * Quick-create a customer from the POS (name + phone only).
+     * Accessible to view_pos users without full CRM permissions.
+     */
+    public function quickCreate(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name'  => 'required|string|max:150',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $data['code'] = $this->service->nextCode();
+        $data['type'] = 'individual';
+        $data['is_active'] = true;
+
+        $customer = Customer::create($data);
+
+        return $this->success([
+            'customer' => [
+                'id'    => $customer->id,
+                'name'  => $customer->name,
+                'phone' => $customer->phone,
+                'code'  => $customer->code,
+            ],
+        ], '', 201);
+    }
+
     public function store(StoreCustomerRequest $request): JsonResponse
     {
         $data = $request->validated();

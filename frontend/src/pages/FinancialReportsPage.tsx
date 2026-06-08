@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -39,6 +40,7 @@ function AccountBalanceRows({ rows }: { rows: AccountBalance[] }) {
 }
 
 export default function FinancialReportsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const [tab, setTab] = useState<'income' | 'balance' | 'statement'>('income')
 
@@ -129,15 +131,15 @@ export default function FinancialReportsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <BarChart2 className="h-6 w-6 text-primary-500" /> Financial Reports
+          <BarChart2 className="h-6 w-6 text-primary-500" /> {t('financial_reports')}
         </h1>
       </div>
 
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
         {([
-          { key: 'income', label: 'Income Statement', icon: TrendingUp },
-          { key: 'balance', label: 'Balance Sheet', icon: BookOpen },
-          { key: 'statement', label: 'Account Statement', icon: FileText },
+          { key: 'income', label: t('income_statement'), icon: TrendingUp },
+          { key: 'balance', label: t('balance_sheet'), icon: BookOpen },
+          { key: 'statement', label: t('select_period_view'), icon: FileText },
         ] as const).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -156,16 +158,16 @@ export default function FinancialReportsPage() {
           <div className="card p-4">
             <div className="flex flex-wrap gap-4 items-end">
               <div>
-                <label className="label">Date From</label>
+                <label className="label">{t('start_date')}</label>
                 <input type="date" value={incomeStart} onChange={(e) => setIncomeStart(e.target.value)} className="input" />
               </div>
               <div>
-                <label className="label">Date To</label>
+                <label className="label">{t('end_date')}</label>
                 <input type="date" value={incomeEnd} onChange={(e) => setIncomeEnd(e.target.value)} className="input" />
               </div>
               <button onClick={handleGenerateIncome} disabled={incomeLoading} className="btn btn-primary flex items-center gap-2">
                 {incomeLoading ? <LoadingSpinner size="sm" /> : <BarChart2 className="h-4 w-4" />}
-                Generate
+                {t('generate')}
               </button>
             </div>
           </div>
@@ -178,21 +180,21 @@ export default function FinancialReportsPage() {
                 <div className="card p-5 border-l-4 border-blue-500">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingUp className="h-4 w-4 text-blue-500" />
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Total Revenue</p>
+                    <p className="text-xs text-gray-500 uppercase font-semibold">{t('total_assets')}</p>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="card p-5 border-l-4 border-red-500">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingDown className="h-4 w-4 text-red-500" />
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Total Expenses</p>
+                    <p className="text-xs text-gray-500 uppercase font-semibold">{t('total_liabilities')}</p>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{incomeTotalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className={clsx('card p-5 border-l-4', netIncome >= 0 ? 'border-green-500' : 'border-red-500')}>
                   <div className="flex items-center gap-2 mb-1">
                     <DollarSign className={clsx('h-4 w-4', netIncome >= 0 ? 'text-green-500' : 'text-red-500')} />
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Net Income</p>
+                    <p className="text-xs text-gray-500 uppercase font-semibold">{t('net_income')}</p>
                   </div>
                   <p className={clsx('text-2xl font-bold', netIncome >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
                     {netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -214,7 +216,7 @@ export default function FinancialReportsPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {incomeData.revenues.length === 0 ? (
-                        <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">No revenue data</td></tr>
+                        <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
                       ) : incomeData.revenues.map((row, i) => (
                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{row.account_name}</td>
@@ -244,7 +246,7 @@ export default function FinancialReportsPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {incomeData.expenses.length === 0 ? (
-                        <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">No expense data</td></tr>
+                        <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
                       ) : incomeData.expenses.map((row, i) => (
                         <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{row.account_name}</td>
@@ -267,7 +269,7 @@ export default function FinancialReportsPage() {
           {!incomeLoading && !incomeData && (
             <div className="card text-center py-16 text-gray-400">
               <BarChart2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
-              <p>Set a date range and click Generate</p>
+              <p>{t('select_period_view')}</p>
             </div>
           )}
         </div>
@@ -306,7 +308,7 @@ export default function FinancialReportsPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                       {rows.length === 0 ? (
-                        <tr><td colSpan={3} className="px-4 py-6 text-center text-gray-400">No {label.toLowerCase()} data</td></tr>
+                        <tr><td colSpan={3} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
                       ) : <AccountBalanceRows rows={rows} />}
                     </tbody>
                     {total !== null && (
@@ -326,7 +328,7 @@ export default function FinancialReportsPage() {
           {!balanceLoading && !balanceData && (
             <div className="card text-center py-16 text-gray-400">
               <BookOpen className="h-10 w-10 mx-auto mb-2 opacity-30" />
-              <p>Loading balance sheet…</p>
+              <p>{t('loading')}</p>
             </div>
           )}
         </div>
@@ -338,7 +340,7 @@ export default function FinancialReportsPage() {
           <div className="card p-4">
             <div className="flex flex-wrap gap-4 items-end">
               <div>
-                <label className="label">Account</label>
+                <label className="label">{t('select_period_view')}</label>
                 {accountsLoading ? (
                   <div className="input w-48 flex items-center"><LoadingSpinner size="sm" /></div>
                 ) : (
@@ -349,16 +351,16 @@ export default function FinancialReportsPage() {
                 )}
               </div>
               <div>
-                <label className="label">Date From</label>
+                <label className="label">{t('start_date')}</label>
                 <input type="date" value={stmtStart} onChange={(e) => setStmtStart(e.target.value)} className="input" />
               </div>
               <div>
-                <label className="label">Date To</label>
+                <label className="label">{t('end_date')}</label>
                 <input type="date" value={stmtEnd} onChange={(e) => setStmtEnd(e.target.value)} className="input" />
               </div>
               <button onClick={handleLoadStatement} disabled={stmtLoading} className="btn btn-primary flex items-center gap-2">
                 {stmtLoading ? <LoadingSpinner size="sm" /> : <FileText className="h-4 w-4" />}
-                Load Statement
+                {t('generate')}
               </button>
             </div>
           </div>
@@ -371,14 +373,14 @@ export default function FinancialReportsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      {['Entry #', 'Date', 'Description', 'Debit', 'Credit'].map((h) => (
-                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      {['Entry #', t('date'), 'Description', 'Debit', 'Credit'].map((h, i) => (
+                        <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {stmtData.lines.length === 0 ? (
-                      <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">No entries for the selected period</td></tr>
+                      <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                     ) : stmtData.lines.map((line) => (
                       <tr key={line.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-mono text-xs text-primary-600 dark:text-primary-400">{line.entry?.reference ?? '—'}</td>
@@ -414,7 +416,7 @@ export default function FinancialReportsPage() {
           {!stmtLoading && !stmtData && (
             <div className="card text-center py-16 text-gray-400">
               <FileText className="h-10 w-10 mx-auto mb-2 opacity-30" />
-              <p>Select an account and date range, then click Load Statement</p>
+              <p>{t('no_data')}</p>
             </div>
           )}
         </div>

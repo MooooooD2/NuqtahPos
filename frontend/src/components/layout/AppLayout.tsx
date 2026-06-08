@@ -16,7 +16,7 @@ export default function AppLayout() {
       <div
         className={clsx(
           'flex flex-1 flex-col min-h-0 transition-all duration-300',
-          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64',
+          sidebarCollapsed ? 'lg:ml-16 rtl:lg:ml-0 rtl:lg:mr-16' : 'lg:ml-64 rtl:lg:ml-0 rtl:lg:mr-64',
         )}
       >
         <Header />

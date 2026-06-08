@@ -72,6 +72,11 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasRole('admin') ? true : null;
         });
 
+        // Accounting journal entry gate
+        Gate::define('create_journal_entry', fn (User $u) =>
+            $u->hasPermissionTo('view_accounting') || $u->hasPermissionTo('manage_accounting')
+        );
+
         // Report gates (policy-style gates without a bound model)
         $policy = new ReportPolicy;
         Gate::define('report.sales', fn (User $u) => $policy->viewSales($u));

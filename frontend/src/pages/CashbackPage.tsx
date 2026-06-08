@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, apiGet, apiPost, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -15,6 +16,7 @@ interface CashbackTx { id: number; customer_name?: string; type: string; amount:
 const emptyRule = { name: '', percentage: '', min_purchase_amount: '0', max_cashback: '' }
 
 export default function CashbackPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState(false)
@@ -75,17 +77,17 @@ export default function CashbackPage() {
   const txAmountClass = (type: string) => type === 'earned' ? 'text-green-600 font-semibold' : type === 'redeemed' ? 'text-red-600 font-semibold' : 'text-gray-500'
 
   const kpis = [
-    { label: 'Total Earned', value: totalEarned.toFixed(2), icon: TrendingUp, color: 'green' },
-    { label: 'Total Redeemed', value: totalRedeemed.toFixed(2), icon: TrendingDown, color: 'red' },
-    { label: 'Active Rate', value: activeRule ? `${activeRule.percentage}%` : 'No Active Rule', icon: Percent, color: 'blue' },
+    { label: t('cashback_rate'), value: totalEarned.toFixed(2), icon: TrendingUp, color: 'green' },
+    { label: t('amount'), value: totalRedeemed.toFixed(2), icon: TrendingDown, color: 'red' },
+    { label: t('cashback_rate'), value: activeRule ? `${activeRule.percentage}%` : t('inactive_status'), icon: Percent, color: 'blue' },
   ]
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Gift className="h-6 w-6 text-primary-500" /> Cashback</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Gift className="h-6 w-6 text-primary-500" /> {t('cashback')}</h1>
         {canManage && (
-          <button onClick={() => { setForm({ ...emptyRule }); setModal(true) }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> New Rule</button>
+          <button onClick={() => { setForm({ ...emptyRule }); setModal(true) }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> {t('cashback_save_activate')}</button>
         )}
       </div>
 
@@ -106,16 +108,16 @@ export default function CashbackPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="card overflow-hidden">
           <div className="px-4 py-3 border-b dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">Cashback Rules</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white">{t('cashback_rules_history')}</h2>
           </div>
           {rulesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{['Name', '%', 'Min Purchase', 'Max Cashback', 'Status', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('name'), '%', t('amount'), t('cashback_rate'), t('active_status'), ''].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {rules.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No cashback rules yet</td></tr>
+                  {rules.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
                     : rules.map((r) => (
                       <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.name}</td>
@@ -124,7 +126,7 @@ export default function CashbackPage() {
                         <td className="px-4 py-3 text-gray-500">{r.max_cashback ? parseFloat(r.max_cashback).toFixed(2) : '—'}</td>
                         <td className="px-4 py-3">
                           <span className={clsx('badge text-xs', r.is_active ? 'badge-success' : 'badge-gray')}>
-                            {r.is_active ? 'Active' : 'Inactive'}
+                            {r.is_active ? t('active_status') : t('inactive_status')}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -160,16 +162,16 @@ export default function CashbackPage() {
 
         <div className="card overflow-hidden">
           <div className="px-4 py-3 border-b dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">Recent Transactions</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white">{t('cashback_txn_history')}</h2>
           </div>
           {txLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{['Customer', 'Type', 'Amount', 'Balance After', 'Date'].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  <tr>{[t('customer'), 'Type', t('amount'), 'Balance After', t('date')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {txs.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">No transactions yet</td></tr>
+                  {txs.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
                     : txs.map((t) => (
                       <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{t.customer_name ?? '—'}</td>
@@ -204,8 +206,8 @@ export default function CashbackPage() {
         onCancel={() => setDeleteId(null)}
       />
 
-      <Modal open={modal} onClose={() => setModal(false)} title="New Cashback Rule" size="md"
-        footer={<><button onClick={() => setModal(false)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={createRule.isPending} className="btn btn-primary">{createRule.isPending ? 'Creating…' : 'Create Rule'}</button></>}>
+      <Modal open={modal} onClose={() => setModal(false)} title={t('cashback_management')} size="md"
+        footer={<><button onClick={() => setModal(false)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={createRule.isPending} className="btn btn-primary">{createRule.isPending ? '…' : t('save')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div><label className="label">Rule Name *</label><input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="input w-full" placeholder="e.g. Standard Cashback" required /></div>
           <div className="grid grid-cols-2 gap-4">

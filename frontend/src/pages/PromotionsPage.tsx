@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { Tag, Plus, Pencil, Trash2, Search } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 interface Promotion {
   id: number
@@ -61,6 +62,7 @@ function formatValue(p: Promotion) {
 export default function PromotionsPage() {
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
+  const { t } = useTranslation('pos')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState<'add' | 'edit' | null>(null)
@@ -141,18 +143,18 @@ export default function PromotionsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Tag className="h-6 w-6 text-primary-500" /> Promotions
+          <Tag className="h-6 w-6 text-primary-500" /> {t('promotions')}
         </h1>
         {canManage && (
           <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> New Promotion
+            <Plus className="h-4 w-4" /> {t('new_promotion')}
           </button>
         )}
       </div>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder="Search promotions…" className="input pl-9 w-full" />
+        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} placeholder={t('search_placeholder')} className="input pl-9 w-full" />
       </div>
 
       <div className="card overflow-hidden">
@@ -163,14 +165,14 @@ export default function PromotionsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['Name', 'Type', 'Value', 'Scope', 'Validity', 'Status', ''].map((h) => (
+                  {[t('name'), t('type'), t('price'), 'Scope', 'Validity', t('status'), ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {promotions.length === 0 ? (
-                  <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">No promotions found</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 ) : promotions.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
@@ -188,7 +190,7 @@ export default function PromotionsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={clsx('badge', p.is_active ? 'badge-success' : 'badge-gray')}>
-                        {p.is_active ? 'Active' : 'Inactive'}
+                        {p.is_active ? t('active_status') : t('inactive_status')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -213,10 +215,10 @@ export default function PromotionsPage() {
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page}</span>
+            <span className="text-sm text-gray-500">{t('page')} {page}</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={promotions.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={promotions.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
@@ -225,13 +227,13 @@ export default function PromotionsPage() {
       <Modal
         open={modal === 'add' || modal === 'edit'}
         onClose={() => setModal(null)}
-        title={editId ? 'Edit Promotion' : 'New Promotion'}
+        title={editId ? t('edit_promotion') : t('new_promotion')}
         size="lg"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">
-              {saveMutation.isPending ? 'Saving…' : editId ? 'Update' : 'Create'}
+              {saveMutation.isPending ? t('loading') : editId ? t('update') : t('create')}
             </button>
           </>
         }
@@ -239,11 +241,11 @@ export default function PromotionsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="label">Name *</label>
+              <label className="label">{t('name')} *</label>
               <input value={form.name} onChange={set('name')} className="input w-full" required />
             </div>
             <div>
-              <label className="label">Type *</label>
+              <label className="label">{t('type')} *</label>
               <select value={form.type} onChange={set('type')} className="input w-full">
                 <option value="percentage">Percentage</option>
                 <option value="fixed">Fixed Amount</option>
@@ -294,7 +296,7 @@ export default function PromotionsPage() {
             </div>
             <div className="col-span-2 flex items-center gap-2">
               <input id="promo-active" type="checkbox" checked={form.is_active} onChange={set('is_active')} className="h-4 w-4 rounded border-gray-300 text-primary-600" />
-              <label htmlFor="promo-active" className="label mb-0">Active</label>
+              <label htmlFor="promo-active" className="label mb-0">{t('active_status')}</label>
             </div>
           </div>
         </form>

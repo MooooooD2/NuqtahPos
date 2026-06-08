@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
@@ -149,6 +150,7 @@ export default function HrPage() {
       user_id: Number(attForm.user_id),
       work_date: attForm.work_date,
       check_in: attForm.check_in,
+      check_out: attForm.check_out || undefined,
       notes: attForm.notes || undefined,
     })
   }

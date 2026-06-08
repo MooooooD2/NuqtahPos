@@ -15,7 +15,6 @@ use App\Traits\AuditLog;
 use DomainException;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class AccountingController extends Controller
 {
@@ -80,7 +79,17 @@ class AccountingController extends Controller
         ]);
         $entries = $this->journalRepo->paginate($request->only(['start_date', 'end_date']));
 
-        return $this->success(['data' => $entries->items(), 'total' => $entries->total()]);
+        $data = collect($entries->items())->map(fn ($e) => [
+            'id'          => $e->id,
+            'date'        => $e->entry_date?->toDateString(),
+            'reference'   => $e->entry_number,
+            'description' => $e->description,
+            'total_debit' => $e->lines->sum('debit'),
+            'is_posted'   => $e->is_posted,
+            'is_locked'   => $e->is_posted,
+        ]);
+
+        return $this->success(['data' => $data, 'total' => $entries->total()]);
     }
 
     public function storeJournalEntry(StoreJournalEntryRequest $request)

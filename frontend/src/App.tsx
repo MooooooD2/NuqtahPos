@@ -1,11 +1,11 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { useUIStore } from '@/stores/uiStore'
 import { Toaster } from 'react-hot-toast'
 import AppLayout from '@/components/layout/AppLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
-import { useEffect } from 'react'
+import i18n from './i18n'
 
 // Lazy-loaded pages
 const LoginPage              = lazy(() => import('@/pages/LoginPage'))
@@ -64,7 +64,7 @@ const PageFallback = () => (
 export default function App() {
   const { theme, language } = useUIStore()
 
-  // Apply theme & language on mount
+  // Apply theme & language on mount/change
   useEffect(() => {
     const root = document.documentElement
     if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -74,12 +74,13 @@ export default function App() {
     }
     root.dir = language === 'ar' ? 'rtl' : 'ltr'
     root.lang = language
+    i18n.changeLanguage(language)
   }, [theme, language])
 
   return (
     <>
       <Toaster
-        position="top-right"
+        position={language === 'ar' ? 'top-left' : 'top-right'}
         toastOptions={{
           className: 'dark:bg-gray-800 dark:text-white',
           duration: 4000,

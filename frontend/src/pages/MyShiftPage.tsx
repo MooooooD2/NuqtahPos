@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { apiGet, apiPost } from '@/services/api'
 import Modal from '@/components/common/Modal'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
@@ -19,9 +20,10 @@ interface Shift {
 interface ShiftRecord {
   id: number
   date: string
+  shift_date: string
   clock_in_at: string
   clock_out_at?: string
-  hours_worked?: string
+  hours_worked?: number
   status: string
 }
 
@@ -51,6 +53,7 @@ const statusBadge = (s: string) => {
 }
 
 export default function MyShiftPage() {
+  const { t } = useTranslation('pos')
   const qc = useQueryClient()
   const [clockOutModal, setClockOutModal] = useState(false)
   const [clockOutForm, setClockOutForm] = useState({ ...emptyClockOut })
@@ -63,14 +66,14 @@ export default function MyShiftPage() {
 
   const { data: currentData, isLoading: currentLoading } = useQuery({
     queryKey: ['my-shift-current'],
-    queryFn: () => apiGet<{ success: boolean; shift?: Shift }>('/shifts/current'),
+    queryFn: () => apiGet<{ shift?: Shift }>('/shifts/current'),
     refetchInterval: 60_000,
     staleTime: 30_000,
   })
 
   const { data: historyData, isLoading: historyLoading } = useQuery({
     queryKey: ['my-shift-history'],
-    queryFn: () => apiGet<{ success: boolean; data: ShiftRecord[] }>('/shifts/history', { per_page: 20 }),
+    queryFn: () => apiGet<{ success: boolean; data: ShiftRecord[] }>('/shifts/history', { days: 30 }),
     staleTime: 60_000,
   })
 
@@ -132,7 +135,7 @@ export default function MyShiftPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Clock className="h-6 w-6 text-primary-500" /> My Shift
+          <Clock className="h-6 w-6 text-primary-500" /> {t('my_shift_title')}
         </h1>
       </div>
 
@@ -153,25 +156,25 @@ export default function MyShiftPage() {
               {elapsedDisplay}
             </p>
             <p className="text-sm text-gray-500">
-              {shift.on_break ? 'On Break' : 'Shift in progress'}
+              {shift.on_break ? t('on_break') : t('shift_in_progress')}
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div className="card p-4 bg-gray-50 dark:bg-gray-700/50 space-y-1">
-              <p className="text-xs text-gray-500">Clocked In</p>
+              <p className="text-xs text-gray-500">{t('clocked_in')}</p>
               <p className="font-semibold text-gray-900 dark:text-white">{formatTime(shift.clock_in_at)}</p>
               <p className="text-xs text-gray-400">{formatDate(shift.clock_in_at)}</p>
             </div>
             <div className="card p-4 bg-gray-50 dark:bg-gray-700/50 space-y-1">
-              <p className="text-xs text-gray-500">Status</p>
+              <p className="text-xs text-gray-500">{t('status')}</p>
               <span className={clsx('badge capitalize', statusBadge(shift.status))}>
                 {shift.status.replace('_', ' ')}
               </span>
             </div>
             {shift.on_break && shift.break_started_at && (
               <div className="card p-4 bg-yellow-50 dark:bg-yellow-900/20 space-y-1">
-                <p className="text-xs text-yellow-600">Break Started</p>
+                <p className="text-xs text-yellow-600">{t('break_started')}</p>
                 <p className="font-semibold text-yellow-700 dark:text-yellow-400">{formatTime(shift.break_started_at)}</p>
                 <p className="text-xs text-yellow-500">{formatElapsed(shift.break_started_at)} elapsed</p>
               </div>

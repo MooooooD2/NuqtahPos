@@ -115,11 +115,10 @@ class CrmController extends Controller
     /**
      * Pending follow-ups (scheduled activities not yet completed).
      */
-    public function followUps(Request $request): JsonResponse
+    public function followUps(): JsonResponse
     {
         $followUps = CrmActivity::pendingFollowUps()
             ->with('customer:id,name,phone')
-            ->where('scheduled_at', '<=', now()->addDays(7))
             ->orderBy('scheduled_at')
             ->get()
             ->map(fn ($a) => [
@@ -127,7 +126,7 @@ class CrmController extends Controller
                 'customer_name' => $a->customer?->name,
                 'due_date'      => $a->scheduled_at?->toDateString(),
                 'notes'         => $a->notes,
-                'status'        => $a->status ?? 'pending',
+                'status'        => $a->outcome === 'pending' ? 'pending' : $a->outcome,
                 'activity_type' => $a->type,
             ]);
 
@@ -145,7 +144,7 @@ class CrmController extends Controller
     /**
      * All activities (not filtered by customer) for the CRM list view.
      */
-    public function allActivities(Request $request): JsonResponse
+    public function allActivities(): JsonResponse
     {
         $activities = CrmActivity::with('customer:id,name')
             ->latest()
@@ -157,7 +156,7 @@ class CrmController extends Controller
             'type'          => $a->type,
             'notes'         => $a->notes,
             'created_at'    => $a->created_at,
-            'status'        => $a->status ?? 'done',
+            'status'        => $a->outcome !== 'pending' ? 'done' : 'pending',
         ]);
 
         return response()->json(['success' => true, 'data' => $data]);
@@ -181,7 +180,7 @@ class CrmController extends Controller
             'notes'        => $data['notes'] ?? null,
             'user_id'      => Auth::id(),
             'scheduled_at' => $data['due_date'],
-            'status'       => 'pending',
+            'outcome'      => 'pending',
         ]);
 
         return response()->json(['success' => true, 'data' => $activity], 201);
@@ -204,9 +203,7 @@ class CrmController extends Controller
         $activeCustomers = Customer::where('is_active', true)->count();
         $newThisMonth = Customer::whereMonth('created_at', now()->month)->count();
         $totalActivities = CrmActivity::count();
-        $pendingFollowUps = CrmActivity::pendingFollowUps()
-            ->where('scheduled_at', '<=', now()->addDays(7))
-            ->count();
+        $pendingFollowUps = CrmActivity::pendingFollowUps()->count();
 
         $byLifecycle = Customer::select('lifecycle_stage', DB::raw('count(*) as cnt'))
             ->groupBy('lifecycle_stage')

@@ -31,6 +31,8 @@ class EmployeeShift extends Model
         'status', 'notes', 'opened_by', 'closed_by', 'meta',
     ];
 
+    protected $appends = ['on_break', 'break_started_at', 'date'];
+
     protected $casts = [
         'shift_date' => 'date',
         'clock_in_at' => 'datetime',
@@ -82,6 +84,29 @@ class EmployeeShift extends Model
     public function scopeForUser(Builder $q, int $userId): Builder
     {
         return $q->where('user_id', $userId);
+    }
+
+    // ── Accessors ─────────────────────────────────────────────────────────────
+
+    public function getOnBreakAttribute(): bool
+    {
+        return $this->relationLoaded('breaks')
+            && $this->breaks->whereNull('ended_at')->isNotEmpty();
+    }
+
+    public function getBreakStartedAtAttribute(): ?string
+    {
+        if (! $this->relationLoaded('breaks')) {
+            return null;
+        }
+        $b = $this->breaks->whereNull('ended_at')->first();
+
+        return $b ? (string) $b->started_at : null;
+    }
+
+    public function getDateAttribute(): string
+    {
+        return $this->shift_date->toDateString();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

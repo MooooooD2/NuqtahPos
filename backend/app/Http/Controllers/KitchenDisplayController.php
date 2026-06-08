@@ -36,7 +36,8 @@ class KitchenDisplayController extends Controller
     public function orders(Request $request): JsonResponse
     {
         $branchId = $request->user()->branch_id ?? null;
-        $orders = $this->kds->getActiveOrders($branchId);
+        $status = $request->input('status');
+        $orders = $this->kds->getActiveOrders($branchId, $status);
         $stats = $this->kds->getStats($branchId);
 
         return response()->json([

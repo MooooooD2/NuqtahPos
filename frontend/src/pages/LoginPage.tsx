@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { api, fetchCsrfCookie } from '@/services/api'
 import { Store, Eye, EyeOff, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const schema = z.object({
   username: z.string().min(1, 'Username required'),
@@ -16,6 +17,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
+  const { t } = useTranslation('pos')
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
   const [showPw, setShowPw] = useState(false)
@@ -50,15 +52,15 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-500 shadow-lg">
             <Store className="h-9 w-9 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white">POS Enterprise</h1>
-          <p className="mt-1 text-sm text-slate-400">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-white">{t('app_name')}</h1>
+          <p className="mt-1 text-sm text-slate-400">{t('sign_in_to')}</p>
         </div>
 
         {/* Card */}
         <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-lg p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-200 mb-1.5">Username</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1.5">{t('username')}</label>
               <input
                 {...register('username')}
                 type="text"
@@ -70,7 +72,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-200 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1.5">{t('password')}</label>
               <div className="relative">
                 <input
                   {...register('password')}
@@ -96,7 +98,7 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-60 transition-colors"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? t('loading') : t('sign_in')}
             </button>
           </form>
         </div>

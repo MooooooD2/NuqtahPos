@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
@@ -17,6 +18,7 @@ interface InvoiceDetail extends Invoice { items?: ReturnableItem[] }
 const statusBadge: Record<string, string> = { paid: 'badge-success', completed: 'badge-success', partial: 'badge-warning', cancelled: 'badge-danger', refunded: 'badge-info', draft: 'badge-gray' }
 
 export default function InvoicesPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [searchParams] = useSearchParams()
@@ -97,18 +99,18 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-6 w-6 text-primary-500" /> Invoices</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-6 w-6 text-primary-500" /> {t('invoices')}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input value={searchInput} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Invoice # or customer…" className="input pl-9 w-56" />
+          <input value={searchInput} onChange={(e) => handleSearchChange(e.target.value)} placeholder={t('search')} className="input pl-9 w-56" />
         </div>
         <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="input" placeholder="From date" />
         <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="input" placeholder="To date" />
         {(dateFrom || dateTo || searchInput) && (
-          <button onClick={() => { setSearchInput(''); setSearch(''); setDateFrom(''); setDateTo(''); }} className="btn btn-secondary text-sm">Clear</button>
+          <button onClick={() => { setSearchInput(''); setSearch(''); setDateFrom(''); setDateTo(''); }} className="btn btn-secondary text-sm">{t('clear')}</button>
         )}
       </div>
 

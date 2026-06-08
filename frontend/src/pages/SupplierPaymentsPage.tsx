@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -15,6 +16,7 @@ const methodClass: Record<string, string> = { cash: 'badge-success', card: 'badg
 const emptyForm = { supplier_id: '', amount: '', payment_method: 'cash', payment_date: new Date().toISOString().slice(0, 10), notes: '' }
 
 export default function SupplierPaymentsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'new' | 'print' | null>(null)
@@ -123,8 +125,8 @@ export default function SupplierPaymentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><CreditCard className="h-6 w-6 text-primary-500" /> Supplier Payments</h1>
-        <button onClick={() => { setForm({ ...emptyForm }); setModal('new') }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> New Payment</button>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><CreditCard className="h-6 w-6 text-primary-500" /> {t('supplier_payments')}</h1>
+        <button onClick={() => { setForm({ ...emptyForm }); setModal('new') }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add_payment')}</button>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -132,7 +134,7 @@ export default function SupplierPaymentsPage() {
           <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
             <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
           </div>
-          <div><p className="text-xs text-gray-500">Total Paid Amount</p><p className="text-xl font-bold text-gray-900 dark:text-white">{totalPaid.toFixed(2)}</p></div>
+          <div><p className="text-xs text-gray-500">{t('total_paid')}</p><p className="text-xl font-bold text-gray-900 dark:text-white">{totalPaid.toFixed(2)}</p></div>
         </div>
         <div className="card p-4 flex items-center gap-4">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
@@ -169,14 +171,14 @@ export default function SupplierPaymentsPage() {
       </div>
 
       <div className="card overflow-hidden">
-        {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
+        {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{['Payment #', 'Supplier', 'Phone', 'Amount', 'Method', 'Date', 'Notes', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                <tr>{[t('payment_number'), t('select_supplier'), 'Phone', t('amount'), 'Method', t('date'), 'Notes', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {payments.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No payments found</td></tr>
+                {payments.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                   : payments.map((p) => (
                     <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3 font-mono text-xs text-primary-600">{p.payment_number ?? `#${p.id}`}</td>
@@ -206,13 +208,13 @@ export default function SupplierPaymentsPage() {
         )}
       </div>
 
-      <Modal open={modal === 'new'} onClose={() => setModal(null)} title="New Supplier Payment" size="md"
-        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button><button onClick={handleSubmit} disabled={createPayment.isPending} className="btn btn-primary">{createPayment.isPending ? 'Saving…' : 'Record Payment'}</button></>}>
+      <Modal open={modal === 'new'} onClose={() => setModal(null)} title={t('add_payment')} size="md"
+        footer={<><button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button><button onClick={handleSubmit} disabled={createPayment.isPending} className="btn btn-primary">{createPayment.isPending ? t('loading') : t('save')}</button></>}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="label">Supplier *</label>
+            <label className="label">{t('select_supplier')} *</label>
             <select value={form.supplier_id} onChange={(e) => setForm((p) => ({ ...p, supplier_id: e.target.value }))} className="input w-full" required>
-              <option value="">— Select supplier —</option>
+              <option value="">— {t('select_supplier')} —</option>
               {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
             {selectedSupplier && (
@@ -221,7 +223,7 @@ export default function SupplierPaymentsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Amount *</label>
+              <label className="label">{t('amount')} *</label>
               <input value={form.amount} type="number" min="0.01" step="0.01" onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))} className="input w-full" required />
             </div>
             <div>
@@ -232,7 +234,7 @@ export default function SupplierPaymentsPage() {
             </div>
           </div>
           <div>
-            <label className="label">Payment Date *</label>
+            <label className="label">{t('payment_date')} *</label>
             <input value={form.payment_date} type="date" onChange={(e) => setForm((p) => ({ ...p, payment_date: e.target.value }))} className="input w-full" required />
           </div>
           <div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import { useUIStore } from '@/stores/uiStore'
@@ -9,9 +10,10 @@ import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 import { invokeTauri, isTauriApp } from '@/lib/tauri'
 
-interface SettingValue { key: string; value: string; group: string; type?: string; label?: string }
+interface SettingValue { key: string; value: string; type?: string; label_ar?: string; label_en?: string }
 
 export default function SettingsPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const { theme, setTheme, language, setLanguage } = useUIStore()
   const [activeGroup, setActiveGroup] = useState('store')
@@ -20,17 +22,20 @@ export default function SettingsPage() {
 
   const canManage = hasPermission('manage_settings')
 
+  const groupMap: Record<string, string> = { store: 'general', sales: 'pos', receipt: 'printing', tax: 'tax' }
+  const backendGroup = groupMap[activeGroup] ?? activeGroup
+
   const { data, isLoading } = useQuery({
     queryKey: ['settings', activeGroup],
-    queryFn: () => apiGet<{ success: boolean; data: SettingValue[] }>(`/settings/group/${activeGroup}`),
+    queryFn: () => apiGet<{ settings: Record<string, SettingValue> }>(`/settings/group/${backendGroup}`),
     staleTime: 60_000,
     enabled: activeGroup !== 'appearance' && activeGroup !== 'desktop',
   })
 
   useEffect(() => {
-    if (data?.data) {
+    if (data?.settings) {
       const vals: Record<string, string> = {}
-      data.data.forEach((s) => { vals[s.key] = s.value })
+      Object.values(data.settings).forEach((s) => { vals[s.key] = s.value })
       setForm(vals)
     }
   }, [data])
@@ -53,38 +58,38 @@ export default function SettingsPage() {
   }
 
   const groups = [
-    { key: 'store', label: 'Store Info' },
-    { key: 'sales', label: 'Sales' },
-    { key: 'tax', label: 'Tax' },
-    { key: 'receipt', label: 'Receipt' },
-    { key: 'appearance', label: 'Appearance' },
-    { key: 'desktop', label: 'Desktop Info' },
+    { key: 'store', label: t('store_info') },
+    { key: 'sales', label: t('sales') },
+    { key: 'tax', label: t('tax') },
+    { key: 'receipt', label: t('receipt') },
+    { key: 'appearance', label: t('appearance') },
+    { key: 'desktop', label: t('desktop') },
   ]
 
   const storeFields = [
-    { key: 'store_name', label: 'Store Name', type: 'text' },
-    { key: 'store_phone', label: 'Phone', type: 'text' },
-    { key: 'store_address', label: 'Address', type: 'text' },
-    { key: 'store_email', label: 'Email', type: 'email' },
-    { key: 'currency', label: 'Currency Symbol', type: 'text' },
+    { key: 'store_name', label: t('store_name'), type: 'text' },
+    { key: 'store_phone', label: t('store_phone'), type: 'text' },
+    { key: 'store_address', label: t('store_address'), type: 'text' },
+    { key: 'store_email', label: t('store_email'), type: 'email' },
+    { key: 'currency', label: t('currency_symbol'), type: 'text' },
     { key: 'timezone', label: 'Timezone', type: 'text' },
   ]
   const salesFields = [
     { key: 'allow_negative_stock', label: 'Allow Negative Stock', type: 'checkbox' },
     { key: 'allow_cashier_price_change', label: 'Allow Cashier Price Change', type: 'checkbox' },
-    { key: 'auto_print_receipt', label: 'Auto Print Receipt', type: 'checkbox' },
+    { key: 'auto_print_receipt', label: t('auto_print'), type: 'checkbox' },
     { key: 'require_customer', label: 'Require Customer on Sale', type: 'checkbox' },
-    { key: 'default_payment_method', label: 'Default Payment Method', type: 'select', options: ['cash', 'card', 'wallet'] },
+    { key: 'default_payment_method', label: t('payment_method'), type: 'select', options: ['cash', 'card', 'wallet'] },
   ]
   const taxFields = [
-    { key: 'tax_rate', label: 'Default Tax Rate (%)', type: 'number' },
+    { key: 'tax_rate', label: t('tax_rate'), type: 'number' },
     { key: 'tax_included', label: 'Tax Included in Price', type: 'checkbox' },
-    { key: 'tax_name', label: 'Tax Name', type: 'text' },
-    { key: 'tax_number', label: 'Business Tax Number', type: 'text' },
+    { key: 'tax_name', label: t('tax_name'), type: 'text' },
+    { key: 'tax_number', label: t('tax_number'), type: 'text' },
   ]
   const receiptFields = [
     { key: 'receipt_header', label: 'Receipt Header', type: 'text' },
-    { key: 'receipt_footer', label: 'Receipt Footer', type: 'text' },
+    { key: 'receipt_footer', label: t('invoice_footer'), type: 'text' },
     { key: 'show_logo', label: 'Show Logo on Receipt', type: 'checkbox' },
     { key: 'show_cashier', label: 'Show Cashier Name', type: 'checkbox' },
   ]
@@ -98,10 +103,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Settings className="h-6 w-6 text-primary-500" /> Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Settings className="h-6 w-6 text-primary-500" /> {t('settings')}</h1>
         {canManage && activeGroup !== 'appearance' && activeGroup !== 'desktop' && (
           <button onClick={handleSave} disabled={saveMutation.isPending} className="btn btn-primary flex items-center gap-2">
-            <Save className="h-4 w-4" />{saveMutation.isPending ? 'Saving…' : 'Save Changes'}
+            <Save className="h-4 w-4" />{saveMutation.isPending ? 'Saving…' : t('save_changes')}
           </button>
         )}
       </div>
@@ -121,15 +126,15 @@ export default function SettingsPage() {
         <div className="flex-1 card p-6">
           {activeGroup === 'appearance' ? (
             <div className="space-y-6">
-              <h2 className="font-semibold text-gray-900 dark:text-white">Appearance</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white">{t('appearance')}</h2>
 
               <div className="space-y-3">
-                <label className="label">Theme</label>
+                <label className="label">{t('theme')}</label>
                 <div className="grid grid-cols-3 gap-3">
                   {([
-                    { key: 'light', label: 'Light', icon: Sun },
-                    { key: 'dark', label: 'Dark', icon: Moon },
-                    { key: 'system', label: 'System', icon: Monitor },
+                    { key: 'light', label: t('light'), icon: Sun },
+                    { key: 'dark', label: t('dark'), icon: Moon },
+                    { key: 'system', label: t('system'), icon: Monitor },
                   ] as const).map(({ key, label, icon: Icon }) => (
                     <button key={key} onClick={() => setTheme(key)}
                       className={clsx('flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-sm font-medium', theme === key ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-300')}>
@@ -140,7 +145,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-3">
-                <label className="label">Language</label>
+                <label className="label">{t('language')}</label>
                 <div className="grid grid-cols-2 gap-3 max-w-xs">
                   {([{ key: 'en', label: 'English', flag: '🇺🇸' }, { key: 'ar', label: 'العربية', flag: '🇸🇦' }] as const).map(({ key, label, flag }) => (
                     <button key={key} onClick={() => setLanguage(key)}
@@ -153,7 +158,7 @@ export default function SettingsPage() {
             </div>
           ) : activeGroup === 'desktop' ? (
             <div className="space-y-4">
-              <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Info className="h-5 w-5" /> Desktop App Info</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Info className="h-5 w-5" /> {t('desktop')}</h2>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {[
                   { label: 'Platform', value: isTauriApp() ? 'Tauri Desktop' : 'Web Browser' },
@@ -176,7 +181,7 @@ export default function SettingsPage() {
             <>
               {isLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
                 <div className="space-y-4">
-                  <h2 className="font-semibold text-gray-900 dark:text-white capitalize">{activeGroup} Settings</h2>
+                  <h2 className="font-semibold text-gray-900 dark:text-white capitalize">{t('general_settings')}</h2>
                   <div className="grid grid-cols-1 gap-4 max-w-2xl">
                     {fields.map((field) => (
                       <div key={field.key}>
@@ -198,11 +203,11 @@ export default function SettingsPage() {
                         )}
                       </div>
                     ))}
-                    {fields.length === 0 && data?.data && (
+                    {fields.length === 0 && data?.settings && (
                       <div className="space-y-4">
-                        {data.data.map((s) => (
+                        {Object.values(data.settings).map((s) => (
                           <div key={s.key}>
-                            <label className="label">{s.label ?? s.key.replace(/_/g, ' ')}</label>
+                            <label className="label">{s.label_en ?? s.key.replace(/_/g, ' ')}</label>
                             <input value={form[s.key] ?? s.value} onChange={(e) => setForm((p) => ({ ...p, [s.key]: e.target.value }))}
                               className="input w-full" disabled={!canManage} />
                           </div>

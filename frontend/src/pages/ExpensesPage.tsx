@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -30,6 +31,7 @@ const methodBadge: Record<string, string> = { cash: 'badge-success', card: 'badg
 const emptyForm = { title: '', amount: '', date: new Date().toISOString().slice(0, 10), category_id: '', payment_method: 'cash', reference_no: '', notes: '' }
 
 export default function ExpensesPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
@@ -126,12 +128,12 @@ export default function ExpensesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Receipt className="h-6 w-6 text-primary-500" /> Expenses
+          <Receipt className="h-6 w-6 text-primary-500" /> {t('expenses')}
           {data?.expenses?.total !== undefined && <span className="text-sm font-normal text-gray-400">({data?.expenses?.total})</span>}
         </h1>
         {canCreate && (
           <button onClick={openAdd} className="btn btn-primary flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Add Expense
+            <Plus className="h-4 w-4" /> {t('new_expense')}
           </button>
         )}
       </div>
@@ -141,7 +143,7 @@ export default function ExpensesPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('total_expenses')}</p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{totalAmount.toFixed(2)}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-red-100 dark:bg-red-900/30">
@@ -152,7 +154,7 @@ export default function ExpensesPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Count</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('quantity')}</p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{expenses.length}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
@@ -163,7 +165,7 @@ export default function ExpensesPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Latest Date</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('expense_date')}</p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{latestDate?.slice(0, 10) || '—'}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-purple-100 dark:bg-purple-900/30">
@@ -176,16 +178,16 @@ export default function ExpensesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }} className="input">
-          <option value="">All Categories</option>
+          <option value="">{t('all')} {t('expense_category')}</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select value={filterMethod} onChange={(e) => { setFilterMethod(e.target.value); setPage(1) }} className="input">
-          <option value="">All Methods</option>
+          <option value="">{t('all')} {t('payment_method')}</option>
           {paymentMethods.map((m) => <option key={m} value={m} className="capitalize">{m}</option>)}
         </select>
         <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }} className="input" />
         <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }} className="input" />
-        {hasFilters && <button onClick={clearFilters} className="btn btn-secondary text-sm">Clear</button>}
+        {hasFilters && <button onClick={clearFilters} className="btn btn-secondary text-sm">{t('filter')}</button>}
       </div>
 
       <div className="card overflow-hidden">
@@ -196,14 +198,14 @@ export default function ExpensesPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['#', 'Title', 'Category', 'Date', 'Amount', 'Method', 'Recorded By', ''].map((h) => (
+                  {['#', t('name'), t('category'), t('date'), t('amount'), t('type'), t('name'), ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {expenses.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No expenses found</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 ) : expenses.map((exp, idx) => (
                   <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 text-gray-400 text-xs">{(page - 1) * 20 + idx + 1}</td>
@@ -237,10 +239,10 @@ export default function ExpensesPage() {
         )}
         {(data?.expenses?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-            <span className="text-sm text-gray-500">Page {page} · {data?.expenses?.total} total</span>
+            <span className="text-sm text-gray-500">{t('page')} {page} · {data?.expenses?.total} total</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={expenses.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage((p) => p + 1)} disabled={expenses.length < 20} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
@@ -249,13 +251,13 @@ export default function ExpensesPage() {
       <Modal
         open={modal !== null}
         onClose={() => setModal(null)}
-        title={modal === 'edit' ? 'Edit Expense' : 'Add Expense'}
+        title={modal === 'edit' ? t('edit') + ' ' + t('expenses') : t('new_expense')}
         size="lg"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleSubmit} disabled={saveMutation.isPending} className="btn btn-primary">
-              {saveMutation.isPending ? 'Saving…' : modal === 'edit' ? 'Update' : 'Create'}
+              {saveMutation.isPending ? t('loading') : modal === 'edit' ? t('update') : t('create')}
             </button>
           </>
         }
@@ -263,36 +265,36 @@ export default function ExpensesPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="label">Title *</label>
+              <label className="label">{t('name')} *</label>
               <input {...f('title')} className="input w-full" placeholder="Expense title" required />
             </div>
             <div>
-              <label className="label">Amount *</label>
+              <label className="label">{t('amount')} *</label>
               <input {...f('amount')} type="number" step="0.01" min="0" className="input w-full" placeholder="0.00" required />
             </div>
             <div>
-              <label className="label">Date *</label>
+              <label className="label">{t('expense_date')} *</label>
               <input {...f('date')} type="date" className="input w-full" required />
             </div>
             <div>
-              <label className="label">Category</label>
+              <label className="label">{t('expense_category')}</label>
               <select {...f('category_id')} className="input w-full">
-                <option value="">— Select category —</option>
+                <option value="">— {t('expense_category')} —</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Payment Method</label>
+              <label className="label">{t('payment_method')}</label>
               <select {...f('payment_method')} className="input w-full">
                 {paymentMethods.map((m) => <option key={m} value={m} className="capitalize">{m}</option>)}
               </select>
             </div>
             <div className="col-span-2">
-              <label className="label">Reference No</label>
+              <label className="label">{t('reason')}</label>
               <input {...f('reference_no')} className="input w-full" placeholder="Optional reference" />
             </div>
             <div className="col-span-2">
-              <label className="label">Notes</label>
+              <label className="label">{t('notes')}</label>
               <textarea {...f('notes')} className="input w-full" rows={3} placeholder="Optional notes" />
             </div>
           </div>
@@ -301,7 +303,7 @@ export default function ExpensesPage() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Delete Expense"
+        title={t('delete') + ' ' + t('expenses')}
         message="Are you sure? This cannot be undone."
         loading={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}

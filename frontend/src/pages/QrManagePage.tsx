@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -21,6 +22,7 @@ interface QrTable {
 const emptyForm = { table_name: '', capacity: '' }
 
 export default function QrManagePage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [addModal, setAddModal] = useState(false)
@@ -91,13 +93,13 @@ export default function QrManagePage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <QrCode className="h-6 w-6 text-primary-500" /> QR Table Management
+          <QrCode className="h-6 w-6 text-primary-500" /> {t('qr_tables')}
           {tables.length > 0 && (
             <span className="text-sm font-normal text-gray-400">({tables.length})</span>
           )}
         </h1>
         <button onClick={() => setAddModal(true)} className="btn btn-primary flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Add Table
+          <Plus className="h-4 w-4" /> {t('qr_add_table')}
         </button>
       </div>
 
@@ -105,7 +107,7 @@ export default function QrManagePage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Tables</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('qr_tables')}</p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{tables.length}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
@@ -116,7 +118,7 @@ export default function QrManagePage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Active Tables</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('active_orders')}</p>
               <p className="mt-1 text-2xl font-bold text-green-600">{tables.filter((t) => t.is_active).length}</p>
             </div>
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
@@ -127,7 +129,7 @@ export default function QrManagePage() {
         <div className="card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Today Orders</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('qr_orders_today')}</p>
               <p className="mt-1 text-2xl font-bold text-primary-600">
                 {tables.reduce((s, t) => s + (t.today_orders ?? 0), 0)}
               </p>
@@ -144,7 +146,7 @@ export default function QrManagePage() {
       ) : tables.length === 0 ? (
         <div className="card p-12 text-center text-gray-400 space-y-2">
           <QrCode className="h-10 w-10 mx-auto opacity-40" />
-          <p>No QR tables yet. Click "Add Table" to get started.</p>
+          <p>{t('no_data')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -159,12 +161,12 @@ export default function QrManagePage() {
                   </div>
                 </div>
                 <span className={clsx('badge', table.is_active ? 'badge-success' : 'badge-danger')}>
-                  {table.is_active ? 'Active' : 'Inactive'}
+                  {table.is_active ? t('active_orders') : t('no_active_orders')}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Today orders</span>
+                <span className="text-gray-500">{t('qr_orders_today')}</span>
                 <span className="font-semibold text-primary-600">{table.today_orders ?? 0}</span>
               </div>
 
@@ -216,24 +218,24 @@ export default function QrManagePage() {
       <Modal
         open={addModal}
         onClose={() => setAddModal(false)}
-        title="Add QR Table"
+        title={t('qr_add_table')}
         size="sm"
         footer={
           <>
-            <button onClick={() => setAddModal(false)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setAddModal(false)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleCreate} disabled={createMutation.isPending} className="btn btn-primary">
-              {createMutation.isPending ? 'Creating…' : 'Create'}
+              {createMutation.isPending ? '…' : t('save')}
             </button>
           </>
         }
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="label">Table Name *</label>
+            <label className="label">{t('qr_table_name')} *</label>
             <input {...f('table_name')} className="input w-full" placeholder="e.g. Table 1" required />
           </div>
           <div>
-            <label className="label">Capacity *</label>
+            <label className="label">{t('qr_capacity')} *</label>
             <input
               {...f('capacity')}
               type="number"

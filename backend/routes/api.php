@@ -67,6 +67,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', CheckSubscriptionActive::cla
     // Customers (search available to POS users; CRUD to warehouse+)
     Route::middleware('permission:view_pos')->group(function () {
         Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
+        Route::post('/customers/quick', [CustomerController::class, 'quickCreate'])->name('customers.quick-create');
     });
     Route::middleware('permission:view_warehouse')->group(function () {
         Route::get('/customers', [CustomerController::class, 'all'])->name('customers.all');
@@ -459,7 +460,7 @@ Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->group(funct
 });
 
 // ── Kitchen Display System API ────────────────────────────────────────────
-Route::middleware(['auth', 'permission:view_pos', 'throttle:120,1'])->prefix('kitchen')->group(function () {
+Route::middleware(['auth:sanctum', 'permission:view_pos', 'throttle:120,1'])->prefix('kitchen')->group(function () {
     Route::get('/', [KitchenDisplayController::class, 'orders'])->name('api.kitchen.orders');
     Route::post('/', [KitchenDisplayController::class, 'store'])->name('api.kitchen.store');
     Route::post('/{id}/accept', [KitchenDisplayController::class, 'accept'])->name('api.kitchen.accept');
@@ -495,7 +496,7 @@ Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->prefix('pri
 });
 
 // ── Device Sessions API ───────────────────────────────────────────────────
-Route::middleware(['auth', 'throttle:30,1'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::get('/device-sessions', [DeviceSessionController::class, 'list'])->name('api.device-sessions.list');
     Route::delete('/device-sessions/revoke-all', [DeviceSessionController::class, 'revokeAll'])->name('api.device-sessions.revoke-all');
     Route::delete('/device-sessions/{id}', [DeviceSessionController::class, 'revoke'])->name('api.device-sessions.revoke');
@@ -526,10 +527,27 @@ Route::middleware(['auth', 'permission:view_warehouse', 'throttle:60,1'])->prefi
 // ── HR Module API ─────────────────────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::middleware('permission:manage_hr')->group(function () {
+        // Employees
         Route::get('/hr/employees', [HrController::class, 'index'])->name('hr.employees.index');
         Route::post('/hr/employees', [HrController::class, 'store'])->name('hr.employees.store');
         Route::put('/hr/employees/{user}', [HrController::class, 'update'])->name('hr.employees.update');
         Route::delete('/hr/employees/{user}', [HrController::class, 'destroy'])->name('hr.employees.destroy');
+
+        // Attendance
+        Route::get('/hr/attendance', [HrController::class, 'attendance'])->name('hr.attendance.index');
+        Route::post('/hr/attendance/checkin', [HrController::class, 'checkIn'])->name('hr.attendance.checkin');
+
+        // Leaves
+        Route::get('/hr/leaves', [HrController::class, 'leaves'])->name('hr.leaves.index');
+        Route::post('/hr/leaves', [HrController::class, 'storeLeave'])->name('hr.leaves.store');
+        Route::post('/hr/leaves/{id}/approve', [HrController::class, 'approveLeave'])->name('hr.leaves.approve');
+        Route::post('/hr/leaves/{id}/reject', [HrController::class, 'rejectLeave'])->name('hr.leaves.reject');
+
+        // Payroll
+        Route::get('/hr/payroll/runs', [HrController::class, 'payrollRuns'])->name('hr.payroll.runs');
+        Route::post('/hr/payroll/generate', [HrController::class, 'generatePayroll'])->name('hr.payroll.generate');
+        Route::post('/hr/payroll/runs/{id}/approve', [HrController::class, 'approvePayrollRun'])->name('hr.payroll.approve');
+        Route::post('/hr/payroll/runs/{id}/mark-paid', [HrController::class, 'markPayrollPaid'])->name('hr.payroll.mark-paid');
     });
     Route::get('/shifts', [HrController::class, 'shifts'])->name('hr.shifts.index');
 });

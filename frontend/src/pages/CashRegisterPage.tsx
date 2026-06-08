@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -29,6 +30,7 @@ const emptyCloseForm = { actual_cash: '', notes: '' }
 const emptyMovementForm = { type: 'deposit', amount: '', reason: '' }
 
 export default function CashRegisterPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'open' | 'close' | 'movement' | null>(null)
@@ -116,22 +118,22 @@ export default function CashRegisterPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Landmark className="h-6 w-6 text-primary-500" /> Cash Register
+          <Landmark className="h-6 w-6 text-primary-500" /> {t('cash_register_reconciliation')}
         </h1>
         {canManage && (
           <div className="flex gap-2">
             {session?.status === 'open' ? (
               <>
                 <button onClick={() => { setMovementForm({ ...emptyMovementForm }); setModal('movement') }} className="btn btn-secondary flex items-center gap-2">
-                  <Plus className="h-4 w-4" /> Movement
+                  <Plus className="h-4 w-4" /> {t('cash_collected')}
                 </button>
                 <button onClick={() => { setCloseForm({ ...emptyCloseForm }); setModal('close') }} className="btn btn-primary flex items-center gap-2">
-                  <Lock className="h-4 w-4" /> Close Session
+                  <Lock className="h-4 w-4" /> {t('close_session')}
                 </button>
               </>
             ) : (
               <button onClick={() => { setOpenForm({ ...emptyOpenForm }); setModal('open') }} className="btn btn-primary flex items-center gap-2">
-                <Unlock className="h-4 w-4" /> Open Session
+                <Unlock className="h-4 w-4" /> {t('open_session')}
               </button>
             )}
           </div>
@@ -143,13 +145,13 @@ export default function CashRegisterPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <span className={clsx('badge text-sm', session?.status === 'open' ? 'badge-success' : 'badge-gray')}>
-              {session?.status === 'open' ? 'Session Open' : 'No Active Session'}
+              {session?.status === 'open' ? t('open_session') : t('current_session')}
             </span>
             {session && (
               <>
-                <span className="text-sm text-gray-500">Cashier: <span className="font-medium text-gray-900 dark:text-white">{session.cashier_name ?? '—'}</span></span>
-                <span className="text-sm text-gray-500">Opening Balance: <span className="font-medium">{Number(session.opening_amount ?? 0).toFixed(2)}</span></span>
-                <span className="text-sm text-gray-500">Opened: <span className="font-medium">{session.opened_at?.replace('T', ' ').slice(0, 16)}</span></span>
+                <span className="text-sm text-gray-500">{t('cashier_note')}: <span className="font-medium text-gray-900 dark:text-white">{session.cashier_name ?? '—'}</span></span>
+                <span className="text-sm text-gray-500">{t('opening_balance')}: <span className="font-medium">{Number(session.opening_amount ?? 0).toFixed(2)}</span></span>
+                <span className="text-sm text-gray-500">{t('date')}: <span className="font-medium">{session.opened_at?.replace('T', ' ').slice(0, 16)}</span></span>
               </>
             )}
           </div>
@@ -163,7 +165,7 @@ export default function CashRegisterPage() {
           <div className="card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Cash Sales</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('cash_sales')}</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.cash_sales ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
@@ -174,7 +176,7 @@ export default function CashRegisterPage() {
           <div className="card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Card Sales</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('card')}</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.card_sales ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
@@ -185,7 +187,7 @@ export default function CashRegisterPage() {
           <div className="card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Sales</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('total_sales')}</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.total_sales ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-primary-100 dark:bg-primary-900/30">
@@ -196,7 +198,7 @@ export default function CashRegisterPage() {
           <div className="card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Returns</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('returns')}</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.cash_returns ?? 0).toFixed(2)}</p>
               </div>
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-900/30">
@@ -210,7 +212,7 @@ export default function CashRegisterPage() {
       {/* History Table */}
       <div className="card overflow-hidden">
         <div className="px-4 py-3 border-b dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Session History</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-white">{t('session_history')}</h2>
         </div>
         {historyLoading ? (
           <div className="flex h-40 items-center justify-center"><LoadingSpinner size="lg" /></div>
@@ -219,14 +221,14 @@ export default function CashRegisterPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {['Session #', 'Cashier', 'Opened', 'Closed', 'Expected Cash', 'Actual Cash', 'Difference', 'Status'].map((h) => (
+                  {[t('session'), t('cashier_note'), t('date'), t('date'), t('expected_cash'), t('actual_cash'), t('difference'), t('status')].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {history.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No session history</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                 ) : history.map((s) => (
                   <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3 font-mono text-xs text-primary-600">{s.session_number ?? `#${s.id}`}</td>
@@ -257,20 +259,20 @@ export default function CashRegisterPage() {
       <Modal
         open={modal === 'open'}
         onClose={() => setModal(null)}
-        title="Open Cash Session"
+        title={t('open_session')}
         size="sm"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleOpen} disabled={openMutation.isPending} className="btn btn-primary">
-              {openMutation.isPending ? 'Opening…' : 'Open Session'}
+              {openMutation.isPending ? t('loading') : t('open_session')}
             </button>
           </>
         }
       >
         <form onSubmit={handleOpen} className="space-y-4">
           <div>
-            <label className="label">Opening Balance *</label>
+            <label className="label">{t('opening_balance')} *</label>
             <input
               value={openForm.opening_amount}
               onChange={(e) => setOpenForm((p) => ({ ...p, opening_amount: e.target.value }))}
@@ -278,7 +280,7 @@ export default function CashRegisterPage() {
             />
           </div>
           <div>
-            <label className="label">Notes</label>
+            <label className="label">{t('notes')}</label>
             <input
               value={openForm.notes}
               onChange={(e) => setOpenForm((p) => ({ ...p, notes: e.target.value }))}
@@ -292,13 +294,13 @@ export default function CashRegisterPage() {
       <Modal
         open={modal === 'close'}
         onClose={() => setModal(null)}
-        title="Close Cash Session"
+        title={t('close_session')}
         size="sm"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleClose} disabled={closeMutation.isPending} className="btn btn-primary">
-              {closeMutation.isPending ? 'Closing…' : 'Close Session'}
+              {closeMutation.isPending ? t('loading') : t('close_session')}
             </button>
           </>
         }
@@ -306,14 +308,14 @@ export default function CashRegisterPage() {
         <form onSubmit={handleClose} className="space-y-4">
           {session && (
             <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
-              <span className="text-gray-500">Expected Cash:</span>
+              <span className="text-gray-500">{t('expected_cash')}:</span>
               <span className="font-bold text-gray-900 dark:text-white ml-2">
                 {(Number(session.opening_amount ?? 0) + Number(session.cash_sales ?? 0) - Number(session.cash_returns ?? 0)).toFixed(2)}
               </span>
             </div>
           )}
           <div>
-            <label className="label">Actual Cash *</label>
+            <label className="label">{t('actual_cash')} *</label>
             <input
               value={closeForm.actual_cash}
               onChange={(e) => setCloseForm((p) => ({ ...p, actual_cash: e.target.value }))}
@@ -321,7 +323,7 @@ export default function CashRegisterPage() {
             />
           </div>
           <div>
-            <label className="label">Notes</label>
+            <label className="label">{t('notes')}</label>
             <input
               value={closeForm.notes}
               onChange={(e) => setCloseForm((p) => ({ ...p, notes: e.target.value }))}
@@ -335,20 +337,20 @@ export default function CashRegisterPage() {
       <Modal
         open={modal === 'movement'}
         onClose={() => setModal(null)}
-        title="Record Cash Movement"
+        title={t('cash_collected')}
         size="sm"
         footer={
           <>
-            <button onClick={() => setModal(null)} className="btn btn-secondary">Cancel</button>
+            <button onClick={() => setModal(null)} className="btn btn-secondary">{t('cancel')}</button>
             <button onClick={handleMovement} disabled={movementMutation.isPending} className="btn btn-primary">
-              {movementMutation.isPending ? 'Saving…' : 'Record'}
+              {movementMutation.isPending ? t('loading') : t('save')}
             </button>
           </>
         }
       >
         <form onSubmit={handleMovement} className="space-y-4">
           <div>
-            <label className="label">Type</label>
+            <label className="label">{t('type')}</label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer text-sm">
                 <input type="radio" name="mv_type" value="deposit" checked={movementForm.type === 'deposit'} onChange={() => setMovementForm((p) => ({ ...p, type: 'deposit' }))} className="accent-primary-600" />
@@ -361,7 +363,7 @@ export default function CashRegisterPage() {
             </div>
           </div>
           <div>
-            <label className="label">Amount *</label>
+            <label className="label">{t('amount')} *</label>
             <input
               value={movementForm.amount}
               onChange={(e) => setMovementForm((p) => ({ ...p, amount: e.target.value }))}
@@ -369,7 +371,7 @@ export default function CashRegisterPage() {
             />
           </div>
           <div>
-            <label className="label">Reason *</label>
+            <label className="label">{t('cashier_note')} *</label>
             <input
               value={movementForm.reason}
               onChange={(e) => setMovementForm((p) => ({ ...p, reason: e.target.value }))}

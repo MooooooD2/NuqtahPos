@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/services/api";
 import { usePermission } from "@/hooks/usePermission";
@@ -60,6 +61,7 @@ const adjForm = {
 };
 
 export default function InventoryPage() {
+  const { t } = useTranslation('pos');
   const { hasPermission } = usePermission();
   const qc = useQueryClient();
   const [tab, setTab] = useState<"all" | "low" | "out" | "expiry" | "movements">("all");
@@ -152,25 +154,25 @@ export default function InventoryPage() {
 
   const kpis = [
     {
-      label: "Total Products",
+      label: t('total_products'),
       value: health?.total_products ?? 0,
       icon: Package,
       color: "blue",
     },
     {
-      label: "In Stock",
+      label: t('in'),
       value: health?.in_stock ?? 0,
       icon: Package,
       color: "green",
     },
     {
-      label: "Low Stock",
+      label: t('low_stock'),
       value: health?.low_stock ?? 0,
       icon: AlertTriangle,
       color: "amber",
     },
     {
-      label: "Out of Stock",
+      label: t('out_of_stock'),
       value: health?.out_of_stock ?? 0,
       icon: XCircle,
       color: "red",
@@ -192,11 +194,11 @@ export default function InventoryPage() {
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               {[
-                "Product",
-                "Category",
-                "Barcode",
-                "Current Stock",
-                "Min Stock",
+                t('product'),
+                t('category'),
+                t('barcode'),
+                t('current_stock'),
+                t('min_stock'),
               ].map((h) => (
                 <th
                   key={h}
@@ -259,7 +261,7 @@ export default function InventoryPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Package className="h-6 w-6 text-primary-500" /> Inventory
+          <Package className="h-6 w-6 text-primary-500" /> {t('inventory')}
         </h1>
         {canAdjust && (
           <button
@@ -269,7 +271,7 @@ export default function InventoryPage() {
             }}
             className="btn btn-secondary flex items-center gap-2"
           >
-            <ArrowUpDown className="h-4 w-4" /> Adjust Stock
+            <ArrowUpDown className="h-4 w-4" /> {t('adjust_stock')}
           </button>
         )}
       </div>
@@ -311,34 +313,34 @@ export default function InventoryPage() {
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
         {(
           [
-            { key: "all", label: "All Products" },
-            { key: "low", label: "Low Stock", count: health?.low_stock },
-            { key: "out", label: "Out of Stock", count: health?.out_of_stock },
-            { key: "expiry", label: "Near Expiry", icon: Clock },
-            { key: "movements", label: "Movements" },
+            { key: "all", label: t('all_products') },
+            { key: "low", label: t('low_stock_items'), count: health?.low_stock },
+            { key: "out", label: t('out_of_stock_items'), count: health?.out_of_stock },
+            { key: "expiry", label: t('near_expiry'), icon: Clock },
+            { key: "movements", label: t('movements') },
           ] as const
-        ).map((t) => (
+        ).map((tb) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tb.key}
+            onClick={() => setTab(tb.key)}
             className={clsx(
               "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
-              tab === t.key
+              tab === tb.key
                 ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
                 : "text-gray-500 hover:text-gray-700",
             )}
           >
-            {t.label}
-            {t.count !== undefined && t.count > 0 && (
+            {tb.label}
+            {tb.count !== undefined && tb.count > 0 && (
               <span
                 className={clsx(
                   "text-xs rounded-full px-1.5 py-0.5 font-semibold",
-                  t.key === "low"
+                  tb.key === "low"
                     ? "bg-amber-100 text-amber-700"
                     : "bg-red-100 text-red-700",
                 )}
               >
-                {t.count}
+                {tb.count}
               </span>
             )}
           </button>
@@ -352,7 +354,7 @@ export default function InventoryPage() {
           <input
             value={allSearch}
             onChange={(e) => { setAllSearch(e.target.value); setAllPage(1); }}
-            placeholder="Search products…"
+            placeholder={t('search')}
             className="input pl-9 w-full"
           />
         </div>
@@ -372,14 +374,14 @@ export default function InventoryPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      {["Product", "Category", "Barcode", "Remaining Stock", "Min Stock", "Status"].map((h) => (
+                      {[t('product'), t('category'), t('barcode'), t('current_stock'), t('min_stock'), t('status')].map((h) => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {allItems.length === 0 ? (
-                      <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No products found</td></tr>
+                      <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
                     ) : allItems.map((p) => (
                       <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
@@ -395,10 +397,10 @@ export default function InventoryPage() {
                         <td className="px-4 py-3 text-gray-500">{p.min_stock}</td>
                         <td className="px-4 py-3">
                           {p.quantity <= 0
-                            ? <span className="badge badge-danger">Out of Stock</span>
+                            ? <span className="badge badge-danger">{t('out_of_stock')}</span>
                             : p.low_stock
-                              ? <span className="badge badge-warning">Low Stock</span>
-                              : <span className="badge badge-success">In Stock</span>}
+                              ? <span className="badge badge-warning">{t('low_stock')}</span>
+                              : <span className="badge badge-success">{t('in')}</span>}
                         </td>
                       </tr>
                     ))}
@@ -407,10 +409,10 @@ export default function InventoryPage() {
               </div>
               {allTotal > 50 && (
                 <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
-                  <span className="text-sm text-gray-500">Page {allPage} of {allPages} · {allTotal} products</span>
+                  <span className="text-sm text-gray-500">{t('page')} {allPage} / {allPages} · {allTotal}</span>
                   <div className="flex gap-2">
-                    <button onClick={() => setAllPage((p) => Math.max(1, p - 1))} disabled={allPage === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Prev</button>
-                    <button onClick={() => setAllPage((p) => p + 1)} disabled={allPage >= allPages} className="btn btn-secondary text-sm py-1 disabled:opacity-40">Next</button>
+                    <button onClick={() => setAllPage((p) => Math.max(1, p - 1))} disabled={allPage === 1} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('prev')}</button>
+                    <button onClick={() => setAllPage((p) => p + 1)} disabled={allPage >= allPages} className="btn btn-secondary text-sm py-1 disabled:opacity-40">{t('next')}</button>
                   </div>
                 </div>
               )}
@@ -448,11 +450,11 @@ export default function InventoryPage() {
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     {[
-                      "Product",
-                      "Batch",
-                      "Quantity",
-                      "Expiry Date",
-                      "Days Left",
+                      t('product'),
+                      t('batch_number'),
+                      t('quantity'),
+                      t('expiry_date'),
+                      t('date'),
                     ].map((h) => (
                       <th
                         key={h}
@@ -470,7 +472,7 @@ export default function InventoryPage() {
                         colSpan={5}
                         className="px-4 py-10 text-center text-gray-400"
                       >
-                        No near-expiry items
+                        {t('no_data')}
                       </td>
                     </tr>
                   ) : (
@@ -527,7 +529,7 @@ export default function InventoryPage() {
       <Modal
         open={adjModal}
         onClose={() => setAdjModal(false)}
-        title="Stock Adjustment"
+        title={t('stock_adjustment')}
         size="md"
         footer={
           <>
@@ -535,7 +537,7 @@ export default function InventoryPage() {
               onClick={() => setAdjModal(false)}
               className="btn btn-secondary"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               onClick={() => {
@@ -551,14 +553,14 @@ export default function InventoryPage() {
               disabled={adjMutation.isPending}
               className="btn btn-primary"
             >
-              {adjMutation.isPending ? "Adjusting…" : "Adjust"}
+              {adjMutation.isPending ? t('loading') : t('adjust_stock')}
             </button>
           </>
         }
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Product</label>
+            <label className="label">{t('product')}</label>
             <ProductSelect
               value={form.product_id}
               onChange={(id, name) =>
@@ -568,7 +570,7 @@ export default function InventoryPage() {
             />
           </div>
           <div>
-            <label className="label">Quantity (use negative to reduce)</label>
+            <label className="label">{t('adjustment_qty')}</label>
             <input
               value={form.quantity}
               onChange={(e) =>
@@ -580,7 +582,7 @@ export default function InventoryPage() {
             />
           </div>
           <div>
-            <label className="label">Reason</label>
+            <label className="label">{t('reason')}</label>
             <select
               value={form.reason}
               onChange={(e) =>
@@ -588,14 +590,14 @@ export default function InventoryPage() {
               }
               className="input w-full"
             >
-              <option value="adjustment">Manual Adjustment</option>
+              <option value="adjustment">{t('adjustment')}</option>
               <option value="damage">Damage / Loss</option>
               <option value="count">Physical Count</option>
               <option value="return">Return to Stock</option>
             </select>
           </div>
           <div>
-            <label className="label">Notes</label>
+            <label className="label">{t('notes')}</label>
             <input
               value={form.notes}
               onChange={(e) =>

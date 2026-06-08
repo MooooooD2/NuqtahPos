@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ScanLine, Camera, CameraOff, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface BarcodeScannerProps {
   onScan: (code: string) => void
@@ -39,6 +40,7 @@ interface ScannerControls { stop: () => void }
 
 // Camera-based scanner using ZXing (supports EAN-13, UPC-A, Code128, QR, DataMatrix, etc.)
 export default function BarcodeScanner({ onScan, onClose, showCameraScanner = true }: BarcodeScannerProps) {
+  const { t } = useTranslation('pos')
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<ScannerControls | null>(null)
   const [active, setActive] = useState(false)
@@ -74,11 +76,11 @@ export default function BarcodeScanner({ onScan, onClose, showCameraScanner = tr
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       if (msg.includes('Permission') || msg.includes('NotAllowed') || msg.includes('denied')) {
-        setError('Camera access denied — please allow camera access in your browser')
+        setError(t('camera_denied'))
       } else if (msg.includes('Devices') || msg.includes('no camera') || msg.includes('device')) {
-        setError('No camera found on this device')
+        setError(t('camera_not_found'))
       } else {
-        setError(`Camera error: ${msg}`)
+        setError(t('camera_error', { msg }))
       }
       setActive(false)
     }
@@ -93,17 +95,17 @@ export default function BarcodeScanner({ onScan, onClose, showCameraScanner = tr
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-          <ScanLine className="h-4 w-4 text-primary-500" /> Camera Scanner
-          {active && <span className="text-xs text-green-600 dark:text-green-400 animate-pulse">● Scanning…</span>}
+          <ScanLine className="h-4 w-4 text-primary-500" /> {t('camera_scanner')}
+          {active && <span className="text-xs text-green-600 dark:text-green-400 animate-pulse">● {t('scanning')}</span>}
         </span>
         <div className="flex gap-2">
           {!active ? (
             <button onClick={startCamera} className="btn btn-secondary text-xs py-1 px-3 flex items-center gap-1">
-              <Camera className="h-3.5 w-3.5" /> Start Camera
+              <Camera className="h-3.5 w-3.5" /> {t('start_camera')}
             </button>
           ) : (
             <button onClick={stopCamera} className="btn btn-secondary text-xs py-1 px-3 flex items-center gap-1">
-              <CameraOff className="h-3.5 w-3.5" /> Stop
+              <CameraOff className="h-3.5 w-3.5" /> {t('stop')}
             </button>
           )}
           {onClose && (
@@ -149,9 +151,9 @@ export default function BarcodeScanner({ onScan, onClose, showCameraScanner = tr
 
       {!active && !error && (
         <p className="text-xs text-gray-400 text-center">
-          Supports all barcode formats (EAN, UPC, QR, Code128…)
+          {t('scanner_supports_formats')}
           <br />
-          <span className="text-gray-300">USB/Bluetooth scanner: just scan — detected automatically</span>
+          <span className="text-gray-300">{t('scanner_usb_hint')}</span>
         </p>
       )}
     </div>

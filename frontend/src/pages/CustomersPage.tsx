@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
@@ -15,6 +16,7 @@ interface Group { id: number; name: string; discount_percent?: string }
 const emptyForm = { name: '', phone: '', email: '', address: '', city: '', credit_limit: '0', customer_group_id: '' }
 
 export default function CustomersPage() {
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'customers' | 'groups'>('customers')
