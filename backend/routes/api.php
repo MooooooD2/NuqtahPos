@@ -44,6 +44,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UnitConversionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\WasteController;
 use App\Http\Controllers\WhatsAppController;
 use App\Http\Middleware\CheckSubscriptionActive;
@@ -588,5 +589,20 @@ Route::middleware(['auth:sanctum', 'permission:manage_roles'])->post('/dev/test-
 
     return response()->json(['success' => true, 'message' => "Sent [{$type}] notification."]);
 })->name('dev.test-notification');
+
+// ── Pharmacy Module ───────────────────────────────────────────────────────
+Route::middleware(['auth', 'throttle:60,1'])->prefix('pharmacy')->group(function () {
+    Route::get('/dashboard',             [PharmacyController::class, 'dashboard']);
+    Route::get('/medicines',             [PharmacyController::class, 'medicines']);
+    Route::post('/medicines',            [PharmacyController::class, 'storeMedicine']);
+    Route::put('/medicines/{id}',        [PharmacyController::class, 'updateMedicine']);
+    Route::delete('/medicines/{id}',     [PharmacyController::class, 'deleteMedicine']);
+    Route::get('/batches',               [PharmacyController::class, 'batches']);
+    Route::post('/batches',              [PharmacyController::class, 'storeBatch']);
+    Route::delete('/batches/{id}',       [PharmacyController::class, 'deleteBatch']);
+    Route::get('/prescriptions',         [PharmacyController::class, 'prescriptions']);
+    Route::post('/prescriptions',        [PharmacyController::class, 'storePrescription']);
+    Route::post('/prescriptions/{id}/dispense', [PharmacyController::class, 'dispensePrescription']);
+});
 
 require __DIR__ . '/_api_additions.php';

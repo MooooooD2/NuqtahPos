@@ -11,7 +11,7 @@ import {
   DollarSign, RotateCcw, Banknote, Tag, PackageX, Zap, Gift,
   CreditCard, Receipt, TrendingUp, GitBranch, LineChart,
   Monitor, MessageCircle, Coins, Trash2, PieChart,
-  UtensilsCrossed, QrCode, Clock,
+  UtensilsCrossed, QrCode, Clock, Pill,
 } from 'lucide-react'
 
 interface NavItem {
@@ -54,6 +54,7 @@ const navGroups: NavGroup[] = [
       { labelKey: 'products',         path: '/products',   icon: Package,   permission: ['view_products', 'view_warehouse'] },
       { labelKey: 'inventory',        path: '/inventory',  icon: Boxes,     permission: 'view_warehouse' },
       { labelKey: 'warehouse',        path: '/warehouse',  icon: Warehouse, permission: 'view_warehouse' },
+      { labelKey: 'pharmacy',         path: '/pharmacy',   icon: Pill,      permission: 'view_warehouse' },
       { labelKey: 'waste_management', path: '/waste',      icon: Trash2,    permission: 'manage_waste' },
     ],
   },

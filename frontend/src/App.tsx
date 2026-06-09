@@ -44,6 +44,7 @@ const FinancialReportsPage   = lazy(() => import('@/pages/FinancialReportsPage')
 const KitchenPage            = lazy(() => import('@/pages/KitchenPage'))
 const QrManagePage           = lazy(() => import('@/pages/QrManagePage'))
 const MyShiftPage            = lazy(() => import('@/pages/MyShiftPage'))
+const PharmacyPage           = lazy(() => import('@/pages/PharmacyPage'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -139,6 +140,7 @@ export default function App() {
             <Route path="kitchen/*" element={<KitchenPage />} />
             <Route path="qr/*" element={<QrManagePage />} />
             <Route path="my-shift/*" element={<MyShiftPage />} />
+            <Route path="pharmacy/*" element={<PharmacyPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
