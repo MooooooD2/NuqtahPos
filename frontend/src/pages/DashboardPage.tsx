@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { ShoppingCart, TrendingUp, Users, AlertTriangle } from 'lucide-react'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import DesktopDownloadBanner from '@/components/common/DesktopDownloadBanner'
 import { useTranslation } from 'react-i18next'
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
@@ -40,6 +41,8 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard')}</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">{t('welcome')}</p>
       </div>
+
+      <DesktopDownloadBanner />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

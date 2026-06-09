@@ -25,7 +25,6 @@ interface Shift {
   breaks?: ShiftBreak[]
 }
 interface AttRecord { id: number; user_name?: string; work_date: string; check_in?: string; check_out?: string; hours_worked?: number; break_minutes?: number; status: string; notes?: string; is_working_now?: boolean; has_checked_out?: boolean }
-interface AttSummary { working: number; checked_out: number; absent: number; late: number }
 interface Leave { id: number; user_name?: string; leave_type: string; starts_at: string; ends_at: string; days_count: number; status: string; reason?: string }
 interface PayrollRun { id: number; period: string; employee_count: number; gross_salary: string; net_salary: string; status: string }
 

@@ -15,14 +15,14 @@ interface Account { id: number; account_code: string; account_name: string }
 
 // API field names (camelCase from PHP compact())
 interface IncomeStatement { revenues: AccountTotal[]; expenses: AccountTotal[]; totalRevenue: number; totalExpense: number; netIncome: number }
-interface BalanceSheet { assets: AccountBalance[]; liabilities: AccountBalance[]; equity: AccountBalance[] }
+interface BalanceSheet { assets: AccountBalance[]; liabilities: AccountBalance[]; equity: AccountBalance[]; total_assets?: number; total_liabilities_equity?: number }
 interface AccountStatement { lines: StmtLine[]; total_debit: number; total_credit: number; net_balance: number }
 
 const today = new Date().toISOString().slice(0, 10)
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)
 
-function fmt(val: string) {
-  return parseFloat(val || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })
+function fmt(val: string | number | null | undefined) {
+  return parseFloat(String(val ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })
 }
 
 function AccountBalanceRows({ rows }: { rows: AccountBalance[] }) {

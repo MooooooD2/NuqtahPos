@@ -331,7 +331,7 @@ export default function InventoryPage() {
             )}
           >
             {tb.label}
-            {tb.count !== undefined && tb.count > 0 && (
+            {'count' in tb && tb.count !== undefined && tb.count > 0 && (
               <span
                 className={clsx(
                   "text-xs rounded-full px-1.5 py-0.5 font-semibold",

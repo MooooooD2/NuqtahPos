@@ -5,6 +5,7 @@ import { apiGet, apiPost } from '@/services/api'
 import { usePermission } from '@/hooks/usePermission'
 import { useUIStore } from '@/stores/uiStore'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import DesktopDownloadBanner from '@/components/common/DesktopDownloadBanner'
 import { Settings, Save, Monitor, Sun, Moon, Info } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
@@ -275,6 +276,7 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
+              <DesktopDownloadBanner forceShow />
             </div>
           ) : isLoading ? (
             <div className="card p-6 flex h-40 items-center justify-center"><LoadingSpinner /></div>

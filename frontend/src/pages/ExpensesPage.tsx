@@ -6,7 +6,7 @@ import { usePermission } from '@/hooks/usePermission'
 import Modal from '@/components/common/Modal'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
-import { Receipt, Plus, Pencil, Trash2, Search, DollarSign, Hash, Calendar } from 'lucide-react'
+import { Receipt, Plus, Pencil, Trash2, DollarSign, Hash, Calendar } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
 

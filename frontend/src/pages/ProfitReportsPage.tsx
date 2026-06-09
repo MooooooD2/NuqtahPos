@@ -60,7 +60,7 @@ export default function ProfitReportsPage() {
     const rows = viewType === 'product' ? productRows : dailyRows
     if (rows.length === 0) { toast.error('No data to export'); return }
     const headers = Object.keys(rows[0])
-    const csv = [headers.join(','), ...rows.map((r: Record<string, unknown>) => headers.map((h) => JSON.stringify(r[h] ?? '')).join(','))].join('\n')
+    const csv = [headers.join(','), ...(rows as unknown as Record<string, unknown>[]).map((r) => headers.map((h) => JSON.stringify(r[h] ?? '')).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

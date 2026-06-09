@@ -605,4 +605,44 @@ Route::middleware(['auth', 'throttle:60,1'])->prefix('pharmacy')->group(function
     Route::post('/prescriptions/{id}/dispense', [PharmacyController::class, 'dispensePrescription']);
 });
 
+// ── Desktop App Downloads (public — no auth required) ────────────────────
+Route::get('/desktop-app/check', function () {
+    $files = [
+        'windows' => 'POS-Enterprise-Setup.exe',
+        'mac'     => 'POS-Enterprise.dmg',
+        'linux'   => 'POS-Enterprise.AppImage',
+    ];
+    $result = [];
+    foreach ($files as $platform => $file) {
+        $path      = public_path("downloads/{$file}");
+        $exists    = file_exists($path);
+        $result[$platform] = [
+            'available' => $exists,
+            'file'      => $file,
+            'size'      => $exists ? filesize($path) : null,
+        ];
+    }
+    return response()->json($result)->header('Cache-Control', 'no-cache');
+})->name('desktop-app.check');
+
+Route::get('/desktop-app/download/{platform}', function (string $platform) {
+    $map = [
+        'windows' => 'POS-Enterprise-Setup.exe',
+        'mac'     => 'POS-Enterprise.dmg',
+        'linux'   => 'POS-Enterprise.AppImage',
+    ];
+    if (!array_key_exists($platform, $map)) {
+        return response()->json(['error' => 'Invalid platform'], 404);
+    }
+    $file = $map[$platform];
+    $path = public_path("downloads/{$file}");
+    if (!file_exists($path)) {
+        return response()->json(['error' => 'File not available yet', 'available' => false], 404);
+    }
+    return response()->download($path, $file, [
+        'Content-Type'        => 'application/octet-stream',
+        'Content-Disposition' => "attachment; filename=\"{$file}\"",
+    ]);
+})->name('desktop-app.download');
+
 require __DIR__ . '/_api_additions.php';

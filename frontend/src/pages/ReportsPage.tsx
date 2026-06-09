@@ -114,11 +114,6 @@ const COUNT_KEYS = new Set([
   "month","year","layers_count","quantity",
 ]);
 
-function formatKpi(key: string, value: unknown): string {
-  if (typeof value !== "number") return String(value ?? "—");
-  if (COUNT_KEYS.has(key) || Number.isInteger(value)) return value.toLocaleString();
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 function formatCell(col: string, val: unknown): string {
   if (val === null || val === undefined) return "—";

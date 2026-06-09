@@ -1070,5 +1070,14 @@
   "syrup": "شراب",
   "injection": "حقن",
   "cream": "كريم",
-  "drops": "قطرات"
+  "drops": "قطرات",
+
+  "download_desktop_title": "حمّل تطبيق سطح المكتب",
+  "download_desktop_desc": "استمتع بتجربة أسرع وأكثر استقراراً مع تطبيق POS Enterprise لسطح المكتب — يعمل بدون إنترنت ويدعم الطباعة المباشرة.",
+  "download_desktop_coming_soon": "إصدارات سطح المكتب قيد التحضير وستكون متاحة قريباً.",
+  "other_platforms": "منصات أخرى",
+  "coming_soon": "قريباً",
+  "checking_availability": "جاري التحقق...",
+  "download_not_available": "الملف غير متاح بعد",
+  "download_error": "حدث خطأ أثناء التنزيل"
 }

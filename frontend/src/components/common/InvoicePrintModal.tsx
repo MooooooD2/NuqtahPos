@@ -1,8 +1,7 @@
 import { useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/services/api'
-import { Printer, X, Download } from 'lucide-react'
-import { clsx } from 'clsx'
+import { Printer, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export interface InvoiceItem {

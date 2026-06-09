@@ -1071,5 +1071,14 @@
   "syrup": "Syrup",
   "injection": "Injection",
   "cream": "Cream",
-  "drops": "Drops"
+  "drops": "Drops",
+
+  "download_desktop_title": "Download the Desktop App",
+  "download_desktop_desc": "Get a faster and more stable experience with the POS Enterprise desktop app — works offline and supports direct printing.",
+  "download_desktop_coming_soon": "Desktop builds are being prepared and will be available soon.",
+  "other_platforms": "Other platforms",
+  "coming_soon": "Coming soon",
+  "checking_availability": "Checking availability...",
+  "download_not_available": "File is not available yet",
+  "download_error": "An error occurred during download"
 }

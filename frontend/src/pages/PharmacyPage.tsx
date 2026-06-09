@@ -7,7 +7,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import {
   Pill, Plus, Pencil, Trash2, AlertTriangle, Package,
-  ClipboardList, FlaskConical, CheckCircle, Clock, ChevronDown, ChevronUp,
+  ClipboardList, FlaskConical, CheckCircle, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
