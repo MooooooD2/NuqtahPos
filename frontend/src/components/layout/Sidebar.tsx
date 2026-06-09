@@ -11,7 +11,7 @@ import {
   DollarSign, RotateCcw, Banknote, Tag, PackageX, Zap, Gift,
   CreditCard, Receipt, TrendingUp, GitBranch, LineChart,
   Monitor, MessageCircle, Coins, Trash2, PieChart,
-  UtensilsCrossed, QrCode, Clock, Pill,
+  UtensilsCrossed, QrCode, Clock, Pill, LayoutGrid, Building2,
 } from 'lucide-react'
 
 interface NavItem {
@@ -154,6 +154,49 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+          {/* Master-tenant admin section — only visible when logged into the main tenant */}
+          {user?.role === 'admin' && localStorage.getItem('pos-company-code') === 'main' && (
+            <div>
+              {!sidebarCollapsed && (
+                <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-amber-500/80 select-none">
+                  {t('nav_group_saas_admin')}
+                </p>
+              )}
+              {sidebarCollapsed && <div className="border-t border-amber-500/30 mx-2 mb-1" />}
+              <div className="space-y-0.5">
+                {[
+                  { labelKey: 'admin_cpanel', path: '/admin', icon: LayoutGrid },
+                  { labelKey: 'admin_tenants', path: '/admin/tenants', icon: Building2 },
+                  { labelKey: 'admin_plans', path: '/admin/plans', icon: Tag },
+                  { labelKey: 'admin_payment_accounts', path: '/admin/payment-accounts', icon: CreditCard },
+                ].map((item) => {
+                  const label = t(item.labelKey)
+                  const isActive = item.path === '/admin'
+                    ? location.pathname === '/admin'
+                    : location.pathname.startsWith(item.path)
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSidebarMobileOpen(false)}
+                      className={clsx(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-amber-600 text-white shadow-sm'
+                          : 'text-amber-400/70 hover:bg-amber-900/30 hover:text-amber-200',
+                        sidebarCollapsed && 'justify-center',
+                      )}
+                      title={sidebarCollapsed ? label : undefined}
+                    >
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {!sidebarCollapsed && <span className="truncate">{label}</span>}
+                    </NavLink>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {navGroups.map((group) => {
             const visibleItems = group.items.filter(isVisible)
             if (visibleItems.length === 0) return null

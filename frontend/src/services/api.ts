@@ -16,15 +16,19 @@ export const api = axios.create({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
-    'X-Tenant-Code': 'main',
   },
 })
 
-// ─── Request interceptor — attach Bearer token ────────────────────────────────
+// ─── Request interceptor — attach Bearer token + tenant code ─────────────────
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = useAuthStore.getState().token
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`
+  }
+  // Read company code saved at login time so every request reaches the right tenant
+  const tenantCode = localStorage.getItem('pos-company-code') ?? 'main'
+  if (config.headers) {
+    config.headers['X-Tenant-Code'] = tenantCode
   }
   return config
 })
@@ -57,6 +61,9 @@ export const apiPost = <T>(url: string, data?: unknown) =>
 
 export const apiPut = <T>(url: string, data?: unknown) =>
   api.put<T>(url, data).then((r) => r.data)
+
+export const apiPatch = <T>(url: string, data?: unknown) =>
+  api.patch<T>(url, data).then((r) => r.data)
 
 export const apiDelete = <T>(url: string) =>
   api.delete<T>(url).then((r) => r.data)

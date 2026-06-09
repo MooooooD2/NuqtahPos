@@ -3,14 +3,16 @@
 export interface User {
   id: number
   name: string
-  email: string
+  username?: string
+  email?: string
   role: string
+  language?: string
   permissions: string[]
   branch_id?: number
   branch?: Branch
-  two_factor_enabled: boolean
+  two_factor_enabled?: boolean
   avatar?: string
-  created_at: string
+  created_at?: string
 }
 
 export interface AuthState {

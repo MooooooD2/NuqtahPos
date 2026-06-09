@@ -45,10 +45,20 @@ const KitchenPage            = lazy(() => import('@/pages/KitchenPage'))
 const QrManagePage           = lazy(() => import('@/pages/QrManagePage'))
 const MyShiftPage            = lazy(() => import('@/pages/MyShiftPage'))
 const PharmacyPage           = lazy(() => import('@/pages/PharmacyPage'))
+const AdminCpanelPage        = lazy(() => import('@/pages/AdminCpanelPage'))
+const AdminTenantsPage       = lazy(() => import('@/pages/AdminTenantsPage'))
+const AdminPlansPage         = lazy(() => import('@/pages/AdminPlansPage'))
+const AdminPaymentAccountsPage = lazy(() => import('@/pages/AdminPaymentAccountsPage'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  const hasAccess = user?.role === 'admin' && localStorage.getItem('pos-company-code') === 'main'
+  return hasAccess ? <>{children}</> : <Navigate to="/" replace />
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -141,6 +151,11 @@ export default function App() {
             <Route path="qr/*" element={<QrManagePage />} />
             <Route path="my-shift/*" element={<MyShiftPage />} />
             <Route path="pharmacy/*" element={<PharmacyPage />} />
+            {/* Admin panel (master-tenant only) */}
+            <Route path="admin" element={<AdminRoute><AdminCpanelPage /></AdminRoute>} />
+            <Route path="admin/tenants" element={<AdminRoute><AdminTenantsPage /></AdminRoute>} />
+            <Route path="admin/plans" element={<AdminRoute><AdminPlansPage /></AdminRoute>} />
+            <Route path="admin/payment-accounts" element={<AdminRoute><AdminPaymentAccountsPage /></AdminRoute>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -39,6 +39,25 @@ class PlanController extends Controller
         return view('plans.index', compact('plans', 'tenantCounts', 'allModules', 'moduleGroups'));
     }
 
+    public function indexApi()
+    {
+        $this->guardMasterTenant();
+
+        $plans = Plan::orderBy('sort_order')->orderBy('monthly_price')->get();
+
+        $tenantCounts = Tenant::whereIn('plan', $plans->pluck('id'))
+            ->selectRaw('plan, COUNT(*) as count')
+            ->groupBy('plan')
+            ->pluck('count', 'plan');
+
+        return $this->success([
+            'plans' => $plans,
+            'tenant_counts' => $tenantCounts,
+            'all_modules' => PlanFeatureService::allModules(),
+            'module_groups' => PlanFeatureService::moduleGroups(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $this->guardMasterTenant();

@@ -123,4 +123,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'seed_admin_password' => env('ADMIN_PASSWORD', 'Admin@2026!'),
+    'seed_cashier_password' => env('CASHIER_PASSWORD', 'Cashier@2026!'),
+    'seed_warehouse_password' => env('WAREHOUSE_PASSWORD', 'Warehouse@2026!'),
+
 ];

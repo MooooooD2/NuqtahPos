@@ -45,6 +45,9 @@ use App\Http\Controllers\UnitConversionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\PharmacyController;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\PaymentAccountController;
+use App\Http\Controllers\TenantController as TenantAdminController;
 use App\Http\Controllers\WasteController;
 use App\Http\Controllers\WhatsAppController;
 use App\Http\Middleware\CheckSubscriptionActive;
@@ -425,6 +428,33 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', CheckSubscriptionActive::cla
         Route::get('/users/{user}/roles', [RolePermissionController::class, 'getUserRoles'])->name('users.roles');
         Route::post('/users/{user}/roles', [RolePermissionController::class, 'assignUserRole'])->name('users.assign-role');
     });
+});
+
+// ── Admin Panel API (master-tenant only) ─────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('admin')->group(function () {
+    Route::get('/cpanel', [TenantAdminController::class, 'cpanelApi']);
+    Route::get('/tenants', [TenantAdminController::class, 'indexApi']);
+    Route::post('/tenants', [TenantAdminController::class, 'store']);
+    Route::put('/tenants/{id}', [TenantAdminController::class, 'update']);
+    Route::patch('/tenants/{id}/toggle', [TenantAdminController::class, 'toggle']);
+    Route::delete('/tenants/{id}', [TenantAdminController::class, 'destroy']);
+    Route::post('/tenants/{id}/seed', [TenantAdminController::class, 'seed']);
+    Route::post('/tenants/{id}/extend', [TenantAdminController::class, 'extend']);
+    Route::patch('/tenants/{id}/suspend', [TenantAdminController::class, 'suspend']);
+    Route::patch('/tenants/{id}/cancel', [TenantAdminController::class, 'cancelSubscription']);
+    Route::get('/tenants/{id}/users', [TenantAdminController::class, 'tenantUsers']);
+    Route::post('/tenants/{id}/users', [TenantAdminController::class, 'createUser']);
+    Route::patch('/tenants/{id}/users/{userId}/toggle', [TenantAdminController::class, 'toggleTenantUser']);
+    Route::post('/tenants/{id}/impersonate', [TenantAdminController::class, 'impersonate']);
+
+    Route::get('/plans', [PlanController::class, 'indexApi']);
+    Route::post('/plans', [PlanController::class, 'store']);
+    Route::put('/plans/{id}', [PlanController::class, 'update']);
+    Route::patch('/plans/{id}/toggle', [PlanController::class, 'toggle']);
+    Route::delete('/plans/{id}', [PlanController::class, 'destroy']);
+
+    Route::get('/payment-accounts', [PaymentAccountController::class, 'index']);
+    Route::put('/payment-accounts/{id}', [PaymentAccountController::class, 'update']);
 });
 
 // WhatsApp Webhook (public — Meta verification + inbound messages)

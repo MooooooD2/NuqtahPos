@@ -89,6 +89,15 @@ class AuthController extends Controller
 
             $token = $user->createToken('pos-spa', ['*'], now()->addHours(8))->plainTextToken;
 
+            $masterId = config('tenancy.master_tenant');
+            $currentTenantId = tenancy()->tenant?->id;
+            $isMaster = $masterId && $currentTenantId === $masterId;
+
+            $permissions = $user->getPermissionNames()->toArray();
+            if ($isMaster && $user->role === 'admin') {
+                $permissions = array_unique(array_merge($permissions, ['manage_tenants']));
+            }
+
             return response()->json([
                 'success' => true,
                 'token' => $token,
@@ -98,6 +107,7 @@ class AuthController extends Controller
                     'username' => $user->username,
                     'role' => $user->role,
                     'language' => $user->language,
+                    'permissions' => array_values($permissions),
                 ],
             ]);
         }

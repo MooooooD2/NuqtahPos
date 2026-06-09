@@ -5,16 +5,19 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuthStore } from '@/stores/authStore'
 import { api, fetchCsrfCookie } from '@/services/api'
-import { Store, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Store, Eye, EyeOff, Loader2, Building2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
 const schema = z.object({
+  tenant_code: z.string().min(1, 'Company code required').max(50),
   username: z.string().min(1, 'Username required'),
   password: z.string().min(1, 'Password required'),
 })
 
 type FormData = z.infer<typeof schema>
+
+const SAVED_CODE_KEY = 'pos-company-code'
 
 export default function LoginPage() {
   const { t } = useTranslation('pos')
@@ -25,14 +28,20 @@ export default function LoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      tenant_code: localStorage.getItem(SAVED_CODE_KEY) ?? '',
+    },
   })
+
+  const inputCls = 'w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder-slate-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
     try {
       await fetchCsrfCookie()
-      const res = await api.post('/login', { ...data, tenant_code: 'main' })
+      const res = await api.post('/login', data)
       const { user, token } = res.data
+      localStorage.setItem(SAVED_CODE_KEY, data.tenant_code.toLowerCase())
       login(user, token)
       toast.success(t('welcome_back', { name: user.name }))
       navigate('/')
@@ -59,6 +68,37 @@ export default function LoginPage() {
         {/* Card */}
         <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-lg p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+            {/* Company Code */}
+            <div>
+              <label className="block text-sm font-medium text-slate-200 mb-1.5">
+                {t('company_code')}
+              </label>
+              <div className="relative">
+                <Building2 className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <input
+                  {...register('tenant_code')}
+                  type="text"
+                  autoComplete="organization"
+                  placeholder="main"
+                  dir="ltr"
+                  className={`${inputCls} ps-9`}
+                />
+              </div>
+              {errors.tenant_code && <p className="mt-1 text-xs text-red-400">{errors.tenant_code.message}</p>}
+            </div>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-transparent px-2 text-slate-500">{t('your_account')}</span>
+              </div>
+            </div>
+
+            {/* Username */}
             <div>
               <label className="block text-sm font-medium text-slate-200 mb-1.5">{t('username')}</label>
               <input
@@ -66,11 +106,12 @@ export default function LoginPage() {
                 type="text"
                 autoComplete="username"
                 placeholder="admin"
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder-slate-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400"
+                className={inputCls}
               />
               {errors.username && <p className="mt-1 text-xs text-red-400">{errors.username.message}</p>}
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-slate-200 mb-1.5">{t('password')}</label>
               <div className="relative">
@@ -79,12 +120,12 @@ export default function LoginPage() {
                   type={showPw ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder-slate-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400 pr-10"
+                  className={`${inputCls} pe-10`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

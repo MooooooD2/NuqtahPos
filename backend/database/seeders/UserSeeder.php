@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
         $warehouseRole = Role::firstOrCreate(['name' => 'warehouse',  'guard_name' => 'web']);
 
         $admin = User::firstOrCreate(['username' => 'admin'], [
-            'password' => Hash::make(env('ADMIN_PASSWORD')),
+            'password' => Hash::make(config('app.seed_admin_password')),
             'full_name' => 'المدير العام',
             'role' => 'admin',
             'is_active' => true,
@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
         $admin->syncRoles([$adminRole]);
 
         $cashier = User::firstOrCreate(['username' => 'cashier'], [
-            'password' => Hash::make(env('CASHIER_PASSWORD')),
+            'password' => Hash::make(config('app.seed_cashier_password')),
             'full_name' => 'أمين الصندوق',
             'role' => 'cashier',
             'is_active' => true,
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
         $cashier->syncRoles([$cashierRole]);
 
         $warehouse = User::firstOrCreate(['username' => 'warehouse'], [
-            'password' => Hash::make(env('WAREHOUSE_PASSWORD')),
+            'password' => Hash::make(config('app.seed_warehouse_password')),
             'full_name' => 'مسؤول المخزن',
             'role' => 'warehouse',
             'is_active' => true,
@@ -56,9 +56,9 @@ class UserSeeder extends Seeder
     private function validatePasswords(?array $passwords = null): void
     {
         $required = $passwords ?? [
-            'ADMIN_PASSWORD' => env('ADMIN_PASSWORD'),
-            'CASHIER_PASSWORD' => env('CASHIER_PASSWORD'),
-            'WAREHOUSE_PASSWORD' => env('WAREHOUSE_PASSWORD'),
+            'ADMIN_PASSWORD' => config('app.seed_admin_password'),
+            'CASHIER_PASSWORD' => config('app.seed_cashier_password'),
+            'WAREHOUSE_PASSWORD' => config('app.seed_warehouse_password'),
         ];
 
         $missing = [];
@@ -82,7 +82,7 @@ class UserSeeder extends Seeder
 
         // التحقق من أن كلمات المرور تستوفي الحد الأدنى من المتطلبات
         foreach ($required as $key => $value) {
-            if (strlen($value) < 8) {
+            if (\strlen($value) < 8) {
                 throw new RuntimeException(
                     "Seed aborted: {$key} must be at least 8 characters long.",
                 );
