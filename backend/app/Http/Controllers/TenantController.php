@@ -213,10 +213,26 @@ class TenantController extends Controller
     {
         $this->guardMasterTenant();
 
+        // Use closure validators for tables that live in the central DB (mysql).
+        // String-based rules like unique:tenants,code and exists:plans,id resolve
+        // against the *default* connection, which tenancy has already switched to
+        // the tenant DB — causing "table not found" errors at validation time.
         $data = $request->validate([
-            'name' => 'required|string|max:100',
-            'code' => 'required|string|max:30|alpha_dash|unique:tenants,code',
-            'plan' => 'nullable|string|max:50|exists:plans,id',
+            'name'       => 'required|string|max:100',
+            'code'       => ['required', 'string', 'max:30', 'alpha_dash',
+                function ($attr, $value, $fail) {
+                    if (Tenant::where('code', strtolower($value))->exists()) {
+                        $fail('This store code is already taken.');
+                    }
+                },
+            ],
+            'plan'       => ['nullable', 'string', 'max:50',
+                function ($attr, $value, $fail) {
+                    if ($value && ! Plan::where('id', $value)->exists()) {
+                        $fail('The selected plan is invalid.');
+                    }
+                },
+            ],
             'trial_days' => 'nullable|integer|min:0|max:365',
         ]);
 

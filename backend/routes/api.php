@@ -53,9 +53,46 @@ use App\Http\Controllers\WhatsAppController;
 use App\Http\Middleware\CheckSubscriptionActive;
 use Illuminate\Support\Facades\Route;
 
+// ── Public SaaS info (no auth, no tenant required) ───────────────────────────
+Route::prefix('public')->group(function () {
+    Route::get('/plans', [PlanController::class, 'publicIndex']);
+    Route::get('/payment-methods', [PaymentAccountController::class, 'publicIndex']);
+    Route::get('/contact', function () {
+        $settings = \Illuminate\Support\Facades\DB::connection('mysql')
+            ->table('settings')
+            ->whereIn('key', ['store_name', 'store_phone', 'store_email', 'saas_whatsapp_number'])
+            ->pluck('value', 'key');
+        return response()->json([
+            'name'     => $settings->get('store_name', 'POS Enterprise'),
+            'phone'    => $settings->get('store_phone', ''),
+            'email'    => $settings->get('store_email', ''),
+            'whatsapp' => $settings->get('saas_whatsapp_number') ?: $settings->get('store_phone', ''),
+        ]);
+    });
+});
+
 // ── SPA Auth (no auth middleware — these are public login endpoints) ─────────
-Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login'])->middleware('throttle:30,1');
+Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'apiRegister'])->middleware('throttle:20,60');
 Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+// ── Subscription status (auth but bypasses CheckSubscriptionActive so expired
+//    tenants can still fetch their status and see the banner) ───────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/subscription', function () {
+    $tenant = tenancy()->tenant;
+    if (! $tenant) {
+        return response()->json(['status' => 'active', 'days_left' => null]);
+    }
+    $trialEndsAt = $tenant->trial_ends_at ? \Carbon\Carbon::parse($tenant->trial_ends_at) : null;
+    $daysLeft    = $trialEndsAt ? (int) now()->diffInDays($trialEndsAt, false) : null;
+    return response()->json([
+        'status'        => $tenant->subscription_status,
+        'plan'          => $tenant->plan,
+        'trial_ends_at' => $trialEndsAt?->toIso8601String(),
+        'days_left'     => $daysLeft !== null ? max(0, $daysLeft) : null,
+        'is_expired'    => $trialEndsAt ? now()->gt($trialEndsAt) : false,
+    ]);
+});
 
 // #12 Rate Limiting: 60 طلب/دقيقة على كل APIs
 Route::middleware(['auth:sanctum', 'throttle:60,1', CheckSubscriptionActive::class])->group(function () {

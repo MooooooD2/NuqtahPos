@@ -1086,5 +1086,14 @@
   "coming_soon": "قريباً",
   "checking_availability": "جاري التحقق...",
   "download_not_available": "الملف غير متاح بعد",
-  "download_error": "حدث خطأ أثناء التنزيل"
+  "download_error": "حدث خطأ أثناء التنزيل",
+
+  "trial_expires_days": "تنتهي تجربتك المجانية خلال {{count}} يوم",
+  "trial_expires_days_plural": "تنتهي تجربتك المجانية خلال {{count}} أيام",
+  "trial_expires_tomorrow": "تجربتك المجانية تنتهي غداً!",
+  "trial_expires_today": "تجربتك المجانية تنتهي اليوم!",
+  "trial_expired": "انتهت فترة التجربة. قم بتفعيل اشتراكك للاستمرار.",
+  "trial_plan": "خطة {{plan}}",
+  "trial_activate_now": "فعّل الآن",
+  "trial_dismiss": "إخفاء لمدة ساعة"
 }

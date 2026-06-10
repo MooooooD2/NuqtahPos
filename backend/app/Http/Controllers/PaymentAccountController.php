@@ -10,6 +10,13 @@ class PaymentAccountController extends Controller
 {
     use ApiResponse;
 
+    public function publicIndex()
+    {
+        return response()->json([
+            'methods' => PaymentAccount::configured(),
+        ]);
+    }
+
     public function index()
     {
         return $this->success([

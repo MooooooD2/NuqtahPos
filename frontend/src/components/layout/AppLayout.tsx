@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import TrialBanner from './TrialBanner'
 import { useUIStore } from '@/stores/uiStore'
 import { clsx } from 'clsx'
 
@@ -20,6 +21,7 @@ export default function AppLayout() {
         )}
       >
         <Header />
+        <TrialBanner />
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <Outlet />
         </main>

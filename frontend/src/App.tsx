@@ -8,7 +8,9 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import i18n from './i18n'
 
 // Lazy-loaded pages
+const LandingPage            = lazy(() => import('@/pages/LandingPage'))
 const LoginPage              = lazy(() => import('@/pages/LoginPage'))
+const RegisterPage           = lazy(() => import('@/pages/RegisterPage'))
 const DashboardPage          = lazy(() => import('@/pages/DashboardPage'))
 const PosPage                = lazy(() => import('@/pages/PosPage'))
 const ProductsPage           = lazy(() => import('@/pages/ProductsPage'))
@@ -49,10 +51,11 @@ const AdminCpanelPage        = lazy(() => import('@/pages/AdminCpanelPage'))
 const AdminTenantsPage       = lazy(() => import('@/pages/AdminTenantsPage'))
 const AdminPlansPage         = lazy(() => import('@/pages/AdminPlansPage'))
 const AdminPaymentAccountsPage = lazy(() => import('@/pages/AdminPaymentAccountsPage'))
+const PaymentMethodsPage       = lazy(() => import('@/pages/PaymentMethodsPage'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
+  return isAuthenticated ? <>{children}</> : <Navigate to="/welcome" replace />
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -100,6 +103,14 @@ export default function App() {
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route
+            path="/welcome"
+            element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            }
+          />
+          <Route
             path="/login"
             element={
               <PublicRoute>
@@ -107,6 +118,15 @@ export default function App() {
               </PublicRoute>
             }
           />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            }
+          />
+          <Route path="/payment" element={<PaymentMethodsPage />} />
           <Route
             path="/"
             element={
@@ -157,7 +177,7 @@ export default function App() {
             <Route path="admin/plans" element={<AdminRoute><AdminPlansPage /></AdminRoute>} />
             <Route path="admin/payment-accounts" element={<AdminRoute><AdminPaymentAccountsPage /></AdminRoute>} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/welcome" replace />} />
         </Routes>
       </Suspense>
     </>

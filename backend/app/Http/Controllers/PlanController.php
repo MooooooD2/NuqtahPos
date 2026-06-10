@@ -22,6 +22,15 @@ class PlanController extends Controller
         }
     }
 
+    public function publicIndex()
+    {
+        $plans = Plan::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        return response()->json(['plans' => $plans]);
+    }
+
     public function index()
     {
         $this->guardMasterTenant();

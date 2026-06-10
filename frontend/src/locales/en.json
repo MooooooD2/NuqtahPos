@@ -1087,5 +1087,14 @@
   "coming_soon": "Coming soon",
   "checking_availability": "Checking availability...",
   "download_not_available": "File is not available yet",
-  "download_error": "An error occurred during download"
+  "download_error": "An error occurred during download",
+
+  "trial_expires_days": "Your free trial expires in {{count}} day",
+  "trial_expires_days_plural": "Your free trial expires in {{count}} days",
+  "trial_expires_tomorrow": "Your trial expires tomorrow!",
+  "trial_expires_today": "Your trial expires today!",
+  "trial_expired": "Your trial has expired. Activate your subscription to continue.",
+  "trial_plan": "{{plan}} Plan",
+  "trial_activate_now": "Activate Now",
+  "trial_dismiss": "Dismiss for 1 hour"
 }
