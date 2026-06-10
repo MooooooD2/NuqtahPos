@@ -14,7 +14,8 @@ interface StatementData { supplier: Supplier; entries: AccountEntry[]; totals: {
 const movementBadge: Record<string, string> = { purchase_order: 'badge-info', payment: 'badge-success', purchase_return: 'badge-warning', adjustment: 'badge-gray' }
 
 export default function SupplierAccountsPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -65,7 +66,7 @@ export default function SupplierAccountsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Building2 className="h-6 w-6 text-primary-500" /> {t('supplier_accounts')}</h1>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="card p-4 flex items-center gap-4">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-red-100 dark:bg-red-900/30">
             <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -149,25 +150,20 @@ export default function SupplierAccountsPage() {
                 {stmtLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : entries.length === 0 ? (
                   <div className="px-4 py-12 text-center text-gray-400 text-sm">{t('no_movements')}</div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>{[t('date'), t('type'), t('invoice_number'), t('debt'), t('paid'), t('current_balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {entries.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_movements')}</td></tr>
-                          : entries.map((entry) => {
+                  <>
+                    {/* Desktop table */}
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full min-w-[600px] text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                          <tr>{[t('date'), t('type'), t('invoice_number'), t('debt'), t('paid'), t('current_balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {entries.map((entry) => {
                             const bal = parseFloat(entry.balance)
                             return (
                               <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 <td className="px-4 py-3 text-gray-500 text-xs">{entry.date?.slice(0, 10) || '—'}</td>
-                                <td className="px-4 py-3">
-                                  {entry.movement_type ? (
-                                    <span className={clsx('badge text-xs', movementBadge[entry.movement_type] ?? 'badge-gray')}>
-                                      {getMovementLabel(entry.movement_type)}
-                                    </span>
-                                  ) : <span className="text-gray-400">—</span>}
-                                </td>
+                                <td className="px-4 py-3">{entry.movement_type ? <span className={clsx('badge text-xs', movementBadge[entry.movement_type] ?? 'badge-gray')}>{getMovementLabel(entry.movement_type)}</span> : <span className="text-gray-400">—</span>}</td>
                                 <td className="px-4 py-3 font-mono text-xs text-primary-600">{entry.reference || '—'}</td>
                                 <td className="px-4 py-3 text-red-600 font-medium">{parseFloat(entry.debit) > 0 ? parseFloat(entry.debit).toFixed(2) : '—'}</td>
                                 <td className="px-4 py-3 text-green-600 font-medium">{parseFloat(entry.credit) > 0 ? parseFloat(entry.credit).toFixed(2) : '—'}</td>
@@ -175,19 +171,52 @@ export default function SupplierAccountsPage() {
                               </tr>
                             )
                           })}
-                      </tbody>
-                      {entries.length > 0 && totals && (
-                        <tfoot className="bg-gray-50 dark:bg-gray-700 border-t-2 dark:border-gray-600">
-                          <tr>
-                            <td colSpan={3} className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">{t('current_balance')}</td>
-                            <td className="px-4 py-3 font-bold text-red-600">{parseFloat(totals.total_debt).toFixed(2)}</td>
-                            <td className="px-4 py-3 font-bold text-green-600">{parseFloat(totals.total_paid).toFixed(2)}</td>
-                            <td className={clsx('px-4 py-3 font-bold', parseFloat(totals.balance) > 0 ? 'text-red-600' : parseFloat(totals.balance) < 0 ? 'text-green-600' : 'text-gray-500')}>{parseFloat(totals.balance).toFixed(2)}</td>
-                          </tr>
-                        </tfoot>
+                        </tbody>
+                        {totals && (
+                          <tfoot className="bg-gray-50 dark:bg-gray-700 border-t-2 dark:border-gray-600">
+                            <tr>
+                              <td colSpan={3} className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">{t('current_balance')}</td>
+                              <td className="px-4 py-3 font-bold text-red-600">{parseFloat(totals.total_debt).toFixed(2)}</td>
+                              <td className="px-4 py-3 font-bold text-green-600">{parseFloat(totals.total_paid).toFixed(2)}</td>
+                              <td className={clsx('px-4 py-3 font-bold', parseFloat(totals.balance) > 0 ? 'text-red-600' : parseFloat(totals.balance) < 0 ? 'text-green-600' : 'text-gray-500')}>{parseFloat(totals.balance).toFixed(2)}</td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                    {/* Mobile cards */}
+                    <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                      {entries.map((entry) => {
+                        const bal = parseFloat(entry.balance)
+                        return (
+                          <div key={entry.id} className="p-4 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              {entry.movement_type ? (
+                                <span className={clsx('badge text-xs', movementBadge[entry.movement_type] ?? 'badge-gray')}>{getMovementLabel(entry.movement_type)}</span>
+                              ) : <span className="text-gray-400 text-xs">—</span>}
+                              <span className={clsx('font-bold text-sm', bal > 0 ? 'text-red-600' : bal < 0 ? 'text-green-600' : 'text-gray-500')}>{bal.toFixed(2)}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs flex-wrap">
+                              {parseFloat(entry.debit) > 0 && <span className="text-red-600 font-medium">{t('debt')}: {parseFloat(entry.debit).toFixed(2)}</span>}
+                              {parseFloat(entry.credit) > 0 && <span className="text-green-600 font-medium">{t('paid')}: {parseFloat(entry.credit).toFixed(2)}</span>}
+                              {entry.reference && <span className="font-mono text-primary-600">{entry.reference}</span>}
+                            </div>
+                            <div className="text-xs text-gray-400">{entry.date?.slice(0, 10) || '—'}</div>
+                          </div>
+                        )
+                      })}
+                      {totals && (
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700 flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold uppercase text-gray-500">{t('current_balance')}</span>
+                          <div className="flex gap-3 text-sm">
+                            <span className="text-red-600 font-bold">{parseFloat(totals.total_debt).toFixed(2)}</span>
+                            <span className="text-green-600 font-bold">{parseFloat(totals.total_paid).toFixed(2)}</span>
+                            <span className={clsx('font-bold', parseFloat(totals.balance) > 0 ? 'text-red-600' : parseFloat(totals.balance) < 0 ? 'text-green-600' : 'text-gray-500')}>{parseFloat(totals.balance).toFixed(2)}</span>
+                          </div>
+                        </div>
                       )}
-                    </table>
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </>

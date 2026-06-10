@@ -18,7 +18,8 @@ interface InvoiceDetail extends Invoice { items?: ReturnableItem[] }
 const statusBadge: Record<string, string> = { paid: 'badge-success', completed: 'badge-success', partial: 'badge-warning', cancelled: 'badge-danger', refunded: 'badge-info', draft: 'badge-gray' }
 
 export default function InvoicesPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [searchParams] = useSearchParams()
@@ -116,36 +117,77 @@ export default function InvoicesPage() {
 
       <div className="card overflow-hidden">
         {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{[t('invoice_number'), t('invoice_customer_col'), t('cashier_col'), t('method_col'), t('total'), t('status'), t('date'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {invoices.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_invoices_found')}</td></tr>
-                  : invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-mono text-xs text-primary-600">{inv.invoice_number}</td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{inv.customer_name ?? t('walk_in')}</td>
-                      <td className="px-4 py-3 text-gray-500">{inv.cashier_name ?? '—'}</td>
-                      <td className="px-4 py-3"><span className="badge badge-gray capitalize">{inv.payment_method ?? '—'}</span></td>
-                      <td className="px-4 py-3 font-semibold">{parseFloat(inv.final_total ?? '0').toFixed(2)}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[inv.status ?? ''] ?? 'badge-gray')}>{inv.status ?? 'paid'}</span></td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{inv.created_at?.slice(0, 10)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          <button onClick={() => openView(inv)} className="p-1 text-gray-400 hover:text-primary-600 rounded"><Eye className="h-4 w-4" /></button>
-                          <button onClick={() => handlePrint(inv)} className="p-1 text-gray-400 hover:text-gray-600 rounded" title="Print invoice"><Printer className="h-4 w-4" /></button>
-                          {canReturn && (inv.status === 'paid' || inv.status === 'completed') && (
-                            <button onClick={() => { openView(inv); setReturnModal(true) }} title="Process Return" className="p-1 text-gray-400 hover:text-orange-600 rounded"><RotateCcw className="h-4 w-4" /></button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* ── Desktop table ─────────────────────── lg+ ── */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>{[t('invoice_number'), t('invoice_customer_col'), t('cashier_col'), t('method_col'), t('total'), t('status'), t('date'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {invoices.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_invoices_found')}</td></tr>
+                    : invoices.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-mono text-xs text-primary-600">{inv.invoice_number}</td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{inv.customer_name ?? t('walk_in')}</td>
+                        <td className="px-4 py-3 text-gray-500">{inv.cashier_name ?? '—'}</td>
+                        <td className="px-4 py-3"><span className="badge badge-gray capitalize">{inv.payment_method ?? '—'}</span></td>
+                        <td className="px-4 py-3 font-semibold">{parseFloat(inv.final_total ?? '0').toFixed(2)}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[inv.status ?? ''] ?? 'badge-gray')}>{inv.status ?? 'paid'}</span></td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">{inv.created_at?.slice(0, 10)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1">
+                            <button onClick={() => openView(inv)} className="p-1 text-gray-400 hover:text-primary-600 rounded"><Eye className="h-4 w-4" /></button>
+                            <button onClick={() => handlePrint(inv)} className="p-1 text-gray-400 hover:text-gray-600 rounded" title="Print invoice"><Printer className="h-4 w-4" /></button>
+                            {canReturn && (inv.status === 'paid' || inv.status === 'completed') && (
+                              <button onClick={() => { openView(inv); setReturnModal(true) }} title="Process Return" className="p-1 text-gray-400 hover:text-orange-600 rounded"><RotateCcw className="h-4 w-4" /></button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Mobile cards ──────────────────────── <lg ── */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {invoices.length === 0 ? (
+                <p className="px-4 py-12 text-center text-gray-400">{t('no_invoices_found')}</p>
+              ) : invoices.map((inv) => (
+                <div key={inv.id} className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-primary-600">{inv.invoice_number}</span>
+                    <span className={clsx('badge capitalize', statusBadge[inv.status ?? ''] ?? 'badge-gray')}>{inv.status ?? 'paid'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900 dark:text-white text-sm">{inv.customer_name ?? t('walk_in')}</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{parseFloat(inv.final_total ?? '0').toFixed(2)}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                    {inv.cashier_name && <span>{inv.cashier_name}</span>}
+                    {inv.cashier_name && <span>·</span>}
+                    <span className="badge badge-gray capitalize">{inv.payment_method ?? '—'}</span>
+                    <span>·</span>
+                    <span>{inv.created_at?.slice(0, 10)}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <button onClick={() => openView(inv)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                      <Eye className="h-3.5 w-3.5" />{isAr ? 'عرض' : 'View'}
+                    </button>
+                    <button onClick={() => handlePrint(inv)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
+                      <Printer className="h-3.5 w-3.5" />{isAr ? 'طباعة' : 'Print'}
+                    </button>
+                    {canReturn && (inv.status === 'paid' || inv.status === 'completed') && (
+                      <button onClick={() => { openView(inv); setReturnModal(true) }} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 hover:bg-orange-100 transition-colors font-medium">
+                        <RotateCcw className="h-3.5 w-3.5" />{isAr ? 'إرجاع' : 'Return'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

@@ -102,7 +102,8 @@ const navGroups: NavGroup[] = [
 ]
 
 export default function Sidebar() {
-  const { sidebarCollapsed, sidebarMobileOpen, toggleSidebar, setSidebarMobileOpen } = useUIStore()
+  const { sidebarCollapsed, sidebarMobileOpen, toggleSidebar, setSidebarMobileOpen, language } = useUIStore()
+  const isRTL = language === 'ar'
   const user = useAuthStore((s) => s.user)
   const location = useLocation()
   const { hasPermission } = usePermission()
@@ -129,8 +130,12 @@ export default function Sidebar() {
         className={clsx(
           'fixed inset-y-0 z-30 flex flex-col bg-sidebar-bg transition-all duration-300',
           sidebarCollapsed ? 'w-16' : 'w-64',
-          sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          'ltr:left-0 rtl:right-0 rtl:translate-x-full rtl:lg:translate-x-0',
+          isRTL ? 'right-0' : 'left-0',
+          sidebarMobileOpen
+            ? 'translate-x-0'
+            : isRTL
+              ? 'translate-x-full lg:translate-x-0'
+              : '-translate-x-full lg:translate-x-0',
         )}
       >
         {/* Logo */}

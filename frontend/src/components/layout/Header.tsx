@@ -245,20 +245,21 @@ export default function Header() {
 
         {/* ── Online/Offline indicator ─────────────────────────────────── */}
         <div className={clsx(
-          'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium cursor-default',
+          'flex items-center gap-1.5 rounded-full px-2 sm:px-2.5 py-1 text-xs font-medium cursor-default',
           isOnline
             ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
             : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
         )}>
           {isOnline ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
-          {isOnline ? t('online') : t('offline')}
+          <span className="hidden sm:inline">{isOnline ? t('online') : t('offline')}</span>
           {pendingSync > 0 && (
             <button
               title={t('pending_sync_title', { n: pendingSync })}
               onClick={() => { clearQueue(); toast.success(t('sync_queue_cleared')) }}
-              className="ml-1 flex items-center gap-0.5 underline hover:no-underline"
+              className="flex items-center gap-0.5 underline hover:no-underline"
             >
-              ({pendingSync}) <Trash2 className="h-3 w-3" />
+              <span className="hidden sm:inline">({pendingSync})</span>
+              <Trash2 className="h-3 w-3" />
             </button>
           )}
         </div>
@@ -304,7 +305,7 @@ export default function Header() {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 rtl:right-auto rtl:left-0 top-11 z-50 w-96 rounded-xl border border-gray-100 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+            <div className="absolute right-0 rtl:right-auto rtl:left-0 top-11 z-50 w-80 sm:w-96 max-w-[calc(100vw-1rem)] rounded-xl border border-gray-100 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">

@@ -5,6 +5,7 @@ import { useUIStore } from '@/stores/uiStore'
 import { Toaster } from 'react-hot-toast'
 import AppLayout from '@/components/layout/AppLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import ErrorBoundary from '@/components/common/ErrorBoundary'
 import i18n from './i18n'
 
 // Lazy-loaded pages
@@ -100,6 +101,7 @@ export default function App() {
           duration: 4000,
         }}
       />
+      <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route
@@ -180,6 +182,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/welcome" replace />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </>
   )
 }

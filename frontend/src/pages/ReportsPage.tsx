@@ -498,7 +498,7 @@ function GenericTable({ cols, rows }: { cols: string[]; rows: Record<string, unk
   return (
     <div>
       <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[600px] text-xs">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
               {cols.map((col) => (
@@ -559,7 +559,7 @@ function SectionTable({ title, rows, totalLabel, total }: {
         )}
       </div>
       <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700 mb-1">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[600px] text-xs">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-700/50">
               {display.map((c) => (
@@ -628,7 +628,7 @@ function IncomeStatementView({ data }: { data: Record<string, unknown> }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard label="Total Revenue"  value={totalRevenue} />
         <KpiCard label="Total Expenses" value={totalExpense} />
         <KpiCard
@@ -743,7 +743,7 @@ function CashFlowView({ data, rows }: { data: Record<string, unknown>; rows: Rec
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard label="Total Inflows"  value={totalIn}   color="text-green-600 dark:text-green-400" />
         <KpiCard label="Total Outflows" value={totalOut}  color="text-red-500 dark:text-red-400" />
         <KpiCard

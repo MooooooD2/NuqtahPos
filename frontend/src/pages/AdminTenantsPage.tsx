@@ -252,18 +252,18 @@ export default function AdminTenantsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <Building2 className="h-6 w-6 text-primary-500" />
           {isAr ? 'إدارة الاشتراكات' : 'Subscriptions'}
         </h1>
-        <button onClick={openCreate} className="btn btn-primary flex items-center gap-2">
-          <Plus className="h-4 w-4" /> {isAr ? 'مستأجر جديد' : 'New Tenant'}
+        <button onClick={openCreate} className="btn btn-primary flex items-center gap-2 text-sm">
+          <Plus className="h-4 w-4" /> <span className="hidden sm:inline">{isAr ? 'مستأجر جديد' : 'New Tenant'}</span><span className="sm:hidden">{isAr ? 'جديد' : 'New'}</span>
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {statCards.map((s) => (
           <div key={s.label} className="card p-4 text-center">
             <p className={clsx('text-3xl font-bold', s.cls)}>{s.value}</p>
@@ -273,12 +273,12 @@ export default function AdminTenantsPage() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4 flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-48">
+      <div className="card p-4 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={isAr ? 'بحث...' : 'Search...'} className="input ps-9 w-full" />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input w-40">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input sm:w-44">
           <option value="">{isAr ? 'جميع الحالات' : 'All Status'}</option>
           {['active', 'trial', 'expired', 'suspended', 'cancelled'].map((s) => (
             <option key={s} value={s}>{STATUS_AR[s]}</option>
@@ -286,133 +286,162 @@ export default function AdminTenantsPage() {
         </select>
       </div>
 
-      {/* Table */}
+      {/* Tenants list */}
       <div className="card overflow-hidden">
         {isLoading ? (
           <div className="flex h-40 items-center justify-center"><LoadingSpinner size="lg" /></div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center text-gray-400">{isAr ? 'لا توجد بيانات' : 'No data'}</div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                {[isAr ? 'المتجر' : 'Store', isAr ? 'الكود' : 'Code', isAr ? 'الخطة' : 'Plan', isAr ? 'الحالة' : 'Status', isAr ? 'الاشتراك' : 'Subscription', isAr ? 'الإنشاء' : 'Created', isAr ? 'إجراءات' : 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-start text-xs font-semibold uppercase text-gray-500">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} className="py-12 text-center text-gray-400">{isAr ? 'لا توجد بيانات' : 'No data'}</td></tr>
-              )}
+          <>
+            {/* Desktop table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[900px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[isAr ? 'المتجر' : 'Store', isAr ? 'الكود' : 'Code', isAr ? 'الخطة' : 'Plan', isAr ? 'الحالة' : 'Status', isAr ? 'الاشتراك' : 'Subscription', isAr ? 'الإنشاء' : 'Created', isAr ? 'إجراءات' : 'Actions'].map((h) => (
+                      <th key={h} className="px-4 py-3 text-start text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {filtered.map((t) => (
+                    <Fragment key={t.id}>
+                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900 dark:text-white">{t.name}</span>
+                            {!t.is_active && <span className="badge badge-danger text-xs">Disabled</span>}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-gray-500">{t.code}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge', PLAN_BADGE[t.plan] ?? 'badge-info')}>{t.plan}</span></td>
+                        <td className="px-4 py-3">
+                          <span className={clsx('badge', STATUS_BADGE[t.subscription_status] ?? 'badge-info')}>
+                            {STATUS_AR[t.subscription_status] ?? t.subscription_status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">
+                          {t.subscription_ends_at
+                            ? new Date(t.subscription_ends_at).toLocaleDateString()
+                            : t.trial_ends_at ? `Trial: ${new Date(t.trial_ends_at).toLocaleDateString()}` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{new Date(t.created_at).toLocaleDateString()}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => { if (confirm(isAr ? `الدخول إلى ${t.name}؟ سيتم استبدال جلستك الحالية.` : `Login to ${t.name}? Your current session will be replaced.`)) impersonateMut.mutate(t.id) }} disabled={impersonateMut.isPending} className="p-1.5 rounded hover:bg-amber-100 dark:hover:bg-amber-900/30" title={isAr ? 'الدخول كمستأجر' : 'Login as tenant'}><LogIn className="h-3.5 w-3.5 text-amber-500" /></button>
+                            <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'المستخدمون' : 'Users'}><Users className="h-3.5 w-3.5 text-blue-500" /></button>
+                            <button onClick={() => openAddUser(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'إضافة مستخدم' : 'Add user'}><UserPlus className="h-3.5 w-3.5 text-green-500" /></button>
+                            <button onClick={() => openEdit(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'تعديل' : 'Edit'}><Pencil className="h-3.5 w-3.5 text-gray-500" /></button>
+                            <button onClick={() => setExtendTarget(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'تمديد' : 'Extend'}><CalendarDays className="h-3.5 w-3.5 text-green-500" /></button>
+                            <button onClick={() => toggleMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={t.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}>{t.is_active ? <ToggleRight className="h-3.5 w-3.5 text-green-500" /> : <ToggleLeft className="h-3.5 w-3.5 text-gray-400" />}</button>
+                            {t.subscription_status !== 'suspended' && <button onClick={() => suspendMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'إيقاف' : 'Suspend'}><Ban className="h-3.5 w-3.5 text-orange-500" /></button>}
+                            <button onClick={() => seedMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'زرع بيانات' : 'Seed data'} disabled={seedMut.isPending}><RefreshCw className={clsx('h-3.5 w-3.5 text-purple-500', seedMut.isPending && 'animate-spin')} /></button>
+                            <button onClick={() => { if (confirm(isAr ? 'حذف المتجر نهائياً؟' : 'Delete this store permanently?')) deleteMut.mutate(t.id) }} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'حذف' : 'Delete'} disabled={deleteMut.isPending}><Trash2 className="h-3.5 w-3.5 text-red-500" /></button>
+                            <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">{expandedId === t.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</button>
+                          </div>
+                        </td>
+                      </tr>
+                      {expandedId === t.id && (
+                        <tr>
+                          <td colSpan={7} className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-semibold text-gray-500">{isAr ? 'مستخدمو المتجر' : 'Store Users'}</p>
+                              <button onClick={() => openAddUser(t)} className="flex items-center gap-1 text-xs text-green-600 hover:underline"><UserPlus className="h-3 w-3" /> {isAr ? 'إضافة مستخدم' : 'Add user'}</button>
+                            </div>
+                            {!usersMap[t.id] ? <LoadingSpinner size="sm" /> : usersMap[t.id].length === 0 ? (
+                              <p className="text-xs text-gray-400">{isAr ? 'لا يوجد مستخدمون' : 'No users'}</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                {usersMap[t.id].map((u) => (
+                                  <div key={u.id} className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-lg px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-600">
+                                    <span className={clsx('w-2 h-2 rounded-full', u.is_active ? 'bg-green-500' : 'bg-gray-300')} />
+                                    <span className="font-medium">{u.name || u.username}</span>
+                                    <span className="text-gray-400">@{u.username}</span>
+                                    <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-blue-500 hover:underline">{u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
               {filtered.map((t) => (
-                <Fragment key={t.id}>
-                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-white">{t.name}</span>
+                <div key={t.id} className="p-4 space-y-3">
+                  {/* Header row */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-gray-900 dark:text-white">{t.name}</span>
                         {!t.is_active && <span className="badge badge-danger text-xs">Disabled</span>}
                       </div>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-gray-500">{t.code}</td>
-                    <td className="px-4 py-3"><span className={clsx('badge', PLAN_BADGE[t.plan] ?? 'badge-info')}>{t.plan}</span></td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge', STATUS_BADGE[t.subscription_status] ?? 'badge-info')}>
-                        {STATUS_AR[t.subscription_status] ?? t.subscription_status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">
+                      <p className="text-xs text-gray-400 font-mono mt-0.5">{t.code}</p>
+                    </div>
+                    <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600 flex-shrink-0">
+                      {expandedId === t.id ? <ChevronUp className="h-4 w-4 text-gray-500" /> : <ChevronDown className="h-4 w-4 text-gray-500" />}
+                    </button>
+                  </div>
+
+                  {/* Badges + info */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                    <span className={clsx('badge', PLAN_BADGE[t.plan] ?? 'badge-info')}>{t.plan}</span>
+                    <span className={clsx('badge', STATUS_BADGE[t.subscription_status] ?? 'badge-info')}>{STATUS_AR[t.subscription_status] ?? t.subscription_status}</span>
+                    <span>
                       {t.subscription_ends_at
                         ? new Date(t.subscription_ends_at).toLocaleDateString()
                         : t.trial_ends_at ? `Trial: ${new Date(t.trial_ends_at).toLocaleDateString()}` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(t.created_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        {/* Login as tenant */}
-                        <button
-                          onClick={() => { if (confirm(isAr ? `الدخول إلى ${t.name}؟ سيتم استبدال جلستك الحالية.` : `Login to ${t.name}? Your current session will be replaced.`)) impersonateMut.mutate(t.id) }}
-                          disabled={impersonateMut.isPending}
-                          className="p-1.5 rounded hover:bg-amber-100 dark:hover:bg-amber-900/30"
-                          title={isAr ? 'الدخول كمستأجر' : 'Login as tenant'}
-                        >
-                          <LogIn className="h-3.5 w-3.5 text-amber-500" />
-                        </button>
-                        {/* Users expand */}
-                        <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'المستخدمون' : 'Users'}>
-                          <Users className="h-3.5 w-3.5 text-blue-500" />
-                        </button>
-                        {/* Add user */}
-                        <button onClick={() => openAddUser(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'إضافة مستخدم' : 'Add user'}>
-                          <UserPlus className="h-3.5 w-3.5 text-green-500" />
-                        </button>
-                        {/* Edit */}
-                        <button onClick={() => openEdit(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'تعديل' : 'Edit'}>
-                          <Pencil className="h-3.5 w-3.5 text-gray-500" />
-                        </button>
-                        {/* Extend */}
-                        <button onClick={() => setExtendTarget(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'تمديد' : 'Extend'}>
-                          <CalendarDays className="h-3.5 w-3.5 text-green-500" />
-                        </button>
-                        {/* Toggle active */}
-                        <button onClick={() => toggleMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={t.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}>
-                          {t.is_active ? <ToggleRight className="h-3.5 w-3.5 text-green-500" /> : <ToggleLeft className="h-3.5 w-3.5 text-gray-400" />}
-                        </button>
-                        {/* Suspend */}
-                        {t.subscription_status !== 'suspended' && (
-                          <button onClick={() => suspendMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'إيقاف' : 'Suspend'}>
-                            <Ban className="h-3.5 w-3.5 text-orange-500" />
-                          </button>
-                        )}
-                        {/* Seed */}
-                        <button onClick={() => seedMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'زرع بيانات تجريبية' : 'Seed demo data'} disabled={seedMut.isPending}>
-                          <RefreshCw className={clsx('h-3.5 w-3.5 text-purple-500', seedMut.isPending && 'animate-spin')} />
-                        </button>
-                        {/* Delete */}
-                        <button onClick={() => { if (confirm(isAr ? 'حذف المتجر نهائياً؟' : 'Delete this store permanently?')) deleteMut.mutate(t.id) }} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'حذف' : 'Delete'} disabled={deleteMut.isPending}>
-                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                        </button>
-                        {/* Expand chevron */}
-                        <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                          {expandedId === t.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                    </span>
+                  </div>
 
-                  {/* Expanded users row */}
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-1 flex-wrap border-t border-gray-100 dark:border-gray-700 pt-2">
+                    <button onClick={() => { if (confirm(isAr ? `الدخول إلى ${t.name}؟ سيتم استبدال جلستك الحالية.` : `Login to ${t.name}? Your current session will be replaced.`)) impersonateMut.mutate(t.id) }} disabled={impersonateMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-amber-100"><LogIn className="h-3 w-3" />{isAr ? 'دخول' : 'Login'}</button>
+                    <button onClick={() => openEdit(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"><Pencil className="h-3 w-3" />{isAr ? 'تعديل' : 'Edit'}</button>
+                    <button onClick={() => setExtendTarget(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100"><CalendarDays className="h-3 w-3" />{isAr ? 'تمديد' : 'Extend'}</button>
+                    <button onClick={() => openAddUser(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100"><UserPlus className="h-3 w-3" />{isAr ? 'مستخدم' : 'User'}</button>
+                    <button onClick={() => toggleMut.mutate(t.id)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200">{t.is_active ? <ToggleRight className="h-3 w-3 text-green-500" /> : <ToggleLeft className="h-3 w-3 text-gray-400" />}{t.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
+                    {t.subscription_status !== 'suspended' && <button onClick={() => suspendMut.mutate(t.id)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 hover:bg-orange-100"><Ban className="h-3 w-3" />{isAr ? 'إيقاف' : 'Suspend'}</button>}
+                    <button onClick={() => seedMut.mutate(t.id)} disabled={seedMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 hover:bg-purple-100"><RefreshCw className={clsx('h-3 w-3', seedMut.isPending && 'animate-spin')} />{isAr ? 'بيانات' : 'Seed'}</button>
+                    <button onClick={() => { if (confirm(isAr ? 'حذف المتجر نهائياً؟' : 'Delete this store permanently?')) deleteMut.mutate(t.id) }} disabled={deleteMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100"><Trash2 className="h-3 w-3" />{isAr ? 'حذف' : 'Delete'}</button>
+                  </div>
+
+                  {/* Expanded users on mobile */}
                   {expandedId === t.id && (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-semibold text-gray-500">{isAr ? 'مستخدمو المتجر' : 'Store Users'}</p>
-                          <button onClick={() => openAddUser(t)} className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                            <UserPlus className="h-3 w-3" /> {isAr ? 'إضافة مستخدم' : 'Add user'}
-                          </button>
-                        </div>
-                        {!usersMap[t.id] ? (
-                          <LoadingSpinner size="sm" />
-                        ) : usersMap[t.id].length === 0 ? (
-                          <p className="text-xs text-gray-400">{isAr ? 'لا يوجد مستخدمون' : 'No users'}</p>
-                        ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {usersMap[t.id].map((u) => (
-                              <div key={u.id} className="flex items-center gap-2 bg-white dark:bg-gray-700 rounded-lg px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-600">
-                                <span className={clsx('w-2 h-2 rounded-full', u.is_active ? 'bg-green-500' : 'bg-gray-300')} />
-                                <span className="font-medium">{u.name || u.username}</span>
-                                <span className="text-gray-400">@{u.username}</span>
-                                <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-blue-500 hover:underline">
-                                  {u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}
-                                </button>
+                    <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-500">{isAr ? 'مستخدمو المتجر' : 'Store Users'}</p>
+                        <button onClick={() => openAddUser(t)} className="flex items-center gap-1 text-xs text-green-600 hover:underline"><UserPlus className="h-3 w-3" /> {isAr ? 'إضافة' : 'Add'}</button>
+                      </div>
+                      {!usersMap[t.id] ? <LoadingSpinner size="sm" /> : usersMap[t.id].length === 0 ? (
+                        <p className="text-xs text-gray-400">{isAr ? 'لا يوجد مستخدمون' : 'No users'}</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {usersMap[t.id].map((u) => (
+                            <div key={u.id} className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2 text-xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={clsx('w-2 h-2 rounded-full flex-shrink-0', u.is_active ? 'bg-green-500' : 'bg-gray-300')} />
+                                <span className="font-medium truncate">{u.name || u.username}</span>
+                                <span className="text-gray-400 hidden sm:inline">@{u.username}</span>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                              <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-blue-500 hover:underline flex-shrink-0">{u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
-                </Fragment>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 

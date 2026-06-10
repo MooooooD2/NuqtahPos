@@ -98,7 +98,8 @@ const breakTypeIcon = (type: BreakType) => {
 }
 
 export default function MyShiftPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const qc = useQueryClient()
   const [clockOutModal, setClockOutModal] = useState(false)
   const [clockOutForm, setClockOutForm] = useState({ ...emptyClockOut })
@@ -356,50 +357,58 @@ export default function MyShiftPage() {
         {historyLoading ? (
           <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {[t('date'), t('clock_in'), t('clock_out'), t('hours_worked'), 'استراحات', t('status')].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {history.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_shift_history')}</td></tr>
-                ) : history.map((rec) => {
+          <>
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[550px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[t('date'), t('clock_in'), t('clock_out'), t('hours_worked'), 'استراحات', t('status')].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {history.length === 0 ? (
+                    <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_shift_history')}</td></tr>
+                  ) : history.map((rec) => {
+                    const recBreaks = rec.breaks ?? []
+                    const recBreakMins = recBreaks.filter((b) => b.ended_at).reduce((s, b) => s + (b.duration_minutes ?? 0), 0)
+                    return (
+                      <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{rec.date}</td>
+                        <td className="px-4 py-3 text-gray-500">{formatTime(rec.clock_in_at)}</td>
+                        <td className="px-4 py-3 text-gray-500">{rec.clock_out_at ? formatTime(rec.clock_out_at) : <span className="text-green-500 font-medium">{t('shift_active')}</span>}</td>
+                        <td className="px-4 py-3">{rec.hours_worked ? <span className="badge badge-info">{rec.hours_worked}h</span> : '—'}</td>
+                        <td className="px-4 py-3">{recBreaks.length > 0 ? <span className="text-xs text-yellow-600 flex items-center gap-1"><Coffee className="h-3 w-3" />{recBreaks.length}× {recBreakMins > 0 ? `(${formatMins(recBreakMins)})` : ''}</span> : <span className="text-gray-400">—</span>}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge(rec.status))}>{rec.status.replace('_', ' ')}</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {history.length === 0 ? <p className="px-4 py-12 text-center text-gray-400">{t('no_shift_history')}</p>
+                : history.map((rec) => {
                   const recBreaks = rec.breaks ?? []
                   const recBreakMins = recBreaks.filter((b) => b.ended_at).reduce((s, b) => s + (b.duration_minutes ?? 0), 0)
                   return (
-                    <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{rec.date}</td>
-                      <td className="px-4 py-3 text-gray-500">{formatTime(rec.clock_in_at)}</td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {rec.clock_out_at ? formatTime(rec.clock_out_at) : <span className="text-green-500 font-medium">{t('shift_active')}</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        {rec.hours_worked ? <span className="badge badge-info">{rec.hours_worked}h</span> : '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {recBreaks.length > 0 ? (
-                          <span className="text-xs text-yellow-600 flex items-center gap-1">
-                            <Coffee className="h-3 w-3" />
-                            {recBreaks.length}× {recBreakMins > 0 ? `(${formatMins(recBreakMins)})` : ''}
-                          </span>
-                        ) : <span className="text-gray-400">—</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={clsx('badge capitalize', statusBadge(rec.status))}>
-                          {rec.status.replace('_', ' ')}
-                        </span>
-                      </td>
-                    </tr>
+                    <div key={rec.id} className="p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{rec.date}</span>
+                        <span className={clsx('badge capitalize shrink-0', statusBadge(rec.status))}>{rec.status.replace('_', ' ')}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                        <span>{t('clock_in')}: {formatTime(rec.clock_in_at)}</span>
+                        <span>{t('clock_out')}: {rec.clock_out_at ? formatTime(rec.clock_out_at) : <span className="text-green-500">{t('shift_active')}</span>}</span>
+                        {rec.hours_worked && <span className="badge badge-info">{rec.hours_worked}h</span>}
+                        {recBreaks.length > 0 && <span className="text-yellow-600 flex items-center gap-1"><Coffee className="h-3 w-3" />{recBreaks.length}× {recBreakMins > 0 ? `(${formatMins(recBreakMins)})` : ''}</span>}
+                      </div>
+                    </div>
                   )
                 })}
-              </tbody>
-            </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
 

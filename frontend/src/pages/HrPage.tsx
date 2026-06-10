@@ -40,7 +40,8 @@ function calcDays(start: string, end: string): number {
 }
 
 export default function HrPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [searchParams] = useSearchParams()
@@ -314,35 +315,65 @@ export default function HrPage() {
       {tab === 'employees' && (
         <div className="card overflow-hidden">
           {empLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('name'), t('position'), t('department'), t('phone'), t('hire_date'), t('salary'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {employees.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_employees')}</td></tr>
-                    : employees.map((e) => (
-                      <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{e.name}</td>
-                        <td className="px-4 py-3 text-gray-500">{e.position ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-500">{e.department ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-500">{e.phone ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-400 text-xs">{e.hire_date?.slice(0, 10) ?? '—'}</td>
-                        <td className="px-4 py-3 font-semibold text-primary-600">{e.salary ? parseFloat(e.salary).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}</td>
-                        <td className="px-4 py-3"><span className={clsx('badge capitalize', e.status === 'active' ? 'badge-success' : 'badge-gray')}>{e.status ?? 'active'}</span></td>
-                        <td className="px-4 py-3">
-                          {canManage && (
-                            <div className="flex gap-1 justify-end">
-                              <button onClick={() => openEdit(e)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>
-                              <button onClick={() => setDeleteId(e.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[700px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('name'), t('position'), t('department'), t('phone'), t('hire_date'), t('salary'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {employees.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_employees')}</td></tr>
+                      : employees.map((e) => (
+                        <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{e.name}</td>
+                          <td className="px-4 py-3 text-gray-500">{e.position ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">{e.department ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">{e.phone ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-400 text-xs">{e.hire_date?.slice(0, 10) ?? '—'}</td>
+                          <td className="px-4 py-3 font-semibold text-primary-600">{e.salary ? parseFloat(e.salary).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize', e.status === 'active' ? 'badge-success' : 'badge-gray')}>{e.status ?? 'active'}</span></td>
+                          <td className="px-4 py-3">
+                            {canManage && (
+                              <div className="flex gap-1 justify-end">
+                                <button onClick={() => openEdit(e)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>
+                                <button onClick={() => setDeleteId(e.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {employees.length === 0 ? <p className="px-4 py-12 text-center text-gray-400">{t('no_employees')}</p>
+                  : employees.map((e) => (
+                    <div key={e.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">{e.name}</span>
+                        <span className={clsx('badge capitalize shrink-0', e.status === 'active' ? 'badge-success' : 'badge-gray')}>{e.status ?? 'active'}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 space-y-0.5">
+                        {e.position && <div>{t('position')}: {e.position}</div>}
+                        {e.department && <div>{t('department')}: {e.department}</div>}
+                        {e.phone && <div>{t('phone')}: {e.phone}</div>}
+                        {e.hire_date && <div>{t('hire_date')}: {e.hire_date.slice(0, 10)}</div>}
+                      </div>
+                      {e.salary && <div className="text-sm font-semibold text-primary-600">{parseFloat(e.salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>}
+                      {canManage && (
+                        <div className="flex gap-2 pt-1">
+                          <button onClick={() => openEdit(e)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                            <Pencil className="h-3.5 w-3.5" />{isAr ? 'تعديل' : 'Edit'}
+                          </button>
+                          <button onClick={() => setDeleteId(e.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                            <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -351,7 +382,7 @@ export default function HrPage() {
       {tab === 'shifts' && (
         <div className="space-y-3">
           {/* KPI row */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div className="card p-4 flex items-center gap-3">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg"><UserCheck className="h-5 w-5 text-green-600" /></div>
               <div><p className="text-xs text-gray-500">ورديات نشطة</p><p className="text-2xl font-bold text-green-600">{shifts.filter((s) => s.status === 'active').length}</p></div>
@@ -368,101 +399,117 @@ export default function HrPage() {
 
           <div className="card overflow-hidden">
             {shiftLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    {[t('employee'), t('clock_in'), t('clock_out'), t('hours_worked'), 'الاستراحات', t('status'), ''].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {shifts.length === 0 ? (
-                    <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_shifts')}</td></tr>
-                  ) : shifts.map((s) => {
-                    const sBreaks = s.breaks ?? []
-                    const completedBreaks = sBreaks.filter((b) => b.ended_at)
-                    const totalBreakMins = completedBreaks.reduce((sum, b) => sum + (b.duration_minutes ?? 0), 0)
-                    const isExpanded = expandedShiftId === s.id
-                    return (
-                      <>
-                        <tr key={s.id} className={clsx('hover:bg-gray-50 dark:hover:bg-gray-700/50', s.on_break && 'bg-yellow-50/50 dark:bg-yellow-900/10')}>
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                            {s.user?.name ?? '—'}
-                            {s.on_break && <span className="mr-1 badge badge-warning text-xs">استراحة</span>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-500">{s.clock_in_at ? new Date(s.clock_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                          <td className="px-4 py-3 text-gray-500">
-                            {s.clock_out_at ? new Date(s.clock_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-green-500 font-medium">{t('ongoing')}</span>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                            {s.hours_worked ? <span className="badge badge-info">{s.hours_worked}h</span> : '—'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {sBreaks.length > 0 ? (
-                              <span className="text-xs text-yellow-600 flex items-center gap-1">
-                                <Coffee className="h-3 w-3" />
-                                {sBreaks.length}×
-                                {totalBreakMins > 0 && <span className="text-gray-400">({Math.floor(totalBreakMins / 60) > 0 ? `${Math.floor(totalBreakMins / 60)}h ` : ''}{totalBreakMins % 60}m)</span>}
-                                {s.on_break && <span className="text-yellow-500">جارية</span>}
-                              </span>
-                            ) : <span className="text-gray-400 text-xs">—</span>}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={clsx('badge capitalize', s.status === 'active' ? 'badge-success' : 'badge-gray')}>{s.status}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            {sBreaks.length > 0 && (
-                              <button
-                                onClick={() => setExpandedShiftId(isExpanded ? null : s.id)}
-                                className="p-1 text-gray-400 hover:text-primary-600 rounded"
-                              >
-                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                              </button>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[700px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        {[t('employee'), t('clock_in'), t('clock_out'), t('hours_worked'), 'الاستراحات', t('status'), ''].map((h) => (
+                          <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {shifts.length === 0 ? (
+                        <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_shifts')}</td></tr>
+                      ) : shifts.map((s) => {
+                        const sBreaks = s.breaks ?? []
+                        const completedBreaks = sBreaks.filter((b) => b.ended_at)
+                        const totalBreakMins = completedBreaks.reduce((sum, b) => sum + (b.duration_minutes ?? 0), 0)
+                        const isExpanded = expandedShiftId === s.id
+                        return (
+                          <>
+                            <tr key={s.id} className={clsx('hover:bg-gray-50 dark:hover:bg-gray-700/50', s.on_break && 'bg-yellow-50/50 dark:bg-yellow-900/10')}>
+                              <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                                {s.user?.name ?? '—'}
+                                {s.on_break && <span className="mr-1 badge badge-warning text-xs">استراحة</span>}
+                              </td>
+                              <td className="px-4 py-3 text-gray-500">{s.clock_in_at ? new Date(s.clock_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                              <td className="px-4 py-3 text-gray-500">
+                                {s.clock_out_at ? new Date(s.clock_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-green-500 font-medium">{t('ongoing')}</span>}
+                              </td>
+                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                                {s.hours_worked ? <span className="badge badge-info">{s.hours_worked}h</span> : '—'}
+                              </td>
+                              <td className="px-4 py-3">
+                                {sBreaks.length > 0 ? (
+                                  <span className="text-xs text-yellow-600 flex items-center gap-1">
+                                    <Coffee className="h-3 w-3" />
+                                    {sBreaks.length}×
+                                    {totalBreakMins > 0 && <span className="text-gray-400">({Math.floor(totalBreakMins / 60) > 0 ? `${Math.floor(totalBreakMins / 60)}h ` : ''}{totalBreakMins % 60}m)</span>}
+                                    {s.on_break && <span className="text-yellow-500">جارية</span>}
+                                  </span>
+                                ) : <span className="text-gray-400 text-xs">—</span>}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={clsx('badge capitalize', s.status === 'active' ? 'badge-success' : 'badge-gray')}>{s.status}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                {sBreaks.length > 0 && (
+                                  <button onClick={() => setExpandedShiftId(isExpanded ? null : s.id)} className="p-1 text-gray-400 hover:text-primary-600 rounded">
+                                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                            {isExpanded && sBreaks.length > 0 && (
+                              <tr key={`${s.id}-breaks`}>
+                                <td colSpan={7} className="px-4 pb-3 bg-gray-50 dark:bg-gray-800">
+                                  <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full min-w-[400px] text-xs">
+                                        <thead className="bg-gray-100 dark:bg-gray-700">
+                                          <tr>{['#', 'النوع', 'بداية', 'نهاية', 'المدة'].map((h) => <th key={h} className="px-3 py-2 text-left font-semibold text-gray-500">{h}</th>)}</tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                          {sBreaks.map((b, bi) => (
+                                            <tr key={b.id} className={!b.ended_at ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}>
+                                              <td className="px-3 py-2 text-gray-500">{bi + 1}</td>
+                                              <td className="px-3 py-2 capitalize text-gray-700 dark:text-gray-300 flex items-center gap-1"><Coffee className="h-3 w-3 text-yellow-500" />{b.type}</td>
+                                              <td className="px-3 py-2 text-gray-600">{new Date(b.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                              <td className="px-3 py-2 text-gray-600">{b.ended_at ? new Date(b.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-yellow-500">جارية</span>}</td>
+                                              <td className="px-3 py-2">{b.duration_minutes != null ? <span className="badge badge-gray">{b.duration_minutes}m</span> : <span className="text-yellow-500">—</span>}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
                             )}
-                          </td>
-                        </tr>
-                        {isExpanded && sBreaks.length > 0 && (
-                          <tr key={`${s.id}-breaks`}>
-                            <td colSpan={7} className="px-4 pb-3 bg-gray-50 dark:bg-gray-800">
-                              <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <table className="w-full text-xs">
-                                  <thead className="bg-gray-100 dark:bg-gray-700">
-                                    <tr>
-                                      {['#', 'النوع', 'بداية', 'نهاية', 'المدة'].map((h) => (
-                                        <th key={h} className="px-3 py-2 text-left font-semibold text-gray-500">{h}</th>
-                                      ))}
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {sBreaks.map((b, bi) => (
-                                      <tr key={b.id} className={!b.ended_at ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}>
-                                        <td className="px-3 py-2 text-gray-500">{bi + 1}</td>
-                                        <td className="px-3 py-2 capitalize text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                                          <Coffee className="h-3 w-3 text-yellow-500" />{b.type}
-                                        </td>
-                                        <td className="px-3 py-2 text-gray-600">{new Date(b.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                        <td className="px-3 py-2 text-gray-600">
-                                          {b.ended_at ? new Date(b.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-yellow-500">جارية</span>}
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          {b.duration_minutes != null ? (
-                                            <span className="badge badge-gray">{b.duration_minutes}m</span>
-                                          ) : <span className="text-yellow-500">—</span>}
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    )
-                  })}
-                </tbody>
-              </table>
+                          </>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {shifts.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_shifts')}</p>
+                    : shifts.map((s) => {
+                      const sBreaks = s.breaks ?? []
+                      const completedBreaks = sBreaks.filter((b) => b.ended_at)
+                      const totalBreakMins = completedBreaks.reduce((sum, b) => sum + (b.duration_minutes ?? 0), 0)
+                      return (
+                        <div key={s.id} className={clsx('p-4 space-y-2', s.on_break && 'bg-yellow-50/50 dark:bg-yellow-900/10')}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900 dark:text-white">{s.user?.name ?? '—'}</span>
+                              {s.on_break && <span className="badge badge-warning text-xs">استراحة</span>}
+                            </div>
+                            <span className={clsx('badge capitalize', s.status === 'active' ? 'badge-success' : 'badge-gray')}>{s.status}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                            <span>{t('clock_in')}: {s.clock_in_at ? new Date(s.clock_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+                            <span>{t('clock_out')}: {s.clock_out_at ? new Date(s.clock_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span className="text-green-500">{t('ongoing')}</span>}</span>
+                            {s.hours_worked && <span className="badge badge-info">{s.hours_worked}h</span>}
+                            {sBreaks.length > 0 && <span className="text-yellow-600 flex items-center gap-1"><Coffee className="h-3 w-3" />{sBreaks.length}× ({totalBreakMins}m)</span>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -512,35 +559,50 @@ export default function HrPage() {
           {/* Table */}
           <div className="card overflow-hidden">
             {attLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('employee'), t('work_date'), t('check_in'), t('check_out'), t('hours_worked'), 'الاستراحات', t('status'), t('notes')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {attRecords.length === 0
-                      ? <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">{t('no_attendance')}</td></tr>
-                      : attRecords.map((r) => (
-                        <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.user_name ?? '—'}</td>
-                          <td className="px-4 py-3 text-gray-500">{r.work_date}</td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.check_in ? r.check_in.slice(11, 16) : '—'}</td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.check_out ? r.check_out.slice(11, 16) : '—'}</td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.hours_worked ? <span className="badge badge-info">{r.hours_worked}h</span> : '—'}</td>
-                          <td className="px-4 py-3">
-                            {r.break_minutes ? (
-                              <span className="text-xs text-yellow-600 flex items-center gap-1">
-                                <Coffee className="h-3 w-3" />{r.break_minutes}m
-                              </span>
-                            ) : <span className="text-gray-400">—</span>}
-                          </td>
-                          <td className="px-4 py-3"><span className={clsx('badge capitalize', attStatusBadge(r.status))}>{r.status.replace('_', ' ')}</span></td>
-                          <td className="px-4 py-3 text-gray-400 text-xs max-w-[160px] truncate">{r.notes ?? '—'}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[700px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('employee'), t('work_date'), t('check_in'), t('check_out'), t('hours_worked'), 'الاستراحات', t('status'), t('notes')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {attRecords.length === 0
+                        ? <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">{t('no_attendance')}</td></tr>
+                        : attRecords.map((r) => (
+                          <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.user_name ?? '—'}</td>
+                            <td className="px-4 py-3 text-gray-500">{r.work_date}</td>
+                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.check_in ? r.check_in.slice(11, 16) : '—'}</td>
+                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.check_out ? r.check_out.slice(11, 16) : '—'}</td>
+                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.hours_worked ? <span className="badge badge-info">{r.hours_worked}h</span> : '—'}</td>
+                            <td className="px-4 py-3">{r.break_minutes ? <span className="text-xs text-yellow-600 flex items-center gap-1"><Coffee className="h-3 w-3" />{r.break_minutes}m</span> : <span className="text-gray-400">—</span>}</td>
+                            <td className="px-4 py-3"><span className={clsx('badge capitalize', attStatusBadge(r.status))}>{r.status.replace('_', ' ')}</span></td>
+                            <td className="px-4 py-3 text-gray-400 text-xs max-w-[160px] truncate">{r.notes ?? '—'}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {attRecords.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_attendance')}</p>
+                    : attRecords.map((r) => (
+                      <div key={r.id} className="p-4 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-gray-900 dark:text-white">{r.user_name ?? '—'}</span>
+                          <span className={clsx('badge capitalize shrink-0', attStatusBadge(r.status))}>{r.status.replace('_', ' ')}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                          <span>{r.work_date}</span>
+                          <span>{t('check_in')}: {r.check_in ? r.check_in.slice(11, 16) : '—'}</span>
+                          <span>{t('check_out')}: {r.check_out ? r.check_out.slice(11, 16) : '—'}</span>
+                          {r.hours_worked && <span className="badge badge-info">{r.hours_worked}h</span>}
+                          {r.break_minutes ? <span className="text-yellow-600 flex items-center gap-1"><Coffee className="h-3 w-3" />{r.break_minutes}m</span> : null}
+                        </div>
+                        {r.notes && <p className="text-xs text-gray-400 truncate">{r.notes}</p>}
+                      </div>
+                    ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -600,39 +662,62 @@ export default function HrPage() {
               <h2 className="font-semibold text-gray-900 dark:text-white">{t('pending_requests')}</h2>
             </div>
             {leavesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('employee'), t('type'), t('start_date'), t('end_date'), t('days'), t('status'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {leavesList.length === 0
-                      ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_leave_requests')}</td></tr>
-                      : leavesList.map((lv) => (
-                        <tr key={lv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{lv.user_name ?? '—'}</td>
-                          <td className="px-4 py-3 capitalize text-gray-500">{lv.leave_type}</td>
-                          <td className="px-4 py-3 text-gray-500">{lv.starts_at}</td>
-                          <td className="px-4 py-3 text-gray-500">{lv.ends_at}</td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{lv.days_count}</td>
-                          <td className="px-4 py-3"><span className={clsx('badge capitalize', leaveStatusBadge(lv.status))}>{lv.status}</span></td>
-                          <td className="px-4 py-3">
-                            {canManage && lv.status === 'pending' && (
-                              <div className="flex gap-1">
-                                <button onClick={() => leaveApproveMutation.mutate(lv.id)} disabled={leaveApproveMutation.isPending} className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded" title="Approve">
-                                  <CheckCircle className="h-4 w-4" />
-                                </button>
-                                <button onClick={() => setRejectId(lv.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" title="Reject">
-                                  <XCircle className="h-4 w-4" />
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[700px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('employee'), t('type'), t('start_date'), t('end_date'), t('days'), t('status'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {leavesList.length === 0
+                        ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_leave_requests')}</td></tr>
+                        : leavesList.map((lv) => (
+                          <tr key={lv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{lv.user_name ?? '—'}</td>
+                            <td className="px-4 py-3 capitalize text-gray-500">{lv.leave_type}</td>
+                            <td className="px-4 py-3 text-gray-500">{lv.starts_at}</td>
+                            <td className="px-4 py-3 text-gray-500">{lv.ends_at}</td>
+                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{lv.days_count}</td>
+                            <td className="px-4 py-3"><span className={clsx('badge capitalize', leaveStatusBadge(lv.status))}>{lv.status}</span></td>
+                            <td className="px-4 py-3">
+                              {canManage && lv.status === 'pending' && (
+                                <div className="flex gap-1">
+                                  <button onClick={() => leaveApproveMutation.mutate(lv.id)} disabled={leaveApproveMutation.isPending} className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"><CheckCircle className="h-4 w-4" /></button>
+                                  <button onClick={() => setRejectId(lv.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><XCircle className="h-4 w-4" /></button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {leavesList.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_leave_requests')}</p>
+                    : leavesList.map((lv) => (
+                      <div key={lv.id} className="p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-semibold text-gray-900 dark:text-white">{lv.user_name ?? '—'}</span>
+                            <p className="text-xs text-gray-500 capitalize mt-0.5">{lv.leave_type}</p>
+                          </div>
+                          <span className={clsx('badge capitalize shrink-0', leaveStatusBadge(lv.status))}>{lv.status}</span>
+                        </div>
+                        <div className="text-xs text-gray-500">{lv.starts_at} → {lv.ends_at} · {lv.days_count} {t('days')}</div>
+                        {canManage && lv.status === 'pending' && (
+                          <div className="flex gap-2 pt-1">
+                            <button onClick={() => leaveApproveMutation.mutate(lv.id)} disabled={leaveApproveMutation.isPending} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100 transition-colors font-medium">
+                              <CheckCircle className="h-3.5 w-3.5" />{isAr ? 'قبول' : 'Approve'}
+                            </button>
+                            <button onClick={() => setRejectId(lv.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                              <XCircle className="h-3.5 w-3.5" />{isAr ? 'رفض' : 'Reject'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -670,38 +755,66 @@ export default function HrPage() {
           {/* Payroll Runs Table */}
           <div className="card overflow-hidden">
             {payrollLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('period'), t('employees'), t('gross_salary'), t('net_salary'), t('status'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {payrollRuns.length === 0
-                      ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_payroll_runs')}</td></tr>
-                      : payrollRuns.map((run) => (
-                        <tr key={run.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{run.period}</td>
-                          <td className="px-4 py-3 text-gray-500">{run.employee_count}</td>
-                          <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">{parseFloat(run.gross_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                          <td className="px-4 py-3 font-semibold text-primary-600">{parseFloat(run.net_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                          <td className="px-4 py-3"><span className={clsx('badge capitalize', payrollStatusBadge(run.status))}>{run.status}</span></td>
-                          <td className="px-4 py-3">
-                            {canManagePayroll && (
-                              <div className="flex gap-1">
-                                {run.status === 'draft' && (
-                                  <button onClick={() => setApproveRunId(run.id)} className="btn btn-secondary text-xs py-1 px-2">{t('approve')}</button>
-                                )}
-                                {run.status === 'approved' && (
-                                  <button onClick={() => setMarkPaidRunId(run.id)} className="btn btn-primary text-xs py-1 px-2">{t('mark_paid')}</button>
-                                )}
-                              </div>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[700px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('period'), t('employees'), t('gross_salary'), t('net_salary'), t('status'), t('actions')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {payrollRuns.length === 0
+                        ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_payroll_runs')}</td></tr>
+                        : payrollRuns.map((run) => (
+                          <tr key={run.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{run.period}</td>
+                            <td className="px-4 py-3 text-gray-500">{run.employee_count}</td>
+                            <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">{parseFloat(run.gross_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td className="px-4 py-3 font-semibold text-primary-600">{parseFloat(run.net_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td className="px-4 py-3"><span className={clsx('badge capitalize', payrollStatusBadge(run.status))}>{run.status}</span></td>
+                            <td className="px-4 py-3">
+                              {canManagePayroll && (
+                                <div className="flex gap-1">
+                                  {run.status === 'draft' && <button onClick={() => setApproveRunId(run.id)} className="btn btn-secondary text-xs py-1 px-2">{t('approve')}</button>}
+                                  {run.status === 'approved' && <button onClick={() => setMarkPaidRunId(run.id)} className="btn btn-primary text-xs py-1 px-2">{t('mark_paid')}</button>}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {payrollRuns.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_payroll_runs')}</p>
+                    : payrollRuns.map((run) => (
+                      <div key={run.id} className="p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-gray-900 dark:text-white">{run.period}</span>
+                          <span className={clsx('badge capitalize shrink-0', payrollStatusBadge(run.status))}>{run.status}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm flex-wrap">
+                          <span className="text-gray-500">{run.employee_count} {t('employees')}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{t('gross_salary')}: {parseFloat(run.gross_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          <span className="font-semibold text-primary-600">{t('net_salary')}: {parseFloat(run.net_salary).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        {canManagePayroll && (
+                          <div className="flex gap-2 pt-1">
+                            {run.status === 'draft' && (
+                              <button onClick={() => setApproveRunId(run.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                                <CheckCircle className="h-3.5 w-3.5" />{isAr ? 'موافقة' : 'Approve'}
+                              </button>
                             )}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
+                            {run.status === 'approved' && (
+                              <button onClick={() => setMarkPaidRunId(run.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100 transition-colors font-medium">
+                                <DollarSign className="h-3.5 w-3.5" />{isAr ? 'تم الدفع' : 'Mark Paid'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </>
             )}
           </div>
         </div>

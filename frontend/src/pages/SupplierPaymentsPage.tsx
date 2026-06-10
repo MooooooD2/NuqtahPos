@@ -16,7 +16,8 @@ const methodClass: Record<string, string> = { cash: 'badge-success', card: 'badg
 const emptyForm = { supplier_id: '', amount: '', payment_method: 'cash', payment_date: new Date().toISOString().slice(0, 10), notes: '' }
 
 export default function SupplierPaymentsPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'new' | 'print' | null>(null)
@@ -129,7 +130,7 @@ export default function SupplierPaymentsPage() {
         <button onClick={() => { setForm({ ...emptyForm }); setModal('new') }} className="btn btn-primary flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add_payment')}</button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="card p-4 flex items-center gap-4">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-900/30">
             <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -172,30 +173,51 @@ export default function SupplierPaymentsPage() {
 
       <div className="card overflow-hidden">
         {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div> : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{[t('payment_number'), t('select_supplier'), t('phone'), t('amount'), t('method'), t('date'), t('notes'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {payments.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                  : payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-mono text-xs text-primary-600">{p.payment_number ?? `#${p.id}`}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.supplier?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.supplier?.phone ?? '—'}</td>
-                      <td className="px-4 py-3 font-semibold text-green-600">{parseFloat(p.amount).toFixed(2)}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', methodClass[p.payment_method] ?? 'badge-gray')}>{p.payment_method}</span></td>
-                      <td className="px-4 py-3 text-gray-500">{p.payment_date?.slice(0, 10)}</td>
-                      <td className="px-4 py-3 text-gray-400 max-w-40 truncate">{p.notes ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => openPrint(p)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded" title={t('print')}><Printer className="h-4 w-4" /></button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>{[t('payment_number'), t('select_supplier'), t('phone'), t('amount'), t('method'), t('date'), t('notes'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {payments.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                    : payments.map((p) => (
+                      <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-mono text-xs text-primary-600">{p.payment_number ?? `#${p.id}`}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.supplier?.name ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-500">{p.supplier?.phone ?? '—'}</td>
+                        <td className="px-4 py-3 font-semibold text-green-600">{parseFloat(p.amount).toFixed(2)}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', methodClass[p.payment_method] ?? 'badge-gray')}>{p.payment_method}</span></td>
+                        <td className="px-4 py-3 text-gray-500">{p.payment_date?.slice(0, 10)}</td>
+                        <td className="px-4 py-3 text-gray-400 max-w-40 truncate">{p.notes ?? '—'}</td>
+                        <td className="px-4 py-3"><button onClick={() => openPrint(p)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Printer className="h-4 w-4" /></button></td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {payments.length === 0 ? <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+                : payments.map((p) => (
+                  <div key={p.id} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-xs font-semibold text-primary-600">{p.payment_number ?? `#${p.id}`}</span>
+                      <span className="font-bold text-green-600 shrink-0">{parseFloat(p.amount).toFixed(2)}</span>
+                    </div>
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{p.supplier?.name ?? '—'}</p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                      <span className={clsx('badge capitalize', methodClass[p.payment_method] ?? 'badge-gray')}>{p.payment_method}</span>
+                      <span>{p.payment_date?.slice(0, 10)}</span>
+                      {p.supplier?.phone && <span>{p.supplier.phone}</span>}
+                    </div>
+                    {p.notes && <p className="text-xs text-gray-400 truncate">{p.notes}</p>}
+                    <button onClick={() => openPrint(p)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-colors font-medium">
+                      <Printer className="h-3.5 w-3.5" />{isAr ? 'طباعة' : 'Print'}
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </>
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

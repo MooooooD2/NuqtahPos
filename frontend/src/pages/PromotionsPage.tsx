@@ -51,7 +51,8 @@ const typeBadge: Record<string, string> = {
 export default function PromotionsPage() {
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState<'add' | 'edit' | null>(null)
@@ -157,57 +158,93 @@ export default function PromotionsPage() {
         {isLoading ? (
           <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {[t('name'), t('type'), t('price'), t('scope'), t('validity'), t('status'), ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {promotions.length === 0 ? (
-                  <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : promotions.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', typeBadge[p.type] ?? 'badge-gray')}>{getTypeLabel(p.type)}</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{formatValue(p)}</td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {p.product_id ? t('product_scope', { n: p.product_id }) : p.category ? p.category : t('all')}
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
-                      {p.starts_at || p.ends_at
-                        ? `${p.starts_at?.slice(0, 10) ?? '∞'} – ${p.ends_at?.slice(0, 10) ?? '∞'}`
-                        : t('always_label')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge', p.is_active ? 'badge-success' : 'badge-gray')}>
-                        {p.is_active ? t('active_status') : t('inactive_status')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 justify-end">
-                        {canManage && (
-                          <>
-                            <button onClick={() => openEdit(p)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded">
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => setDeleteId(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[650px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[t('name'), t('type'), t('price'), t('scope'), t('validity'), t('status'), ''].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {promotions.length === 0 ? (
+                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : promotions.map((p) => (
+                    <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
+                      <td className="px-4 py-3">
+                        <span className={clsx('badge capitalize', typeBadge[p.type] ?? 'badge-gray')}>{getTypeLabel(p.type)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{formatValue(p)}</td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {p.product_id ? t('product_scope', { n: p.product_id }) : p.category ? p.category : t('all')}
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">
+                        {p.starts_at || p.ends_at
+                          ? `${p.starts_at?.slice(0, 10) ?? '∞'} – ${p.ends_at?.slice(0, 10) ?? '∞'}`
+                          : t('always_label')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={clsx('badge', p.is_active ? 'badge-success' : 'badge-gray')}>
+                          {p.is_active ? t('active_status') : t('inactive_status')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1 justify-end">
+                          {canManage && (
+                            <>
+                              <button onClick={() => openEdit(p)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded">
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => setDeleteId(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Mobile cards */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {promotions.length === 0 ? (
+                <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+              ) : promotions.map((p) => (
+                <div key={p.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold text-gray-900 dark:text-white">{p.name}</span>
+                    <span className={clsx('badge capitalize shrink-0', typeBadge[p.type] ?? 'badge-gray')}>{getTypeLabel(p.type)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">{formatValue(p)}</span>
+                    <span className={clsx('badge', p.is_active ? 'badge-success' : 'badge-gray')}>
+                      {p.is_active ? t('active_status') : t('inactive_status')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-0.5">
+                    <div>{t('scope')}: {p.product_id ? t('product_scope', { n: p.product_id }) : p.category ? p.category : t('all')}</div>
+                    <div>{t('validity')}: {p.starts_at || p.ends_at ? `${p.starts_at?.slice(0, 10) ?? '∞'} – ${p.ends_at?.slice(0, 10) ?? '∞'}` : t('always_label')}</div>
+                  </div>
+                  {canManage && (
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={() => openEdit(p)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                        <Pencil className="h-3.5 w-3.5" />{isAr ? 'تعديل' : 'Edit'}
+                      </button>
+                      <button onClick={() => setDeleteId(p.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                        <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

@@ -16,7 +16,8 @@ interface CashbackTx { id: number; customer_name?: string; type: string; amount:
 const emptyRule = { name: '', percentage: '', min_purchase_amount: '0', max_cashback: '' }
 
 export default function CashbackPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState(false)
@@ -91,7 +92,7 @@ export default function CashbackPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="card p-4 flex items-center gap-4">
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center bg-${kpi.color}-100 dark:bg-${kpi.color}-900/30`}>
@@ -111,52 +112,95 @@ export default function CashbackPage() {
             <h2 className="font-semibold text-gray-900 dark:text-white">{t('cashback_rules_history')}</h2>
           </div>
           {rulesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('name'), '%', t('amount'), t('cashback_rate'), t('active_status'), ''].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {rules.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    : rules.map((r) => (
-                      <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.name}</td>
-                        <td className="px-4 py-3 text-primary-600 font-semibold">{r.percentage}%</td>
-                        <td className="px-4 py-3 text-gray-500">{parseFloat(r.min_purchase ?? '0').toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-500">{r.max_cashback ? parseFloat(r.max_cashback).toFixed(2) : '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className={clsx('badge text-xs', r.is_active ? 'badge-success' : 'badge-gray')}>
-                            {r.is_active ? t('active_status') : t('inactive_status')}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            {r.is_active ? (
-                              <ToggleRight className="h-5 w-5 text-green-500" />
-                            ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('name'), '%', t('amount'), t('cashback_rate'), t('active_status'), ''].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {rules.length === 0 ? <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : rules.map((r) => (
+                        <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.name}</td>
+                          <td className="px-4 py-3 text-primary-600 font-semibold">{r.percentage}%</td>
+                          <td className="px-4 py-3 text-gray-500">{parseFloat(r.min_purchase ?? '0').toFixed(2)}</td>
+                          <td className="px-4 py-3 text-gray-500">{r.max_cashback ? parseFloat(r.max_cashback).toFixed(2) : '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className={clsx('badge text-xs', r.is_active ? 'badge-success' : 'badge-gray')}>
+                              {r.is_active ? t('active_status') : t('inactive_status')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              {r.is_active ? (
+                                <ToggleRight className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <button
+                                  onClick={() => activateRule.mutate(r.id)}
+                                  disabled={activateRule.isPending}
+                                  className="px-3 py-1 text-xs font-medium rounded-full border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  {activateRule.isPending ? '…' : t('activate')}
+                                </button>
+                              )}
                               <button
-                                onClick={() => activateRule.mutate(r.id)}
-                                disabled={activateRule.isPending}
-                                className="px-3 py-1 text-xs font-medium rounded-full border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                onClick={() => setDeleteId(r.id)}
+                                disabled={deleteRule.isPending}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
+                                title={t('delete')}
                               >
-                                {activateRule.isPending ? '…' : t('activate')}
+                                <Trash2 className="h-4 w-4" />
                               </button>
-                            )}
-                            <button
-                              onClick={() => setDeleteId(r.id)}
-                              disabled={deleteRule.isPending}
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
-                              title={t('delete')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {rules.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                ) : rules.map((r) => (
+                  <div key={r.id} className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{r.name}</span>
+                      <span className={clsx('badge text-xs shrink-0', r.is_active ? 'badge-success' : 'badge-gray')}>
+                        {r.is_active ? t('active_status') : t('inactive_status')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap text-sm">
+                      <span className="font-bold text-primary-600 dark:text-primary-400">{r.percentage}%</span>
+                      <span className="text-gray-500">{t('min')}: {parseFloat(r.min_purchase ?? '0').toFixed(2)}</span>
+                      {r.max_cashback && <span className="text-gray-500">{t('max')}: {parseFloat(r.max_cashback).toFixed(2)}</span>}
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      {r.is_active ? (
+                        <ToggleRight className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <button
+                          onClick={() => activateRule.mutate(r.id)}
+                          disabled={activateRule.isPending}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100 transition-colors font-medium"
+                        >
+                          {activateRule.isPending ? '…' : (isAr ? 'تفعيل' : 'Activate')}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setDeleteId(r.id)}
+                        disabled={deleteRule.isPending}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -165,25 +209,46 @@ export default function CashbackPage() {
             <h2 className="font-semibold text-gray-900 dark:text-white">{t('cashback_txn_history')}</h2>
           </div>
           {txLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('customer'), t('type'), t('amount'), t('balance_after'), t('date')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {txs.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    : txs.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tx.customer_name ?? '—'}</td>
-                        <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', txTypeBadge[tx.type] ?? 'badge-gray')}>{tx.type}</span></td>
-                        <td className={clsx('px-4 py-3', txAmountClass(tx.type))}>{parseFloat(tx.amount).toFixed(2)}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">{parseFloat(tx.balance_after).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-400 text-xs">{tx.created_at?.slice(0, 16)}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('customer'), t('type'), t('amount'), t('balance_after'), t('date')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {txs.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : txs.map((tx) => (
+                        <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tx.customer_name ?? '—'}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', txTypeBadge[tx.type] ?? 'badge-gray')}>{tx.type}</span></td>
+                          <td className={clsx('px-4 py-3', txAmountClass(tx.type))}>{parseFloat(tx.amount).toFixed(2)}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">{parseFloat(tx.balance_after).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-gray-400 text-xs">{tx.created_at?.slice(0, 16)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {txs.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                ) : txs.map((tx) => (
+                  <div key={tx.id} className="p-4 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{tx.customer_name ?? '—'}</span>
+                      <span className={clsx('badge capitalize text-xs shrink-0', txTypeBadge[tx.type] ?? 'badge-gray')}>{tx.type}</span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap text-sm">
+                      <span className={txAmountClass(tx.type)}>{parseFloat(tx.amount).toFixed(2)}</span>
+                      <span className="text-gray-500">{t('balance_after')}: <strong className="text-gray-700 dark:text-gray-300">{parseFloat(tx.balance_after).toFixed(2)}</strong></span>
+                    </div>
+                    <div className="text-xs text-gray-400">{tx.created_at?.slice(0, 16)}</div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
           {(txData?.total ?? 0) > 20 && (
             <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

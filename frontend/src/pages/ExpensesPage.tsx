@@ -31,7 +31,8 @@ const methodBadge: Record<string, string> = { cash: 'badge-success', card: 'badg
 const emptyForm = { title: '', amount: '', date: new Date().toISOString().slice(0, 10), category_id: '', payment_method: 'cash', reference_no: '', notes: '' }
 
 export default function ExpensesPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
@@ -194,48 +195,75 @@ export default function ExpensesPage() {
         {isLoading ? (
           <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {['#', t('title'), t('category'), t('date'), t('amount'), t('payment_method'), t('created_by'), ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {expenses.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : expenses.map((exp, idx) => (
-                  <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 text-gray-400 text-xs">{(page - 1) * 20 + idx + 1}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{exp.title}</td>
-                    <td className="px-4 py-3 text-gray-500">{exp.category?.name ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{exp.date?.slice(0, 10)}</td>
-                    <td className="px-4 py-3 font-semibold text-red-600">{parseFloat(exp.amount).toFixed(2)}</td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', methodBadge[exp.payment_method] ?? 'badge-gray')}>{exp.payment_method}</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{exp.created_by_name ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 justify-end">
-                        {canEdit && (
-                          <button onClick={() => openEdit(exp)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded">
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                        )}
-                        {canDelete && (
-                          <button onClick={() => setDeleteId(exp.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <>
+            {/* ── Desktop table ─────────────────────── lg+ ── */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {['#', t('title'), t('category'), t('date'), t('amount'), t('payment_method'), t('created_by'), ''].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {expenses.length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : expenses.map((exp, idx) => (
+                    <tr key={exp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-gray-400 text-xs">{(page - 1) * 20 + idx + 1}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{exp.title}</td>
+                      <td className="px-4 py-3 text-gray-500">{exp.category?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{exp.date?.slice(0, 10)}</td>
+                      <td className="px-4 py-3 font-semibold text-red-600">{parseFloat(exp.amount).toFixed(2)}</td>
+                      <td className="px-4 py-3"><span className={clsx('badge capitalize', methodBadge[exp.payment_method] ?? 'badge-gray')}>{exp.payment_method}</span></td>
+                      <td className="px-4 py-3 text-gray-500">{exp.created_by_name ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1 justify-end">
+                          {canEdit && <button onClick={() => openEdit(exp)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>}
+                          {canDelete && <button onClick={() => setDeleteId(exp.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Mobile cards ──────────────────────── <lg ── */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {expenses.length === 0 ? (
+                <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+              ) : expenses.map((exp) => (
+                <div key={exp.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{exp.title}</p>
+                    <span className="font-bold text-red-600 shrink-0">{parseFloat(exp.amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                    {exp.category?.name && <span className="badge badge-gray">{exp.category.name}</span>}
+                    <span className={clsx('badge capitalize', methodBadge[exp.payment_method] ?? 'badge-gray')}>{exp.payment_method}</span>
+                    <span>{exp.date?.slice(0, 10)}</span>
+                    {exp.created_by_name && <span>· {exp.created_by_name}</span>}
+                  </div>
+                  {(canEdit || canDelete) && (
+                    <div className="flex gap-2 pt-1">
+                      {canEdit && (
+                        <button onClick={() => openEdit(exp)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                          <Pencil className="h-3.5 w-3.5" />{isAr ? 'تعديل' : 'Edit'}
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button onClick={() => setDeleteId(exp.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                          <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {(data?.expenses?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

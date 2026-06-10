@@ -29,7 +29,8 @@ const statusBadge: Record<string, string> = { completed: 'badge-success', pendin
 const refundMethods = ['cash', 'store_credit', 'exchange']
 
 export default function ReturnsPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
@@ -134,43 +135,66 @@ export default function ReturnsPage() {
         {isLoading ? (
           <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {[t('return_number'), t('invoice_number'), t('name'), t('refund_method'), t('amount'), t('status'), t('date'), ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {returns.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : returns.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.invoice_number}</td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.customer_name ?? t('walk_in')}</td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>
-                        {r.refund_method.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-red-600">{parseFloat(r.total_amount).toFixed(2)}</td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', statusBadge[r.status] ?? 'badge-gray')}>{r.status}</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{r.created_at?.slice(0, 10)}</td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => setViewReturn(r)} className="p-1 text-gray-400 hover:text-primary-600 rounded">
-                        <Eye className="h-4 w-4" />
-                      </button>
-                    </td>
+          <>
+            {/* ── Desktop table ─────────────────────── lg+ ── */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[t('return_number'), t('invoice_number'), t('name'), t('refund_method'), t('amount'), t('status'), t('date'), ''].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {returns.length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : returns.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.invoice_number}</td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.customer_name ?? t('walk_in')}</td>
+                      <td className="px-4 py-3"><span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>{r.refund_method.replace('_', ' ')}</span></td>
+                      <td className="px-4 py-3 font-semibold text-red-600">{parseFloat(r.total_amount).toFixed(2)}</td>
+                      <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[r.status] ?? 'badge-gray')}>{r.status}</span></td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{r.created_at?.slice(0, 10)}</td>
+                      <td className="px-4 py-3"><button onClick={() => setViewReturn(r)} className="p-1 text-gray-400 hover:text-primary-600 rounded"><Eye className="h-4 w-4" /></button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Mobile cards ──────────────────────── <lg ── */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {returns.length === 0 ? (
+                <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+              ) : returns.map((r) => (
+                <div key={r.id} className="p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-semibold text-primary-600">{r.return_number}</span>
+                    <span className={clsx('badge capitalize shrink-0', statusBadge[r.status] ?? 'badge-gray')}>{r.status}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{r.customer_name ?? t('walk_in')}</span>
+                    <span className="font-bold text-red-600">{parseFloat(r.total_amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                    <span className="font-mono">{r.invoice_number}</span>
+                    <span>·</span>
+                    <span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>{r.refund_method.replace('_', ' ')}</span>
+                    <span>·</span>
+                    <span>{r.created_at?.slice(0, 10)}</span>
+                  </div>
+                  <div className="pt-1">
+                    <button onClick={() => setViewReturn(r)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                      <Eye className="h-3.5 w-3.5" />{isAr ? 'عرض' : 'View'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {(data?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

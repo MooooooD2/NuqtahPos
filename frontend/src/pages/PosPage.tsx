@@ -13,7 +13,7 @@ import type { Product, Customer } from '@/types'
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, User, Pause, Play,
   X, ScanLine, DollarSign, CreditCard, Wallet, Tag, AlertCircle,
-  PackagePlus, Globe, Gift, Percent,
+  PackagePlus, Globe, Gift, Percent, Package,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
@@ -77,6 +77,7 @@ export default function PosPage() {
   const [newCustModal, setNewCustModal] = useState(false)
   const [newCustForm, setNewCustForm] = useState({ name: '', phone: '' })
   const [creatingCust, setCreatingCust] = useState(false)
+  const [mobileView, setMobileView] = useState<'products' | 'cart'>('products')
   const searchRef = useRef<HTMLInputElement>(null)
   const cart = useCartStore()
   const { isOnline, enqueue } = useOfflineStore()
@@ -269,9 +270,9 @@ export default function PosPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] gap-0 -m-4 md:-m-6 overflow-hidden">
+    <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-4rem)] gap-0 -m-4 md:-m-6 overflow-hidden">
       {/* LEFT: Products */}
-      <div className="flex flex-1 flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      <div className={clsx('flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden', mobileView === 'products' ? 'flex flex-1' : 'hidden md:flex md:flex-1')}>
         <div className="p-3 space-y-2 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -353,7 +354,7 @@ export default function PosPage() {
       </div>
 
       {/* RIGHT: Cart */}
-      <div className="w-80 lg:w-96 flex flex-col bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex-shrink-0">
+      <div className={clsx('flex flex-col bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex-shrink-0', mobileView === 'cart' ? 'flex flex-1 w-full' : 'hidden md:flex md:w-80 lg:md:w-96')}>
         <div className="px-4 py-3 border-b dark:border-gray-700 space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -522,6 +523,29 @@ export default function PosPage() {
             {t('complete_sale')} · {finalTotal.toFixed(2)}
           </button>
         </div>
+      </div>
+
+      {/* Mobile bottom tab bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden flex h-16 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setMobileView('products')}
+          className={clsx('flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors', mobileView === 'products' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')}
+        >
+          <Package className="h-5 w-5" />
+          {t('products')}
+        </button>
+        <button
+          onClick={() => setMobileView('cart')}
+          className={clsx('relative flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors', mobileView === 'cart' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')}
+        >
+          {cart.items.length > 0 && (
+            <span className="absolute top-2 start-[calc(50%+8px)] flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-[10px] text-white font-bold">
+              {cart.items.reduce((s, i) => s + i.quantity, 0)}
+            </span>
+          )}
+          <ShoppingCart className="h-5 w-5" />
+          <span>{t('cart')}{finalTotal > 0 ? ` · ${finalTotal.toFixed(2)}` : ''}</span>
+        </button>
       </div>
 
       {/* Payment Modal */}

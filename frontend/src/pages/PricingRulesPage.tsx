@@ -69,7 +69,8 @@ function formatDiscount(rule: Rule) {
 }
 
 export default function PricingRulesPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'add' | 'edit' | null>(null)
@@ -195,71 +196,114 @@ export default function PricingRulesPage() {
         {isLoading ? (
           <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {[t('name'), t('rule_type'), t('discount'), t('priority'), t('status'), t('pricing_active_now'), ''].map((h, i) => (
-                    <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {rules.length === 0 ? (
-                  <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : rules.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900 dark:text-white">{r.name}</div>
-                      {r.description && <div className="text-xs text-gray-400 mt-0.5">{r.description}</div>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', typeBadge[r.rule_type] ?? 'badge-gray')}>
-                        {typeIcon[r.rule_type] ?? ''} {r.rule_type.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">{formatDiscount(r)}</td>
-                    <td className="px-4 py-3">
-                      <span className="badge badge-gray font-mono">{r.priority}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge', r.is_active ? 'badge-success' : 'badge-gray')}>
-                        {r.is_active ? t('active_status') : t('inactive_status')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.active_now ? (
-                        <span className="badge badge-success">{t('yes')}</span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">{t('no')}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 justify-end">
-                        {canManage && (
-                          <>
-                            <button
-                              onClick={() => toggleMutation.mutate(r.id)}
-                              title={r.is_active ? 'Deactivate' : 'Activate'}
-                              className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded"
-                            >
-                              {r.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                            </button>
-                            <button onClick={() => openEdit(r)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded">
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => setDeleteId(r.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[650px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[t('name'), t('rule_type'), t('discount'), t('priority'), t('status'), t('pricing_active_now'), ''].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {rules.length === 0 ? (
+                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : rules.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900 dark:text-white">{r.name}</div>
+                        {r.description && <div className="text-xs text-gray-400 mt-0.5">{r.description}</div>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={clsx('badge capitalize', typeBadge[r.rule_type] ?? 'badge-gray')}>
+                          {typeIcon[r.rule_type] ?? ''} {r.rule_type.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">{formatDiscount(r)}</td>
+                      <td className="px-4 py-3">
+                        <span className="badge badge-gray font-mono">{r.priority}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={clsx('badge', r.is_active ? 'badge-success' : 'badge-gray')}>
+                          {r.is_active ? t('active_status') : t('inactive_status')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.active_now ? (
+                          <span className="badge badge-success">{t('yes')}</span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">{t('no')}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1 justify-end">
+                          {canManage && (
+                            <>
+                              <button
+                                onClick={() => toggleMutation.mutate(r.id)}
+                                title={r.is_active ? 'Deactivate' : 'Activate'}
+                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded"
+                              >
+                                {r.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                              </button>
+                              <button onClick={() => openEdit(r)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded">
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => setDeleteId(r.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Mobile cards */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {rules.length === 0 ? (
+                <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+              ) : rules.map((r) => (
+                <div key={r.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-semibold text-gray-900 dark:text-white">{r.name}</span>
+                      {r.description && <p className="text-xs text-gray-400 mt-0.5">{r.description}</p>}
+                    </div>
+                    <span className={clsx('badge capitalize shrink-0', typeBadge[r.rule_type] ?? 'badge-gray')}>
+                      {typeIcon[r.rule_type] ?? ''} {r.rule_type.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{formatDiscount(r)}</span>
+                    <span className="badge badge-gray font-mono text-xs">{t('priority')}: {r.priority}</span>
+                    <span className={clsx('badge', r.is_active ? 'badge-success' : 'badge-gray')}>
+                      {r.is_active ? t('active_status') : t('inactive_status')}
+                    </span>
+                    {r.active_now && <span className="badge badge-success text-xs">{t('pricing_active_now')}</span>}
+                  </div>
+                  {canManage && (
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={() => toggleMutation.mutate(r.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-amber-100 transition-colors font-medium">
+                        {r.is_active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
+                        {r.is_active ? (isAr ? 'إيقاف' : 'Deactivate') : (isAr ? 'تفعيل' : 'Activate')}
+                      </button>
+                      <button onClick={() => openEdit(r)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                        <Pencil className="h-3.5 w-3.5" />{isAr ? 'تعديل' : 'Edit'}
+                      </button>
+                      <button onClick={() => setDeleteId(r.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                        <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

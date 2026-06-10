@@ -30,7 +30,8 @@ function typeBadge(t: string): string {
 
 export default function WhatsAppPage() {
   const { hasPermission } = usePermission()
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const canManage = hasPermission('manage_roles')
 
   const [tab, setTab] = useState<'stats' | 'logs' | 'promotions' | 'debt_reminders'>('stats')
@@ -216,8 +217,8 @@ export default function WhatsAppPage() {
           <div className="card overflow-hidden">
             {logsLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[550px] text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>{[t('to'), t('type'), t('status'), t('direction'), t('date'), t('error_col')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
                     </thead>
@@ -236,8 +237,7 @@ export default function WhatsAppPage() {
                             <td className="px-4 py-3">
                               {log.direction === 'outbound'
                                 ? <span className="flex items-center gap-1 text-green-600 text-xs"><ArrowUp className="h-3.5 w-3.5" /> {t('direction_out')}</span>
-                                : <span className="flex items-center gap-1 text-blue-600 text-xs"><ArrowDown className="h-3.5 w-3.5" /> {t('direction_in')}</span>
-                              }
+                                : <span className="flex items-center gap-1 text-blue-600 text-xs"><ArrowDown className="h-3.5 w-3.5" /> {t('direction_in')}</span>}
                             </td>
                             <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{log.created_at?.slice(0, 16)}</td>
                             <td className="px-4 py-3 text-red-400 text-xs max-w-[200px] truncate" title={log.error_message}>
@@ -247,6 +247,27 @@ export default function WhatsAppPage() {
                         ))}
                     </tbody>
                   </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {logs.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_messages_found')}</p>
+                    : logs.map((log) => (
+                      <div key={log.id} className="p-4 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{log.to_phone}</span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className={clsx('badge capitalize text-xs', typeBadge(log.type))}>{getLogTypeLabel(log.type)}</span>
+                            <span className={clsx('badge capitalize text-xs', log.status === 'read' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : statusBadge(log.status))}>{log.status}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                          {log.direction === 'outbound'
+                            ? <span className="flex items-center gap-1 text-green-600"><ArrowUp className="h-3 w-3" />{t('direction_out')}</span>
+                            : <span className="flex items-center gap-1 text-blue-600"><ArrowDown className="h-3 w-3" />{t('direction_in')}</span>}
+                          <span>{log.created_at?.slice(0, 16)}</span>
+                        </div>
+                        {log.error_message && <p className="text-xs text-red-400 truncate">{log.error_message}</p>}
+                      </div>
+                    ))}
                 </div>
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-700">

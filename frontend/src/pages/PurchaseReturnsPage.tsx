@@ -48,7 +48,8 @@ const refundBadge: Record<string, string> = { credit_note: 'badge-info', cash: '
 const statusBadge: Record<string, string> = { pending: 'badge-warning', approved: 'badge-success', rejected: 'badge-danger', completed: 'badge-success' }
 
 export default function PurchaseReturnsPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
@@ -139,43 +140,53 @@ export default function PurchaseReturnsPage() {
         {isLoading ? (
           <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {[t('return_number'), t('supplier'), t('date'), t('total'), t('refund_method'), t('status'), t('recorded_by'), ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {returns.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : returns.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.supplier?.name ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-400">{r.return_date?.slice(0, 10)}</td>
-                    <td className="px-4 py-3 font-semibold">{parseFloat(r.total ?? '0').toFixed(2)}</td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>
-                        {r.refund_method?.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', statusBadge[r.status] ?? 'badge-gray')}>{r.status}</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">{r.recorded_by ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => { setViewReturn(r); setModal('view') }} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded">
-                        <Eye className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
+          <>
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>{[t('return_number'), t('supplier'), t('date'), t('total'), t('refund_method'), t('status'), t('recorded_by'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {returns.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                    : returns.map((r) => (
+                      <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-mono text-xs text-primary-600">{r.return_number}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{r.supplier?.name ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-400">{r.return_date?.slice(0, 10)}</td>
+                        <td className="px-4 py-3 font-semibold">{parseFloat(r.total ?? '0').toFixed(2)}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>{r.refund_method?.replace('_', ' ')}</span></td>
+                        <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[r.status] ?? 'badge-gray')}>{r.status}</span></td>
+                        <td className="px-4 py-3 text-gray-500">{r.recorded_by ?? '—'}</td>
+                        <td className="px-4 py-3"><button onClick={() => { setViewReturn(r); setModal('view') }} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Eye className="h-4 w-4" /></button></td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {returns.length === 0 ? <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+                : returns.map((r) => (
+                  <div key={r.id} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-xs font-semibold text-primary-600">{r.return_number}</span>
+                      <span className={clsx('badge capitalize shrink-0', statusBadge[r.status] ?? 'badge-gray')}>{r.status}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{r.supplier?.name ?? '—'}</p>
+                      <span className="font-bold text-gray-900 dark:text-white">{parseFloat(r.total ?? '0').toFixed(2)}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                      <span className={clsx('badge capitalize', refundBadge[r.refund_method] ?? 'badge-gray')}>{r.refund_method?.replace('_', ' ')}</span>
+                      <span>{r.return_date?.slice(0, 10)}</span>
+                      {r.recorded_by && <span>· {r.recorded_by}</span>}
+                    </div>
+                    <button onClick={() => { setViewReturn(r); setModal('view') }} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                      <Eye className="h-3.5 w-3.5" />{isAr ? 'عرض' : 'View'}
+                    </button>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+            </div>
+          </>
         )}
         {(data?.purchase_returns?.total ?? 0) > 20 && (
           <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
@@ -254,7 +265,7 @@ export default function PurchaseReturnsPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[700px] text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                       {[t('product'), t('ordered'), t('returnable'), t('quantity'), t('unit_price')].map((h) => (
@@ -333,7 +344,7 @@ export default function PurchaseReturnsPage() {
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('returned_items')}</h3>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full min-w-[700px] text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         {[t('product'), t('quantity'), t('unit_price')].map((h) => (

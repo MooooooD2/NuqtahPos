@@ -59,7 +59,7 @@ export default function AdminPlansPage() {
   const [form, setForm] = useState(emptyPlan())
   const [featureInput, setFeatureInput] = useState('')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['admin-plans'],
     queryFn: () => apiGet<PlansData & { success: boolean }>('/admin/plans'),
     staleTime: 30_000,
@@ -79,18 +79,20 @@ export default function AdminPlansPage() {
 
   const openEdit = (p: Plan) => {
     setEditPlan(p)
-    setForm({ ...p })
+    const safeFlags = (p.feature_flags ?? []).filter((f): f is string => typeof f === 'string')
+    setForm({ ...p, feature_flags: safeFlags })
     setFeatureInput('')
     setShowModal(true)
   }
 
   const toggleFlag = (key: string) => {
-    setForm((prev) => ({
-      ...prev,
-      feature_flags: prev.feature_flags.includes(key)
-        ? prev.feature_flags.filter((f) => f !== key)
-        : [...prev.feature_flags, key],
-    }))
+    setForm((prev) => {
+      const flags = (prev.feature_flags ?? []).filter((f): f is string => typeof f === 'string')
+      return {
+        ...prev,
+        feature_flags: flags.includes(key) ? flags.filter((f) => f !== key) : [...flags, key],
+      }
+    })
   }
 
   const addFeature = () => {
@@ -142,6 +144,12 @@ export default function AdminPlansPage() {
   }, {})
 
   if (isLoading) return <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
+  if (error) return (
+    <div className="card p-8 text-center">
+      <p className="text-red-500 font-medium">{isAr ? 'خطأ في تحميل الخطط' : 'Failed to load plans'}</p>
+      <p className="text-xs text-gray-400 mt-1">{(error as Error)?.message}</p>
+    </div>
+  )
 
   return (
     <div className="space-y-4">
@@ -156,67 +164,70 @@ export default function AdminPlansPage() {
       </div>
 
       {/* Plans grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {plans.map((plan) => (
-          <div key={plan.id} className={clsx('card p-5', !plan.is_active && 'opacity-60')}>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{plan.name}</h3>
-                <p className="text-xs text-gray-400 font-mono mt-0.5">{plan.id}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {plans.map((plan) => {
+          const safeFlags = (plan.feature_flags ?? []).filter((f): f is string => typeof f === 'string')
+          return (
+            <div key={plan.id} className={clsx('card p-4 sm:p-5 flex flex-col', !plan.is_active && 'opacity-60')}>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">{plan.name}</h3>
+                  <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">{plan.id}</p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button onClick={() => openEdit(plan)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                    <Pencil className="h-3.5 w-3.5 text-gray-500" />
+                  </button>
+                  <button onClick={() => toggleMut.mutate(plan.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                    {plan.is_active
+                      ? <ToggleRight className="h-4 w-4 text-green-500" />
+                      : <ToggleLeft className="h-4 w-4 text-gray-400" />}
+                  </button>
+                  <button
+                    onClick={() => { if (confirm(isAr ? 'حذف الخطة؟' : 'Delete plan?')) deleteMut.mutate(plan.id) }}
+                    disabled={deleteMut.isPending}
+                    className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <button onClick={() => openEdit(plan)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                  <Pencil className="h-3.5 w-3.5 text-gray-500" />
-                </button>
-                <button onClick={() => toggleMut.mutate(plan.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                  {plan.is_active
-                    ? <ToggleRight className="h-4 w-4 text-green-500" />
-                    : <ToggleLeft className="h-4 w-4 text-gray-400" />}
-                </button>
-                <button
-                  onClick={() => { if (confirm(isAr ? 'حذف الخطة؟' : 'Delete plan?')) deleteMut.mutate(plan.id) }}
-                  disabled={deleteMut.isPending}
-                  className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                </button>
-              </div>
-            </div>
 
-            <div className="flex items-baseline gap-1 mb-4">
-              <span className="text-3xl font-bold text-gray-900 dark:text-white">${plan.monthly_price}</span>
-              <span className="text-sm text-gray-400">/mo</span>
-              {plan.annual_price && (
-                <span className="text-xs text-green-500 ms-2">${plan.annual_price}/yr</span>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-3 text-xs text-gray-500">
-              <span>{plan.trial_days}d trial</span>
-              {plan.max_users && <span>· {plan.max_users} users</span>}
-              {plan.max_products && <span>· {plan.max_products} products</span>}
-              <span className="ms-auto font-semibold text-blue-500">{tenantCounts[plan.id] ?? 0} stores</span>
-            </div>
-
-            {plan.feature_flags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {plan.feature_flags.slice(0, 8).map((f) => (
-                  <span key={f} className="inline-flex items-center gap-1 text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded px-1.5 py-0.5">
-                    <Check className="h-2.5 w-2.5" />{allModules[f]?.[isAr ? 'ar' : 'en'] ?? f}
-                  </span>
-                ))}
-                {plan.feature_flags.length > 8 && (
-                  <span className="text-xs text-gray-400">+{plan.feature_flags.length - 8} more</span>
+              <div className="flex items-baseline gap-1 mb-3 flex-wrap">
+                <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">${plan.monthly_price}</span>
+                <span className="text-sm text-gray-400">/mo</span>
+                {plan.annual_price != null && (
+                  <span className="text-xs text-green-500 ms-2">${plan.annual_price}/yr</span>
                 )}
               </div>
-            )}
-          </div>
-        ))}
+
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 text-xs text-gray-500">
+                <span>{plan.trial_days}d trial</span>
+                {plan.max_users && <span>· {plan.max_users} users</span>}
+                {plan.max_products && <span>· {plan.max_products} products</span>}
+                <span className="ms-auto font-semibold text-blue-500">{tenantCounts[plan.id] ?? 0} stores</span>
+              </div>
+
+              {safeFlags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-auto pt-2">
+                  {safeFlags.slice(0, 8).map((f, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded px-1.5 py-0.5">
+                      <Check className="h-2.5 w-2.5" />{allModules[f]?.[isAr ? 'ar' : 'en'] ?? f}
+                    </span>
+                  ))}
+                  {safeFlags.length > 8 && (
+                    <span className="text-xs text-gray-400">+{safeFlags.length - 8} more</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* Create/Edit modal */}
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editPlan ? (isAr ? 'تعديل الخطة' : 'Edit Plan') : (isAr ? 'خطة جديدة' : 'New Plan')} size="xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {!editPlan && (
             <div>
               <label className="label">ID (slug)</label>
@@ -278,12 +289,12 @@ export default function AdminPlansPage() {
                   <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
                     {moduleGroups[group]?.[isAr ? 'ar' : 'en'] ?? group}
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1">
                     {modules.map(([key, mod]) => (
                       <label key={key} className="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
                         <input
                           type="checkbox"
-                          checked={form.feature_flags.includes(key)}
+                          checked={(form.feature_flags ?? []).includes(key)}
                           onChange={() => toggleFlag(key)}
                           className="rounded"
                         />

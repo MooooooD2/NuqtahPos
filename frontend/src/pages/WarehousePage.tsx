@@ -18,7 +18,8 @@ const emptyWh = { name: '', code: '', address: '', keeper_name: '' }
 const emptyTransfer = { from_warehouse_id: '', to_warehouse_id: '', notes: '', items: [{ product_id: '', product_name: '', quantity: '' }] }
 
 export default function WarehousePage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'warehouses' | 'transfers'>('warehouses')
@@ -128,35 +129,56 @@ export default function WarehousePage() {
       {tab === 'warehouses' && (
         <div className="card overflow-hidden">
           {whLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('warehouse_code'), t('warehouse_keeper'), t('address'), t('type'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {warehouses.length === 0 ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    : warehouses.map((w) => (
-                      <tr key={w.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{w.name}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-400">{w.code}</td>
-                        <td className="px-4 py-3 text-gray-500">{w.keeper_name ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-32 truncate">{w.address ?? '—'}</td>
-                        <td className="px-4 py-3"><span className="badge badge-gray capitalize">{w.type ?? 'default'}</span></td>
-                        <td className="px-4 py-3">
-                          {w.is_locked ? <span className="badge badge-danger flex items-center gap-1 w-fit"><Lock className="h-3 w-3" />{t('locked')}</span>
-                            : <span className="badge badge-success flex items-center gap-1 w-fit"><Unlock className="h-3 w-3" />{w.is_active ? t('active') : t('inactive')}</span>}
-                        </td>
-                        <td className="px-4 py-3">
-                          {canManage && (
-                            <button onClick={() => toggleLock.mutate({ id: w.id, locked: !w.is_locked })}
-                              className={clsx('p-1.5 rounded', w.is_locked ? 'text-amber-500 hover:bg-amber-50' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700')}>
-                              {w.is_locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[650px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('warehouse_code'), t('warehouse_keeper'), t('address'), t('type'), t('status'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {warehouses.length === 0 ? <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : warehouses.map((w) => (
+                        <tr key={w.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{w.name}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-gray-400">{w.code}</td>
+                          <td className="px-4 py-3 text-gray-500">{w.keeper_name ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500 max-w-32 truncate">{w.address ?? '—'}</td>
+                          <td className="px-4 py-3"><span className="badge badge-gray capitalize">{w.type ?? 'default'}</span></td>
+                          <td className="px-4 py-3">
+                            {w.is_locked ? <span className="badge badge-danger flex items-center gap-1 w-fit"><Lock className="h-3 w-3" />{t('locked')}</span>
+                              : <span className="badge badge-success flex items-center gap-1 w-fit"><Unlock className="h-3 w-3" />{w.is_active ? t('active') : t('inactive')}</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            {canManage && <button onClick={() => toggleLock.mutate({ id: w.id, locked: !w.is_locked })} className={clsx('p-1.5 rounded', w.is_locked ? 'text-amber-500 hover:bg-amber-50' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700')}>{w.is_locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}</button>}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {warehouses.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                  : warehouses.map((w) => (
+                    <div key={w.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{w.name}</p>
+                        {w.is_locked ? <span className="badge badge-danger flex items-center gap-1 shrink-0"><Lock className="h-3 w-3" />{t('locked')}</span>
+                          : <span className="badge badge-success flex items-center gap-1 shrink-0"><Unlock className="h-3 w-3" />{w.is_active ? t('active') : t('inactive')}</span>}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                        <span className="font-mono">{w.code}</span>
+                        <span className="badge badge-gray capitalize">{w.type ?? 'default'}</span>
+                        {w.keeper_name && <span>{w.keeper_name}</span>}
+                        {w.address && <span className="truncate max-w-48">{w.address}</span>}
+                      </div>
+                      {canManage && (
+                        <button onClick={() => toggleLock.mutate({ id: w.id, locked: !w.is_locked })}
+                          className={clsx('flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors', w.is_locked ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')}>
+                          {w.is_locked ? <><Unlock className="h-3.5 w-3.5" />{isAr ? 'فتح القفل' : 'Unlock'}</> : <><Lock className="h-3.5 w-3.5" />{isAr ? 'قفل' : 'Lock'}</>}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -164,21 +186,44 @@ export default function WarehousePage() {
       {tab === 'transfers' && (
         <div className="card overflow-hidden">
           {transferLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('from_warehouse'), t('to_warehouse'), t('transfer_items'), t('status'), t('date')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {transfers.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[650px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('from_warehouse'), t('to_warehouse'), t('transfer_items'), t('status'), t('date')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {transfers.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : transfers.map((tr) => (
+                        <tr key={tr.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tr.from_warehouse?.name ?? '—'}</td>
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tr.to_warehouse?.name ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500">{tr.items_count ?? '—'}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[tr.status] ?? 'badge-gray')}>{tr.status}</span></td>
+                          <td className="px-4 py-3 text-gray-400 text-xs">{tr.created_at?.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {transfers.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
                   : transfers.map((tr) => (
-                    <tr key={tr.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tr.from_warehouse?.name ?? '—'}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{tr.to_warehouse?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{tr.items_count ?? '—'}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize', statusBadge[tr.status] ?? 'badge-gray')}>{tr.status}</span></td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{tr.created_at?.slice(0, 10)}</td>
-                    </tr>
+                    <div key={tr.id} className="p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          <span className="font-semibold">{tr.from_warehouse?.name ?? '—'}</span>
+                          <span className="text-gray-400 mx-1.5">→</span>
+                          <span className="font-semibold">{tr.to_warehouse?.name ?? '—'}</span>
+                        </p>
+                        <span className={clsx('badge capitalize shrink-0', statusBadge[tr.status] ?? 'badge-gray')}>{tr.status}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        {tr.items_count !== undefined && <span>{tr.items_count} {isAr ? 'بند' : 'items'}</span>}
+                        <span>{tr.created_at?.slice(0, 10)}</span>
+                      </div>
+                    </div>
                   ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
         </div>
       )}

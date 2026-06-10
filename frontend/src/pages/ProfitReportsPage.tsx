@@ -17,7 +17,8 @@ const today = new Date().toISOString().slice(0, 10)
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)
 
 export default function ProfitReportsPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const [startDate, setStartDate] = useState(firstOfMonth)
   const [endDate, setEndDate] = useState(today)
@@ -154,51 +155,94 @@ export default function ProfitReportsPage() {
             <p>{t('no_data')}</p>
           </div>
         ) : viewType === 'product' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{['#', t('product'), 'Category', 'Qty', t('total_revenue'), t('total_cost'), t('gross_profit'), t('profit_margin')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {productRows.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : productRows.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.product_name}</td>
-                    <td className="px-4 py-3"><span className="badge badge-info">{row.category}</span></td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.total_qty.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(row.total_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="px-4 py-3 text-red-600 dark:text-red-400">{parseFloat(row.total_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{parseFloat(row.gross_profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className={clsx('px-4 py-3 font-semibold', marginColor(parseFloat(row.profit_margin)))}>{parseFloat(row.profit_margin).toFixed(2)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[650px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>{['#', t('product'), 'Category', 'Qty', t('total_revenue'), t('total_cost'), t('gross_profit'), t('profit_margin')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {productRows.length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : productRows.map((row, i) => (
+                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.product_name}</td>
+                      <td className="px-4 py-3"><span className="badge badge-info">{row.category}</span></td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.total_qty.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(row.total_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 text-red-600 dark:text-red-400">{parseFloat(row.total_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{parseFloat(row.gross_profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className={clsx('px-4 py-3 font-semibold', marginColor(parseFloat(row.profit_margin)))}>{parseFloat(row.profit_margin).toFixed(2)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {productRows.length === 0 ? (
+                <div className="px-4 py-12 text-center text-gray-400">{t('no_data')}</div>
+              ) : productRows.map((row, i) => (
+                <div key={i} className="p-4 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">{row.product_name}</p>
+                      <span className="badge badge-info text-xs mt-0.5">{row.category}</span>
+                    </div>
+                    <span className={clsx('font-semibold text-sm', marginColor(parseFloat(row.profit_margin)))}>{parseFloat(row.profit_margin).toFixed(2)}%</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <div><span className="text-gray-500">{t('total_revenue')}</span><p className="font-medium text-gray-700 dark:text-gray-300">{parseFloat(row.total_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p></div>
+                    <div><span className="text-gray-500">{t('total_cost')}</span><p className="font-medium text-red-600 dark:text-red-400">{parseFloat(row.total_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p></div>
+                    <div><span className="text-gray-500">{t('gross_profit')}</span><p className="font-bold text-green-600 dark:text-green-400">{parseFloat(row.gross_profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p></div>
+                  </div>
+                  <p className="text-xs text-gray-500">Qty: {row.total_qty.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>{[t('date'), 'Invoices', t('total_revenue'), t('total_cost'), t('net_profit'), t('profit_margin')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {dailyRows.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : dailyRows.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.date}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.invoices_count.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(row.revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="px-4 py-3 text-red-600 dark:text-red-400">{parseFloat(row.cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{parseFloat(row.profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className={clsx('px-4 py-3 font-semibold', marginColor(parseFloat(row.margin)))}>{parseFloat(row.margin).toFixed(2)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[650px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>{[t('date'), 'Invoices', t('total_revenue'), t('total_cost'), t('net_profit'), t('profit_margin')].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {dailyRows.length === 0 ? (
+                    <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : dailyRows.map((row, i) => (
+                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.date}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.invoices_count.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(row.revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 text-red-600 dark:text-red-400">{parseFloat(row.cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{parseFloat(row.profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className={clsx('px-4 py-3 font-semibold', marginColor(parseFloat(row.margin)))}>{parseFloat(row.margin).toFixed(2)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {dailyRows.length === 0 ? (
+                <div className="px-4 py-12 text-center text-gray-400">{t('no_data')}</div>
+              ) : dailyRows.map((row, i) => (
+                <div key={i} className="p-4 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{row.date}</p>
+                    <span className={clsx('font-semibold text-sm', marginColor(parseFloat(row.margin)))}>{parseFloat(row.margin).toFixed(2)}%</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <div><span className="text-gray-500">{t('total_revenue')}</span><p className="font-medium text-gray-700 dark:text-gray-300">{parseFloat(row.revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p></div>
+                    <div><span className="text-gray-500">{t('total_cost')}</span><p className="font-medium text-red-600 dark:text-red-400">{parseFloat(row.cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p></div>
+                    <div><span className="text-gray-500">{t('net_profit')}</span><p className="font-bold text-green-600 dark:text-green-400">{parseFloat(row.profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p></div>
+                  </div>
+                  <p className="text-xs text-gray-500">{isAr ? 'الفواتير' : 'Invoices'}: {row.invoices_count.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

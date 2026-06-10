@@ -61,7 +61,8 @@ const adjForm = {
 };
 
 export default function InventoryPage() {
-  const { t } = useTranslation('pos');
+  const { t, i18n } = useTranslation('pos');
+  const isAr = i18n.language.startsWith('ar');
   const { hasPermission } = usePermission();
   const qc = useQueryClient();
   const [tab, setTab] = useState<"all" | "low" | "out" | "expiry" | "movements">("all");
@@ -189,72 +190,51 @@ export default function InventoryPage() {
         <LoadingSpinner />
       </div>
     ) : (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              {[
-                t('product'),
-                t('category'),
-                t('barcode'),
-                t('current_stock'),
-                t('min_stock'),
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-            {items.length === 0 ? (
+      <>
+        {/* Desktop table */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full min-w-[500px] text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-10 text-center text-gray-400"
-                >
-                  {emptyMsg}
-                </td>
+                {[t('product'), t('category'), t('barcode'), t('current_stock'), t('min_stock')].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                ))}
               </tr>
-            ) : (
-              items.map((p) => (
-                <tr
-                  key={p.id ?? p.product_id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                >
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                    {p.name ?? p.product_name ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {p.category ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                    {p.barcode ?? "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={clsx(
-                        "font-bold",
-                        p.quantity <= 0
-                          ? "text-red-600"
-                          : p.low_stock
-                            ? "text-amber-600"
-                            : "text-green-600",
-                      )}
-                    >
-                      {p.quantity}
-                    </span>
-                  </td>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {items.length === 0 ? (
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{emptyMsg}</td></tr>
+              ) : items.map((p) => (
+                <tr key={p.id ?? p.product_id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name ?? p.product_name ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-500">{p.category ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-400">{p.barcode ?? "—"}</td>
+                  <td className="px-4 py-3"><span className={clsx("font-bold", p.quantity <= 0 ? "text-red-600" : p.low_stock ? "text-amber-600" : "text-green-600")}>{p.quantity}</span></td>
                   <td className="px-4 py-3 text-gray-500">{p.min_stock}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Mobile cards */}
+        <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+          {items.length === 0 ? (
+            <p className="px-4 py-10 text-center text-gray-400">{emptyMsg}</p>
+          ) : items.map((p) => (
+            <div key={p.id ?? p.product_id} className="p-4 space-y-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm">{p.name ?? p.product_name ?? "—"}</p>
+                <span className={clsx("text-lg font-bold shrink-0", p.quantity <= 0 ? "text-red-600" : p.low_stock ? "text-amber-600" : "text-green-600")}>{p.quantity}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                {p.category && <span className="badge badge-gray">{p.category}</span>}
+                {p.barcode && <span className="font-mono">{p.barcode}</span>}
+                <span>{isAr ? 'الحد الأدنى:' : 'Min:'} {p.min_stock}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
     );
 
   return (
@@ -370,8 +350,9 @@ export default function InventoryPage() {
             <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[500px] text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                       {[t('product'), t('category'), t('barcode'), t('current_stock'), t('min_stock'), t('status')].map((h) => (
@@ -387,25 +368,38 @@ export default function InventoryPage() {
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
                         <td className="px-4 py-3 text-gray-500">{p.category ?? "—"}</td>
                         <td className="px-4 py-3 font-mono text-xs text-gray-400">{p.barcode ?? "—"}</td>
-                        <td className="px-4 py-3">
-                          <span className={clsx("font-bold text-lg",
-                            p.quantity <= 0 ? "text-red-600" : p.low_stock ? "text-amber-600" : "text-green-600"
-                          )}>
-                            {p.quantity}
-                          </span>
-                        </td>
+                        <td className="px-4 py-3"><span className={clsx("font-bold text-lg", p.quantity <= 0 ? "text-red-600" : p.low_stock ? "text-amber-600" : "text-green-600")}>{p.quantity}</span></td>
                         <td className="px-4 py-3 text-gray-500">{p.min_stock}</td>
                         <td className="px-4 py-3">
-                          {p.quantity <= 0
-                            ? <span className="badge badge-danger">{t('out_of_stock')}</span>
-                            : p.low_stock
-                              ? <span className="badge badge-warning">{t('low_stock')}</span>
-                              : <span className="badge badge-success">{t('in')}</span>}
+                          {p.quantity <= 0 ? <span className="badge badge-danger">{t('out_of_stock')}</span>
+                            : p.low_stock ? <span className="badge badge-warning">{t('low_stock')}</span>
+                            : <span className="badge badge-success">{t('in')}</span>}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {allItems.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                ) : allItems.map((p) => (
+                  <div key={p.id} className="p-4 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{p.name}</p>
+                      <span className={clsx("text-xl font-bold shrink-0", p.quantity <= 0 ? "text-red-600" : p.low_stock ? "text-amber-600" : "text-green-600")}>{p.quantity}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                      {p.quantity <= 0 ? <span className="badge badge-danger">{t('out_of_stock')}</span>
+                        : p.low_stock ? <span className="badge badge-warning">{t('low_stock')}</span>
+                        : <span className="badge badge-success">{t('in')}</span>}
+                      {p.category && <span className="badge badge-gray">{p.category}</span>}
+                      {p.barcode && <span className="font-mono text-gray-400">{p.barcode}</span>}
+                      <span className="text-gray-500">{isAr ? 'الحد الأدنى:' : 'Min:'} {p.min_stock}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
               {allTotal > 50 && (
                 <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
@@ -445,74 +439,51 @@ export default function InventoryPage() {
               <LoadingSpinner />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    {[
-                      t('product'),
-                      t('batch_number'),
-                      t('quantity'),
-                      t('expiry_date'),
-                      t('date'),
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {expiryItems.length === 0 ? (
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[500px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <td
-                        colSpan={5}
-                        className="px-4 py-10 text-center text-gray-400"
-                      >
-                        {t('no_data')}
-                      </td>
+                      {[t('product'), t('batch_number'), t('quantity'), t('expiry_date'), t('date')].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      ))}
                     </tr>
-                  ) : (
-                    expiryItems.map((b) => (
-                      <tr
-                        key={b.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                      >
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                          {b.product_name}
-                        </td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                          {b.batch_number}
-                        </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
-                          {b.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-gray-500">
-                          {b.expiry_date?.slice(0, 10)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={clsx(
-                              "badge",
-                              b.days_until_expiry <= 7
-                                ? "badge-danger"
-                                : b.days_until_expiry <= 14
-                                  ? "badge-warning"
-                                  : "badge-warning",
-                            )}
-                          >
-                            {t('days_count', { n: b.days_until_expiry })}
-                          </span>
-                        </td>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {expiryItems.length === 0 ? (
+                      <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                    ) : expiryItems.map((b) => (
+                      <tr key={b.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{b.product_name}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-gray-400">{b.batch_number}</td>
+                        <td className="px-4 py-3 text-gray-900 dark:text-white">{b.quantity}</td>
+                        <td className="px-4 py-3 text-gray-500">{b.expiry_date?.slice(0, 10)}</td>
+                        <td className="px-4 py-3"><span className={clsx("badge", b.days_until_expiry <= 7 ? "badge-danger" : "badge-warning")}>{t('days_count', { n: b.days_until_expiry })}</span></td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {expiryItems.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                ) : expiryItems.map((b) => (
+                  <div key={b.id} className="p-4 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{b.product_name}</p>
+                      <span className={clsx("badge shrink-0", b.days_until_expiry <= 7 ? "badge-danger" : "badge-warning")}>{t('days_count', { n: b.days_until_expiry })}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                      <span className="font-mono">{b.batch_number}</span>
+                      <span>{isAr ? 'الكمية:' : 'Qty:'} {b.quantity}</span>
+                      <span>{isAr ? 'ينتهي:' : 'Exp:'} {b.expiry_date?.slice(0, 10)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ))}
         {tab === "movements" && (
           <div className="p-6 text-center text-gray-400">

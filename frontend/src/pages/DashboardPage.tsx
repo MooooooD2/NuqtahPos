@@ -22,7 +22,8 @@ interface DashData {
 }
 
 export default function DashboardPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashData>('/dashboard-data'),
@@ -101,6 +102,7 @@ export default function DashboardPage() {
         {/* Top products */}
         <div className="card p-5">
           <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('top_products')}</h3>
+          <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700">
@@ -124,11 +126,29 @@ export default function DashboardPage() {
               )}
             </tbody>
           </table>
+          </div>
+          <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+            {(stats.top_products ?? []).slice(0, 8).map((row, i) => (
+              <div key={i} className="p-4 flex items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">{row.name ?? '—'}</p>
+                  <p className="text-xs text-gray-500">{t('qty')}: {row.total_quantity ?? 0}</p>
+                </div>
+                <span className="font-semibold text-primary-600 text-sm">
+                  {parseFloat(String(row.total_sales ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            ))}
+            {(stats.top_products ?? []).length === 0 && (
+              <div className="py-8 text-center text-gray-400 text-sm">{t('no_sales_today')}</div>
+            )}
+          </div>
         </div>
 
         {/* Recent invoices */}
         <div className="card p-5">
           <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('recent_invoices')}</h3>
+          <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700">
@@ -152,6 +172,23 @@ export default function DashboardPage() {
               )}
             </tbody>
           </table>
+          </div>
+          <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+            {(stats.recent_invoices ?? []).slice(0, 8).map((inv, i) => (
+              <div key={i} className="p-4 flex items-center justify-between gap-2">
+                <div>
+                  <p className="font-mono text-xs text-primary-600">{inv.invoice_number}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{inv.cashier_name ?? '—'}</p>
+                </div>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                  {parseFloat(String(inv.final_total ?? 0)).toFixed(2)}
+                </span>
+              </div>
+            ))}
+            {(stats.recent_invoices ?? []).length === 0 && (
+              <div className="py-8 text-center text-gray-400 text-sm">{t('no_invoices_yet')}</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

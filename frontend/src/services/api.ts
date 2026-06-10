@@ -1,8 +1,9 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { isTauriApp } from '@/lib/tauri'
 
-// Detect if running in Tauri desktop app
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window
+// Detect if running in Tauri desktop app (works for Tauri v2 via __TAURI_INTERNALS__)
+const isTauri = isTauriApp()
 
 const BASE_URL = isTauri
   ? import.meta.env.VITE_API_URL ?? 'http://localhost:8000'

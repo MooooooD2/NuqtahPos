@@ -16,7 +16,8 @@ interface Group { id: number; name: string; discount_percent?: string }
 const emptyForm = { name: '', phone: '', email: '', address: '', city: '', credit_limit: '0', customer_group_id: '' }
 
 export default function CustomersPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'customers' | 'groups'>('customers')
@@ -104,33 +105,79 @@ export default function CustomersPage() {
           </div>
           <div className="card overflow-hidden">
             {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('name'), t('phone'), t('email'), t('customer_groups'), t('points'), t('balance'), t('credit_limit'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {customers.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_customers_found')}</td></tr>
-                      : customers.map((c) => (
-                        <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{c.name}</td>
-                          <td className="px-4 py-3 text-gray-500">{c.phone ?? '—'}</td>
-                          <td className="px-4 py-3 text-gray-500">{c.email ?? '—'}</td>
-                          <td className="px-4 py-3">{c.customer_group_id ? <span className="badge badge-info text-xs">{groups.find((g) => g.id === c.customer_group_id)?.name ?? 'Group'}</span> : <span className="text-gray-400">—</span>}</td>
-                          <td className="px-4 py-3">{(c.loyalty_points ?? 0) > 0 ? <span className="flex items-center gap-1 text-amber-600 font-semibold"><Star className="h-3.5 w-3.5" />{c.loyalty_points}</span> : <span className="text-gray-400">0</span>}</td>
-                          <td className="px-4 py-3"><span className={clsx('font-semibold', parseFloat(c.outstanding_balance ?? '0') > 0 ? 'text-red-600' : 'text-gray-500')}>{parseFloat(c.outstanding_balance ?? '0').toFixed(2)}</span></td>
-                          <td className="px-4 py-3 text-gray-500 flex items-center gap-1"><CreditCard className="h-3.5 w-3.5 text-gray-400" />{parseFloat(c.credit_limit ?? '0').toFixed(2)}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-1 justify-end">
-                              {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>}
-                              {canDelete && <button onClick={() => setDeleteId(c.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {/* ── Desktop table ─────────────────────── lg+ ── */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[650px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('name'), t('phone'), t('email'), t('customer_groups'), t('points'), t('balance'), t('credit_limit'), ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {customers.length === 0 ? <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_customers_found')}</td></tr>
+                        : customers.map((c) => (
+                          <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{c.name}</td>
+                            <td className="px-4 py-3 text-gray-500">{c.phone ?? '—'}</td>
+                            <td className="px-4 py-3 text-gray-500">{c.email ?? '—'}</td>
+                            <td className="px-4 py-3">{c.customer_group_id ? <span className="badge badge-info text-xs">{groups.find((g) => g.id === c.customer_group_id)?.name ?? 'Group'}</span> : <span className="text-gray-400">—</span>}</td>
+                            <td className="px-4 py-3">{(c.loyalty_points ?? 0) > 0 ? <span className="flex items-center gap-1 text-amber-600 font-semibold"><Star className="h-3.5 w-3.5" />{c.loyalty_points}</span> : <span className="text-gray-400">0</span>}</td>
+                            <td className="px-4 py-3"><span className={clsx('font-semibold', parseFloat(c.outstanding_balance ?? '0') > 0 ? 'text-red-600' : 'text-gray-500')}>{parseFloat(c.outstanding_balance ?? '0').toFixed(2)}</span></td>
+                            <td className="px-4 py-3 text-gray-500"><CreditCard className="h-3.5 w-3.5 text-gray-400 inline mr-1" />{parseFloat(c.credit_limit ?? '0').toFixed(2)}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-1 justify-end">
+                                {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"><Pencil className="h-4 w-4" /></button>}
+                                {canDelete && <button onClick={() => setDeleteId(c.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="h-4 w-4" /></button>}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ── Mobile cards ──────────────────────── <lg ── */}
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {customers.length === 0 ? (
+                    <p className="px-4 py-12 text-center text-gray-400">{t('no_customers_found')}</p>
+                  ) : customers.map((c) => (
+                    <div key={c.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{c.name}</p>
+                        {c.customer_group_id && <span className="badge badge-info text-xs shrink-0">{groups.find((g) => g.id === c.customer_group_id)?.name ?? 'Group'}</span>}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                        {c.phone && <span>{c.phone}</span>}
+                        {c.email && <span>{c.email}</span>}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                        {(c.loyalty_points ?? 0) > 0 && (
+                          <span className="flex items-center gap-1 text-amber-600 font-semibold"><Star className="h-3 w-3" />{c.loyalty_points} {isAr ? 'نقطة' : 'pts'}</span>
+                        )}
+                        <span className={clsx('flex items-center gap-1 font-semibold', parseFloat(c.outstanding_balance ?? '0') > 0 ? 'text-red-600' : 'text-gray-400')}>
+                          {isAr ? 'الرصيد:' : 'Bal:'} {parseFloat(c.outstanding_balance ?? '0').toFixed(2)}
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-500">
+                          <CreditCard className="h-3 w-3" />{parseFloat(c.credit_limit ?? '0').toFixed(2)}
+                        </span>
+                      </div>
+                      {(canEdit || canDelete) && (
+                        <div className="flex gap-2 pt-1">
+                          {canEdit && (
+                            <button onClick={() => openEdit(c)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 hover:bg-primary-100 transition-colors font-medium">
+                              <Pencil className="h-3.5 w-3.5" />{isAr ? 'تعديل' : 'Edit'}
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button onClick={() => setDeleteId(c.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                              <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
             {(data?.total ?? 0) > 20 && (
               <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
@@ -147,7 +194,7 @@ export default function CustomersPage() {
 
       {tab === 'groups' && (
         <div className="card overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[650px] text-sm">
             <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('customer_groups'), t('discount') + ' %', ''].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {groups.length === 0 ? <tr><td colSpan={3} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
@@ -159,7 +206,7 @@ export default function CustomersPage() {
                   </tr>
                 ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 

@@ -19,7 +19,8 @@ const emptyActivity = { customer_id: '', type: 'call', notes: '', due_date: '' }
 const emptyFollowup = { customer_id: '', due_date: '', notes: '', activity_type: 'call' }
 
 export default function CrmPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'overview' | 'activities' | 'followups'>('overview')
@@ -163,20 +164,40 @@ export default function CrmPage() {
       {tab === 'activities' && (
         <div className="card overflow-hidden">
           {actLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('type'), t('notes'), t('date')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {activities.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_activities')}</td></tr>
-                  : activities.map((a) => (
-                    <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{a.customer_name ?? '—'}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', actBadge[a.type] ?? 'badge-gray')}>{a.type}</span></td>
-                      <td className="px-4 py-3 text-gray-500 max-w-64 truncate">{a.notes ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{a.created_at?.slice(0, 16)}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('type'), t('notes'), t('date')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {activities.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_activities')}</td></tr>
+                      : activities.map((a) => (
+                        <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{a.customer_name ?? '—'}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', actBadge[a.type] ?? 'badge-gray')}>{a.type}</span></td>
+                          <td className="px-4 py-3 text-gray-500 max-w-64 truncate">{a.notes ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-400 text-xs">{a.created_at?.slice(0, 16)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {activities.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-gray-400">{t('no_activities')}</p>
+                ) : activities.map((a) => (
+                  <div key={a.id} className="p-4 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{a.customer_name ?? '—'}</span>
+                      <span className={clsx('badge capitalize text-xs shrink-0', actBadge[a.type] ?? 'badge-gray')}>{a.type}</span>
+                    </div>
+                    {a.notes && <p className="text-sm text-gray-500 line-clamp-2">{a.notes}</p>}
+                    <div className="text-xs text-gray-400">{a.created_at?.slice(0, 16)}</div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -184,21 +205,44 @@ export default function CrmPage() {
       {tab === 'followups' && (
         <div className="card overflow-hidden">
           {fuLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('type'), t('date'), t('notes'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {followups.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                  : followups.map((f) => (
-                    <tr key={f.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{f.customer_name ?? '—'}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', actBadge[f.activity_type ?? ''] ?? 'badge-gray')}>{f.activity_type ?? 'call'}</span></td>
-                      <td className="px-4 py-3 text-gray-500">{f.due_date?.slice(0, 10)}</td>
-                      <td className="px-4 py-3 text-gray-500 max-w-48 truncate">{f.notes ?? '—'}</td>
-                      <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', f.status === 'pending' ? 'badge-warning' : f.status === 'done' ? 'badge-success' : 'badge-gray')}>{f.status ?? 'pending'}</span></td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('name'), t('type'), t('date'), t('notes'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {followups.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : followups.map((f) => (
+                        <tr key={f.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{f.customer_name ?? '—'}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', actBadge[f.activity_type ?? ''] ?? 'badge-gray')}>{f.activity_type ?? 'call'}</span></td>
+                          <td className="px-4 py-3 text-gray-500">{f.due_date?.slice(0, 10)}</td>
+                          <td className="px-4 py-3 text-gray-500 max-w-48 truncate">{f.notes ?? '—'}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', f.status === 'pending' ? 'badge-warning' : f.status === 'done' ? 'badge-success' : 'badge-gray')}>{f.status ?? 'pending'}</span></td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {followups.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                ) : followups.map((f) => (
+                  <div key={f.id} className="p-4 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{f.customer_name ?? '—'}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className={clsx('badge capitalize text-xs', actBadge[f.activity_type ?? ''] ?? 'badge-gray')}>{f.activity_type ?? 'call'}</span>
+                        <span className={clsx('badge capitalize text-xs', f.status === 'pending' ? 'badge-warning' : f.status === 'done' ? 'badge-success' : 'badge-gray')}>{f.status ?? 'pending'}</span>
+                      </div>
+                    </div>
+                    {f.notes && <p className="text-sm text-gray-500 line-clamp-2">{f.notes}</p>}
+                    <div className="text-xs text-gray-500">{t('date')}: {f.due_date?.slice(0, 10)}</div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}

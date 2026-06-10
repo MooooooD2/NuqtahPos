@@ -187,7 +187,7 @@ export default function AdminCpanelPage() {
         <div className="p-5 border-b border-gray-100 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">{isAr ? 'أحدث المتاجر' : 'Recent Signups'}</h2>
         </div>
-        <table className="w-full text-sm">
+        <div className="hidden lg:block overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               {[isAr ? 'المتجر' : 'Store', isAr ? 'الخطة' : 'Plan', isAr ? 'الحالة' : 'Status', isAr ? 'تاريخ الإنشاء' : 'Created'].map((h) => (
@@ -209,7 +209,23 @@ export default function AdminCpanelPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
+        <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+          {d.recent_tenants.map((t) => (
+            <div key={t.id} className="p-4 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium text-gray-900 dark:text-white">{t.name}</p>
+                <span className={clsx('badge', t.subscription_status === 'active' ? 'badge-success' : t.subscription_status === 'trial' ? 'badge-warning' : 'badge-danger')}>
+                  {STATUS_LABELS[t.subscription_status] ?? t.subscription_status}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className={clsx('badge', PLAN_COLORS[t.plan] ?? 'badge-info')}>{t.plan}</span>
+                <span className="text-gray-500">{new Date(t.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

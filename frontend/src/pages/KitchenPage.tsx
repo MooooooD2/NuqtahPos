@@ -197,7 +197,7 @@ export default function KitchenPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order: Order) => (
                 <OrderCard
                   key={order.id}
@@ -313,7 +313,7 @@ export default function KitchenPage() {
           <p>{t('no_orders')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {orders.map((order) => (
             <OrderCard
               key={order.id}

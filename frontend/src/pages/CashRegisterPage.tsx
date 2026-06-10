@@ -32,7 +32,8 @@ const emptyCloseForm = { actual_cash: '', notes: '' }
 const emptyMovementForm = { type: 'deposit', amount: '', reason: '' }
 
 export default function CashRegisterPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState<'open' | 'close' | 'movement' | null>(null)
@@ -219,41 +220,61 @@ export default function CashRegisterPage() {
         {historyLoading ? (
           <div className="flex h-40 items-center justify-center"><LoadingSpinner size="lg" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {[t('session'), t('cashier_note'), t('date_opened'), t('date_closed'), t('expected_cash'), t('actual_cash'), t('difference'), t('status')].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {history.length === 0 ? (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                ) : history.map((s) => (
-                  <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3 font-mono text-xs text-primary-600">{s.session_number ?? `#${s.id}`}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.cashier_name ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{s.opened_at?.replace('T', ' ').slice(0, 16)}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{s.closed_at ? s.closed_at.replace('T', ' ').slice(0, 16) : '—'}</td>
-                    <td className="px-4 py-3 font-semibold">{s.expected_cash ? parseFloat(s.expected_cash).toFixed(2) : '—'}</td>
-                    <td className="px-4 py-3 font-semibold">{s.actual_cash ? parseFloat(s.actual_cash).toFixed(2) : '—'}</td>
-                    <td className="px-4 py-3">
-                      {s.expected_cash && s.actual_cash ? (
-                        <span className={clsx('font-bold', diffColor(s.expected_cash, s.actual_cash))}>
-                          {diffValue(s.expected_cash, s.actual_cash)}
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={clsx('badge capitalize', s.status === 'open' ? 'badge-success' : 'badge-gray')}>{s.status}</span>
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[750px] text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    {[t('session'), t('cashier_note'), t('date_opened'), t('date_closed'), t('expected_cash'), t('actual_cash'), t('difference'), t('status')].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {history.length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                  ) : history.map((s) => (
+                    <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 font-mono text-xs text-primary-600">{s.session_number ?? `#${s.id}`}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.cashier_name ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{s.opened_at?.replace('T', ' ').slice(0, 16)}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{s.closed_at ? s.closed_at.replace('T', ' ').slice(0, 16) : '—'}</td>
+                      <td className="px-4 py-3 font-semibold">{s.expected_cash ? parseFloat(s.expected_cash).toFixed(2) : '—'}</td>
+                      <td className="px-4 py-3 font-semibold">{s.actual_cash ? parseFloat(s.actual_cash).toFixed(2) : '—'}</td>
+                      <td className="px-4 py-3">{s.expected_cash && s.actual_cash ? <span className={clsx('font-bold', diffColor(s.expected_cash, s.actual_cash))}>{diffValue(s.expected_cash, s.actual_cash)}</span> : '—'}</td>
+                      <td className="px-4 py-3"><span className={clsx('badge capitalize', s.status === 'open' ? 'badge-success' : 'badge-gray')}>{s.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Mobile cards */}
+            <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+              {history.length === 0 ? (
+                <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+              ) : history.map((s) => (
+                <div key={s.id} className="p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-semibold text-primary-600">{s.session_number ?? `#${s.id}`}</span>
+                    <span className={clsx('badge capitalize shrink-0', s.status === 'open' ? 'badge-success' : 'badge-gray')}>{s.status}</span>
+                  </div>
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm">{s.cashier_name ?? '—'}</p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                    <span>{s.opened_at?.replace('T', ' ').slice(0, 16)}</span>
+                    {s.closed_at && <span>→ {s.closed_at.replace('T', ' ').slice(0, 16)}</span>}
+                  </div>
+                  {(s.expected_cash || s.actual_cash) && (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                      {s.expected_cash && <span className="text-gray-500">{isAr ? 'متوقع:' : 'Exp:'} <span className="font-semibold text-gray-900 dark:text-white">{parseFloat(s.expected_cash).toFixed(2)}</span></span>}
+                      {s.actual_cash && <span className="text-gray-500">{isAr ? 'فعلي:' : 'Act:'} <span className="font-semibold text-gray-900 dark:text-white">{parseFloat(s.actual_cash).toFixed(2)}</span></span>}
+                      {s.expected_cash && s.actual_cash && <span className={clsx('font-bold', diffColor(s.expected_cash, s.actual_cash))}>{diffValue(s.expected_cash, s.actual_cash)}</span>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

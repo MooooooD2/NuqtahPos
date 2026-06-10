@@ -23,7 +23,8 @@ interface Currency {
 const emptyForm = { code: '', symbol: '', name: '', exchange_rate: '', is_base: false }
 
 export default function CurrenciesPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [modal, setModal] = useState(false)
@@ -152,77 +153,137 @@ export default function CurrenciesPage() {
           {isLoading ? (
             <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    {[t('code'), t('name'), t('symbol'), t('exchange_rate'), t('rate_updated'), t('status'), ''].map((h, i) => (
-                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {currencies.length === 0 ? (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                  ) : currencies.map((cur) => (
-                    <tr key={cur.code} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3">
-                        <span className="font-mono font-bold text-gray-900 dark:text-white">{cur.code}</span>
-                        {cur.is_base && <span className="ml-1 badge badge-info text-xs">{t('base')}</span>}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{cur.name}</td>
-                      <td className="px-4 py-3 text-gray-500 font-mono">{cur.symbol}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            step="0.0001"
-                            min="0.0001"
-                            value={inlineRates[cur.code] ?? cur.exchange_rate}
-                            onChange={(e) => setInlineRates((p) => ({ ...p, [cur.code]: e.target.value }))}
-                            className="input w-28 py-1 text-sm"
-                            disabled={!canManage}
-                          />
-                          {canManage && inlineRates[cur.code] !== undefined && (
-                            <button
-                              onClick={() => handleRateSave(cur.code)}
-                              disabled={savingRate === cur.code}
-                              className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                              title={t('save_rate')}
-                            >
-                              <Check className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{cur.rate_updated_at?.slice(0, 10) ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <span className={clsx('badge', cur.is_active ? 'badge-success' : 'badge-gray')}>
-                          {cur.is_active ? t('active_status') : t('inactive_status')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1 justify-end">
-                          {canManage && (
-                            <button
-                              onClick={() => toggleMutation.mutate({ code: cur.code, is_active: !cur.is_active })}
-                              className={clsx('px-2 py-1 rounded text-xs font-medium transition-colors', cur.is_active ? 'text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20' : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20')}
-                            >
-                              {cur.is_active ? t('disable') : t('enable')}
-                            </button>
-                          )}
-                          {canManage && !cur.is_base && (
-                            <button onClick={() => setDeleteCode(cur.code)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[650px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      {[t('code'), t('name'), t('symbol'), t('exchange_rate'), t('rate_updated'), t('status'), ''].map((h, i) => (
+                        <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {currencies.length === 0 ? (
+                      <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                    ) : currencies.map((cur) => (
+                      <tr key={cur.code} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3">
+                          <span className="font-mono font-bold text-gray-900 dark:text-white">{cur.code}</span>
+                          {cur.is_base && <span className="ml-1 badge badge-info text-xs">{t('base')}</span>}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{cur.name}</td>
+                        <td className="px-4 py-3 text-gray-500 font-mono">{cur.symbol}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              step="0.0001"
+                              min="0.0001"
+                              value={inlineRates[cur.code] ?? cur.exchange_rate}
+                              onChange={(e) => setInlineRates((p) => ({ ...p, [cur.code]: e.target.value }))}
+                              className="input w-28 py-1 text-sm"
+                              disabled={!canManage}
+                            />
+                            {canManage && inlineRates[cur.code] !== undefined && (
+                              <button
+                                onClick={() => handleRateSave(cur.code)}
+                                disabled={savingRate === cur.code}
+                                className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                                title={t('save_rate')}
+                              >
+                                <Check className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">{cur.rate_updated_at?.slice(0, 10) ?? '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className={clsx('badge', cur.is_active ? 'badge-success' : 'badge-gray')}>
+                            {cur.is_active ? t('active_status') : t('inactive_status')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1 justify-end">
+                            {canManage && (
+                              <button
+                                onClick={() => toggleMutation.mutate({ code: cur.code, is_active: !cur.is_active })}
+                                className={clsx('px-2 py-1 rounded text-xs font-medium transition-colors', cur.is_active ? 'text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20' : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20')}
+                              >
+                                {cur.is_active ? t('disable') : t('enable')}
+                              </button>
+                            )}
+                            {canManage && !cur.is_base && (
+                              <button onClick={() => setDeleteCode(cur.code)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {currencies.length === 0 ? (
+                  <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+                ) : currencies.map((cur) => (
+                  <div key={cur.code} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-gray-900 dark:text-white text-base">{cur.code}</span>
+                        <span className="font-mono text-gray-500">{cur.symbol}</span>
+                        {cur.is_base && <span className="badge badge-info text-xs">{t('base')}</span>}
+                      </div>
+                      <span className={clsx('badge', cur.is_active ? 'badge-success' : 'badge-gray')}>
+                        {cur.is_active ? t('active_status') : t('inactive_status')}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">{cur.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{t('exchange_rate')}:</span>
+                      <input
+                        type="number"
+                        step="0.0001"
+                        min="0.0001"
+                        value={inlineRates[cur.code] ?? cur.exchange_rate}
+                        onChange={(e) => setInlineRates((p) => ({ ...p, [cur.code]: e.target.value }))}
+                        className="input w-28 py-1 text-sm"
+                        disabled={!canManage}
+                      />
+                      {canManage && inlineRates[cur.code] !== undefined && (
+                        <button
+                          onClick={() => handleRateSave(cur.code)}
+                          disabled={savingRate === cur.code}
+                          className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    {cur.rate_updated_at && <div className="text-xs text-gray-400">{t('rate_updated')}: {cur.rate_updated_at.slice(0, 10)}</div>}
+                    {canManage && (
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => toggleMutation.mutate({ code: cur.code, is_active: !cur.is_active })}
+                          className={clsx('flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg transition-colors font-medium', cur.is_active ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 hover:bg-yellow-100' : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100')}
+                        >
+                          {cur.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}
+                        </button>
+                        {!cur.is_base && (
+                          <button onClick={() => setDeleteCode(cur.code)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                            <Trash2 className="h-3.5 w-3.5" />{isAr ? 'حذف' : 'Delete'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 

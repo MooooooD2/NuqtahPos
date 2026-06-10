@@ -19,7 +19,8 @@ const emptyAccount = { code: '', name: '', type: 'asset', parent_id: '' }
 const emptyJE = { date: new Date().toISOString().slice(0, 10), reference: '', description: '', lines: [{ account_id: '', debit: '', credit: '' }, { account_id: '', debit: '', credit: '' }] }
 
 export default function AccountingPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'accounts' | 'journal' | 'periods'>('accounts')
@@ -100,24 +101,41 @@ export default function AccountingPage() {
       {tab === 'accounts' && (
         <div className="card overflow-hidden">
           {accLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('account_code'), t('account_name'), t('account_type'), t('balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {accounts.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    : accounts.map((acc) => (
-                      <tr key={acc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-mono text-xs text-gray-500">{acc.account_code}</td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{acc.account_name}</td>
-                        <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', accountTypeClass[acc.account_type] ?? 'badge-gray')}>{acc.account_type}</span></td>
-                        <td className="px-4 py-3 font-semibold text-right">{parseFloat(acc.balance ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('account_code'), t('account_name'), t('account_type'), t('balance')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {accounts.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : accounts.map((acc) => (
+                        <tr key={acc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-mono text-xs text-gray-500">{acc.account_code}</td>
+                          <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{acc.account_name}</td>
+                          <td className="px-4 py-3"><span className={clsx('badge capitalize text-xs', accountTypeClass[acc.account_type] ?? 'badge-gray')}>{acc.account_type}</span></td>
+                          <td className="px-4 py-3 font-semibold text-right">{parseFloat(acc.balance ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {accounts.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                  : accounts.map((acc) => (
+                    <div key={acc.id} className="p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">{acc.account_name}</span>
+                        <span className={clsx('badge capitalize text-xs', accountTypeClass[acc.account_type] ?? 'badge-gray')}>{acc.account_type}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs text-gray-500">{acc.account_code}</span>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{parseFloat(acc.balance ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -125,27 +143,49 @@ export default function AccountingPage() {
       {tab === 'journal' && (
         <div className="card overflow-hidden">
           {jLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('date'), t('reference'), t('description'), t('debit'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {journal.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    : journal.map((je) => (
-                      <tr key={je.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 text-gray-400 text-xs">{je.date?.slice(0, 10)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-primary-600">{je.reference}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-48 truncate">{je.description}</td>
-                        <td className="px-4 py-3 font-semibold">{parseFloat(je.total_debit ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td className="px-4 py-3 flex gap-1">
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('date'), t('reference'), t('description'), t('debit'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {journal.length === 0 ? <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : journal.map((je) => (
+                        <tr key={je.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 text-gray-400 text-xs">{je.date?.slice(0, 10)}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-primary-600">{je.reference}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-48 truncate">{je.description}</td>
+                          <td className="px-4 py-3 font-semibold">{parseFloat(je.total_debit ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          <td className="px-4 py-3 flex gap-1">
+                            {je.is_locked ? <span className="badge badge-gray text-xs flex items-center gap-1"><Lock className="h-3 w-3" />{t('locked')}</span> : je.is_posted ? <span className="badge badge-success text-xs">{t('posted')}</span> : <span className="badge badge-warning text-xs">{t('draft')}</span>}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {journal.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                  : journal.map((je) => (
+                    <div key={je.id} className="p-4 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">{je.description}</p>
+                          {je.reference && <p className="font-mono text-xs text-primary-600">{je.reference}</p>}
+                        </div>
+                        <span className="shrink-0">
                           {je.is_locked ? <span className="badge badge-gray text-xs flex items-center gap-1"><Lock className="h-3 w-3" />{t('locked')}</span> : je.is_posted ? <span className="badge badge-success text-xs">{t('posted')}</span> : <span className="badge badge-warning text-xs">{t('draft')}</span>}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{parseFloat(je.total_debit ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className="text-xs text-gray-400">{je.date?.slice(0, 10)}</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -153,20 +193,36 @@ export default function AccountingPage() {
       {tab === 'periods' && (
         <div className="card overflow-hidden">
           {pLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('period'), t('date_from'), t('date_to'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {periods.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[550px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700"><tr>{[t('period'), t('date_from'), t('date_to'), t('status')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr></thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {periods.length === 0 ? <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      : periods.map((p) => (
+                        <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
+                          <td className="px-4 py-3 text-gray-500">{p.start_date?.slice(0, 10)}</td>
+                          <td className="px-4 py-3 text-gray-500">{p.end_date?.slice(0, 10)}</td>
+                          <td className="px-4 py-3">{p.is_closed ? <span className="badge badge-danger flex items-center gap-1 w-fit"><Lock className="h-3 w-3" />{t('locked')}</span> : <span className="badge badge-success flex items-center gap-1 w-fit"><Unlock className="h-3 w-3" />{t('unlocked')}</span>}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {periods.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
                   : periods.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.start_date?.slice(0, 10)}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.end_date?.slice(0, 10)}</td>
-                      <td className="px-4 py-3">{p.is_closed ? <span className="badge badge-danger flex items-center gap-1 w-fit"><Lock className="h-3 w-3" />{t('locked')}</span> : <span className="badge badge-success flex items-center gap-1 w-fit"><Unlock className="h-3 w-3" />{t('unlocked')}</span>}</td>
-                    </tr>
+                    <div key={p.id} className="p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">{p.name}</span>
+                        {p.is_closed ? <span className="badge badge-danger flex items-center gap-1 text-xs"><Lock className="h-3 w-3" />{t('locked')}</span> : <span className="badge badge-success flex items-center gap-1 text-xs"><Unlock className="h-3 w-3" />{t('unlocked')}</span>}
+                      </div>
+                      <div className="text-xs text-gray-500">{p.start_date?.slice(0, 10)} – {p.end_date?.slice(0, 10)}</div>
+                    </div>
                   ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
         </div>
       )}

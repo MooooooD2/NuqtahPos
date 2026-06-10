@@ -33,7 +33,8 @@ const reasonBadge: Record<Reason, string> = {
 const emptyForm = { product_id: '', product_name: '', quantity: '', reason: 'expired' as Reason, notes: '' }
 
 export default function WastePage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [form, setForm] = useState({ ...emptyForm })
@@ -188,33 +189,57 @@ export default function WastePage() {
             {isLoading ? (
               <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      {[t('date'), t('product'), t('quantity'), t('waste_reason'), t('waste_value'), t('recorded_by')].map((h) => (
-                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {records.length === 0 ? (
-                      <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                    ) : records.map((rec) => (
-                      <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 text-gray-500 text-xs">{rec.created_at?.slice(0, 10)}</td>
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{rec.product_name}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{rec.quantity.toLocaleString()}</td>
-                        <td className="px-4 py-3">
-                          <span className={clsx('badge capitalize', reasonBadge[rec.reason as Reason] ?? 'badge-gray')}>{rec.reason}</span>
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-red-600 dark:text-red-400">{formatValue(rec.waste_value)}</td>
-                        <td className="px-4 py-3 text-gray-500">{rec.created_by_name ?? '—'}</td>
+              <>
+                {/* Desktop table */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[550px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        {[t('date'), t('product'), t('quantity'), t('waste_reason'), t('waste_value'), t('recorded_by')].map((h) => (
+                          <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {records.length === 0 ? (
+                        <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                      ) : records.map((rec) => (
+                        <tr key={rec.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 text-gray-500 text-xs">{rec.created_at?.slice(0, 10)}</td>
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{rec.product_name}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{rec.quantity.toLocaleString()}</td>
+                          <td className="px-4 py-3">
+                            <span className={clsx('badge capitalize', reasonBadge[rec.reason as Reason] ?? 'badge-gray')}>{rec.reason}</span>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-red-600 dark:text-red-400">{formatValue(rec.waste_value)}</td>
+                          <td className="px-4 py-3 text-gray-500">{rec.created_by_name ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile cards */}
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {records.length === 0 ? (
+                    <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+                  ) : records.map((rec) => (
+                    <div key={rec.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">{rec.product_name}</span>
+                        <span className={clsx('badge capitalize shrink-0', reasonBadge[rec.reason as Reason] ?? 'badge-gray')}>{rec.reason}</span>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">{t('quantity')}: <strong>{rec.quantity.toLocaleString()}</strong></span>
+                        <span className="font-semibold text-red-600 dark:text-red-400">{formatValue(rec.waste_value)}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 space-y-0.5">
+                        <div>{t('date')}: {rec.created_at?.slice(0, 10)}</div>
+                        <div>{t('recorded_by')}: {rec.created_by_name ?? '—'}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
             {(data?.total ?? 0) > 20 && (
               <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">

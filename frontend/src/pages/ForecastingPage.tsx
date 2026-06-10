@@ -25,7 +25,8 @@ interface ProductForecast { product_name: string; avg_daily_qty: string; forecas
 interface StockDepletion { urgency: string; product_name: string; current_stock: number; daily_rate: string; days_remaining: number; depleted_on?: string; reorder_qty: number }
 
 export default function ForecastingPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const [tab, setTab] = useState<Tab>('sales')
   const [forecastDays, setForecastDays] = useState('30')
@@ -169,25 +170,39 @@ export default function ForecastingPage() {
                 <p>{t('generate_forecast')}</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('date'), t('revenue_forecast'), t('lower_bound'), t('upper_bound')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {forecastRows.length === 0 ? (
-                      <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
-                    ) : forecastRows.map((row, i) => (
-                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.date}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(row.forecast).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-500">{parseFloat(row.lower_ci).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-500">{parseFloat(row.upper_ci).toFixed(2)}</td>
-                      </tr>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[650px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('date'), t('revenue_forecast'), t('lower_bound'), t('upper_bound')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {forecastRows.length === 0 ? (
+                        <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">{t('no_data')}</td></tr>
+                      ) : forecastRows.map((row, i) => (
+                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.date}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(row.forecast).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-gray-500">{parseFloat(row.lower_ci).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-gray-500">{parseFloat(row.upper_ci).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {forecastRows.length === 0 ? <p className="px-4 py-10 text-center text-gray-400">{t('no_data')}</p>
+                    : forecastRows.map((row, i) => (
+                      <div key={i} className="p-4 space-y-1">
+                        <div className="font-semibold text-gray-900 dark:text-white">{row.date}</div>
+                        <div className="flex items-center gap-3 text-sm flex-wrap">
+                          <span className="font-semibold text-primary-600">{parseFloat(row.forecast).toFixed(2)}</span>
+                          <span className="text-gray-400 text-xs">{parseFloat(row.lower_ci).toFixed(2)} – {parseFloat(row.upper_ci).toFixed(2)}</span>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -198,34 +213,46 @@ export default function ForecastingPage() {
           {demandQuery.isLoading ? (
             <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('product'), t('avg_daily_qty'), t('product_demand_forecast_30'), t('current_stock'), t('days_left'), t('needs_reorder')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {demandRows.length === 0 ? (
-                    <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">
-                      <Package className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                      {t('no_data')}
-                    </td></tr>
-                  ) : demandRows.map((row, i) => (
-                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.product_name}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{parseFloat(row.avg_daily_qty).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{parseFloat(row.forecast_30_days).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.current_stock.toLocaleString()}</td>
-                      <td className="px-4 py-3">{daysLeftBadge(row.days_stock_left)}</td>
-                      <td className="px-4 py-3">
-                        <span className={clsx('badge', row.needs_reorder ? 'badge-danger' : 'badge-success')}>
-                          {row.needs_reorder ? t('yes') : t('no')}
-                        </span>
-                      </td>
-                    </tr>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[650px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('product'), t('avg_daily_qty'), t('product_demand_forecast_30'), t('current_stock'), t('days_left'), t('needs_reorder')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {demandRows.length === 0 ? (
+                      <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400"><Package className="h-8 w-8 mx-auto mb-2 opacity-30" />{t('no_data')}</td></tr>
+                    ) : demandRows.map((row, i) => (
+                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.product_name}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{parseFloat(row.avg_daily_qty).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{parseFloat(row.forecast_30_days).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.current_stock.toLocaleString()}</td>
+                        <td className="px-4 py-3">{daysLeftBadge(row.days_stock_left)}</td>
+                        <td className="px-4 py-3"><span className={clsx('badge', row.needs_reorder ? 'badge-danger' : 'badge-success')}>{row.needs_reorder ? t('yes') : t('no')}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {demandRows.length === 0 ? <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+                  : demandRows.map((row, i) => (
+                    <div key={i} className="p-4 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">{row.product_name}</span>
+                        <span className={clsx('badge shrink-0', row.needs_reorder ? 'badge-danger' : 'badge-success')}>{row.needs_reorder ? t('yes') : t('no')}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                        <span>{t('current_stock')}: {row.current_stock.toLocaleString()}</span>
+                        <span>{daysLeftBadge(row.days_stock_left)}</span>
+                        <span>{t('avg_daily_qty')}: {parseFloat(row.avg_daily_qty).toFixed(2)}</span>
+                        <span>{t('product_demand_forecast_30')}: {parseFloat(row.forecast_30_days).toFixed(2)}</span>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -235,31 +262,48 @@ export default function ForecastingPage() {
           {depletionQuery.isLoading ? (
             <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /><span className="ml-2 text-gray-400">{t('loading')}</span></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>{[t('urgency'), t('product'), t('current_stock'), t('daily_rate'), t('days_remaining'), t('depleted_on'), t('suggested_order')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {depletionRows.length === 0 ? (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                      <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                      {t('no_data')}
-                    </td></tr>
-                  ) : depletionRows.map((row, i) => (
-                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-4 py-3">{urgencyBadge(row.urgency)}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.product_name}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.current_stock.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{parseFloat(row.daily_rate).toFixed(2)}</td>
-                      <td className="px-4 py-3">{daysLeftBadge(row.days_remaining)}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{row.depleted_on ?? '—'}</td>
-                      <td className="px-4 py-3 font-semibold text-primary-600 dark:text-primary-400">{row.reorder_qty.toLocaleString()}</td>
-                    </tr>
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full min-w-[650px] text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>{[t('urgency'), t('product'), t('current_stock'), t('daily_rate'), t('days_remaining'), t('depleted_on'), t('suggested_order')].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {depletionRows.length === 0 ? (
+                      <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400"><AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-30" />{t('no_data')}</td></tr>
+                    ) : depletionRows.map((row, i) => (
+                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-4 py-3">{urgencyBadge(row.urgency)}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{row.product_name}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.current_stock.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{parseFloat(row.daily_rate).toFixed(2)}</td>
+                        <td className="px-4 py-3">{daysLeftBadge(row.days_remaining)}</td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{row.depleted_on ?? '—'}</td>
+                        <td className="px-4 py-3 font-semibold text-primary-600 dark:text-primary-400">{row.reorder_qty.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                {depletionRows.length === 0 ? <p className="px-4 py-12 text-center text-gray-400">{t('no_data')}</p>
+                  : depletionRows.map((row, i) => (
+                    <div key={i} className="p-4 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">{row.product_name}</span>
+                        {urgencyBadge(row.urgency)}
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {daysLeftBadge(row.days_remaining)}
+                        <span className="text-xs text-gray-500">{t('current_stock')}: {row.current_stock.toLocaleString()}</span>
+                        <span className="text-xs text-gray-500">{t('daily_rate')}: {parseFloat(row.daily_rate).toFixed(2)}</span>
+                        <span className="font-semibold text-xs text-primary-600">{t('suggested_order')}: {row.reorder_qty.toLocaleString()}</span>
+                      </div>
+                      {row.depleted_on && <div className="text-xs text-gray-400">{t('depleted_on')}: {row.depleted_on}</div>}
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}

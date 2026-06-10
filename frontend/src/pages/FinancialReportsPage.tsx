@@ -40,7 +40,8 @@ function AccountBalanceRows({ rows }: { rows: AccountBalance[] }) {
 }
 
 export default function FinancialReportsPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const { hasPermission } = usePermission()
   const [tab, setTab] = useState<'income' | 'balance' | 'statement'>('income')
 
@@ -207,7 +208,7 @@ export default function FinancialReportsPage() {
                   <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b dark:border-gray-700">
                     <h3 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2"><TrendingUp className="h-4 w-4" /> {t('revenue')}</h3>
                   </div>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
@@ -230,14 +231,14 @@ export default function FinancialReportsPage() {
                         <td className="px-4 py-2 text-right font-bold text-green-600 dark:text-green-400">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                     </tfoot>
-                  </table>
+                  </table></div>
                 </div>
 
                 <div className="card overflow-hidden">
                   <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b dark:border-gray-700">
                     <h3 className="font-semibold text-red-700 dark:text-red-300 flex items-center gap-2"><TrendingDown className="h-4 w-4" /> {t('expenses')}</h3>
                   </div>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
@@ -260,7 +261,7 @@ export default function FinancialReportsPage() {
                         <td className="px-4 py-2 text-right font-bold text-red-600 dark:text-red-400">{incomeTotalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                     </tfoot>
-                  </table>
+                  </table></div>
                 </div>
               </div>
             </>
@@ -298,7 +299,7 @@ export default function FinancialReportsPage() {
                   <div className={clsx('px-4 py-3 border-b dark:border-gray-700', bg)}>
                     <h3 className={clsx('font-semibold', hdr)}>{label}</h3>
                   </div>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_code')}</th>
@@ -319,7 +320,7 @@ export default function FinancialReportsPage() {
                         </tr>
                       </tfoot>
                     )}
-                  </table>
+                  </table></div>
                 </div>
               ))}
             </>
@@ -370,7 +371,7 @@ export default function FinancialReportsPage() {
           {!stmtLoading && stmtData && (
             <div className="card overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[600px] text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                       {[t('entry_number'), t('date'), t('description'), t('debit'), t('credit')].map((h, i) => (

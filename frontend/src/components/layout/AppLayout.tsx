@@ -6,18 +6,21 @@ import { useUIStore } from '@/stores/uiStore'
 import { clsx } from 'clsx'
 
 export default function AppLayout() {
-  const { sidebarCollapsed } = useUIStore()
+  const { sidebarCollapsed, language } = useUIStore()
+  const isRTL = language === 'ar'
 
   return (
     <div className="flex h-full bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
       <Sidebar />
 
-      {/* Main content */}
+      {/* Main content — push away from the fixed sidebar */}
       <div
         className={clsx(
           'flex flex-1 flex-col min-h-0 transition-all duration-300',
-          sidebarCollapsed ? 'lg:ml-16 rtl:lg:ml-0 rtl:lg:mr-16' : 'lg:ml-64 rtl:lg:ml-0 rtl:lg:mr-64',
+          isRTL
+            ? sidebarCollapsed ? 'lg:mr-16' : 'lg:mr-64'
+            : sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64',
         )}
       >
         <Header />

@@ -73,7 +73,8 @@ function stockBadge(stock: number, reorder: number) {
 }
 
 export default function PharmacyPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
+  const isAr = i18n.language.startsWith('ar')
   const qc = useQueryClient()
   const [tab, setTab] = useState<'medicines' | 'batches' | 'prescriptions'>('medicines')
 
@@ -275,60 +276,107 @@ export default function PharmacyPage() {
           </div>
           <div className="card overflow-hidden">
             {medsLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('medicine_name'), t('generic_name'), t('dosage_form'), t('strength'), t('stock'), t('selling_price'), t('rx_required'), t('status'), ''].map((h, i) => (
-                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                    ))}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {medicines.length === 0 ? (
-                      <tr><td colSpan={9} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                    ) : medicines.map((m) => (
-                      <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3">
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[750px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('medicine_name'), t('generic_name'), t('dosage_form'), t('strength'), t('stock'), t('selling_price'), t('rx_required'), t('status'), ''].map((h, i) => (
+                        <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {medicines.length === 0 ? (
+                        <tr><td colSpan={9} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                      ) : medicines.map((m) => (
+                        <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-gray-900 dark:text-white">{m.name_ar}</p>
+                            {m.name_en && <p className="text-xs text-gray-400">{m.name_en}</p>}
+                            {m.controlled_drug && <span className="text-xs text-red-500 font-semibold">⚠ {t('controlled_drug')}</span>}
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{m.generic_name ?? '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className="badge badge-gray capitalize">{t(m.dosage_form)}</span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{m.strength ?? '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className={clsx('badge', stockBadge(m.total_stock ?? 0, m.reorder_level))}>
+                              {m.total_stock ?? 0} {m.unit}
+                            </span>
+                            {m.nearest_expiry && <p className="text-xs text-gray-400 mt-0.5">{t('expiry')}: {m.nearest_expiry}</p>}
+                          </td>
+                          <td className="px-4 py-3 font-medium">{parseFloat(m.selling_price).toFixed(2)}</td>
+                          <td className="px-4 py-3">
+                            {m.requires_prescription
+                              ? <span className="badge badge-warning text-xs">{t('rx_required')}</span>
+                              : <span className="text-gray-400 text-xs">OTC</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={clsx('badge', m.is_active ? 'badge-success' : 'badge-gray')}>
+                              {m.is_active ? t('active') : t('inactive')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-1">
+                              <button onClick={() => openEditMed(m)} className="p-1 text-gray-400 hover:text-primary-600 rounded">
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => setDelMed(m)} className="p-1 text-gray-400 hover:text-red-600 rounded">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {medicines.length === 0 ? (
+                    <div className="px-4 py-12 text-center text-gray-400">{t('no_data')}</div>
+                  ) : medicines.map((m) => (
+                    <div key={m.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
                           <p className="font-medium text-gray-900 dark:text-white">{m.name_ar}</p>
                           {m.name_en && <p className="text-xs text-gray-400">{m.name_en}</p>}
                           {m.controlled_drug && <span className="text-xs text-red-500 font-semibold">⚠ {t('controlled_drug')}</span>}
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{m.generic_name ?? '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className="badge badge-gray capitalize">{t(m.dosage_form)}</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{m.strength ?? '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className={clsx('badge', stockBadge(m.total_stock ?? 0, m.reorder_level))}>
-                            {m.total_stock ?? 0} {m.unit}
-                          </span>
-                          {m.nearest_expiry && <p className="text-xs text-gray-400 mt-0.5">{t('expiry')}: {m.nearest_expiry}</p>}
-                        </td>
-                        <td className="px-4 py-3 font-medium">{parseFloat(m.selling_price).toFixed(2)}</td>
-                        <td className="px-4 py-3">
-                          {m.requires_prescription
-                            ? <span className="badge badge-warning text-xs">{t('rx_required')}</span>
-                            : <span className="text-gray-400 text-xs">OTC</span>}
-                        </td>
-                        <td className="px-4 py-3">
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
                           <span className={clsx('badge', m.is_active ? 'badge-success' : 'badge-gray')}>
                             {m.is_active ? t('active') : t('inactive')}
                           </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1">
-                            <button onClick={() => openEditMed(m)} className="p-1 text-gray-400 hover:text-primary-600 rounded">
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => setDelMed(m)} className="p-1 text-gray-400 hover:text-red-600 rounded">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          {m.requires_prescription
+                            ? <span className="badge badge-warning text-xs">{t('rx_required')}</span>
+                            : <span className="text-gray-400 text-xs">OTC</span>}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="badge badge-gray capitalize">{t(m.dosage_form)}</span>
+                        {m.strength && <span className="text-gray-500">{m.strength}</span>}
+                        {m.generic_name && <span className="text-gray-500">{m.generic_name}</span>}
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <div>
+                          <span className={clsx('badge', stockBadge(m.total_stock ?? 0, m.reorder_level))}>
+                            {m.total_stock ?? 0} {m.unit}
+                          </span>
+                          {m.nearest_expiry && <p className="text-gray-400 mt-0.5">{t('expiry')}: {m.nearest_expiry}</p>}
+                        </div>
+                        <span className="font-semibold text-gray-900 dark:text-white">{parseFloat(m.selling_price).toFixed(2)}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => openEditMed(m)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100 transition-colors font-medium">
+                          <Pencil className="h-3 w-3" /> {isAr ? 'تعديل' : 'Edit'}
+                        </button>
+                        <button onClick={() => setDelMed(m)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                          <Trash2 className="h-3 w-3" /> {isAr ? 'حذف' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -344,39 +392,67 @@ export default function PharmacyPage() {
           </div>
           <div className="card overflow-hidden">
             {batchesLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{[t('medicine_name'), t('lot_number'), t('quantity'), t('expiry_date'), t('status'), t('purchase_price'), t('supplier'), ''].map((h, i) => (
-                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                    ))}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {batches.length === 0 ? (
-                      <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                    ) : batches.map((b) => (
-                      <tr key={b.id} className={clsx('hover:bg-gray-50 dark:hover:bg-gray-700/50', b.expiry_status === 'expired' && 'bg-red-50/30 dark:bg-red-900/10')}>
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{b.medicine_name ?? '—'}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-500">{b.lot_number ?? '—'}</td>
-                        <td className="px-4 py-3 font-semibold">{b.quantity}</td>
-                        <td className="px-4 py-3 text-gray-500">{b.expiry_date}</td>
-                        <td className="px-4 py-3">
-                          <span className={clsx('text-xs font-semibold px-2 py-0.5 rounded-full', expiryBadge(b.expiry_status))}>
-                            {b.days_to_expiry < 0 ? t('expired') : `${b.days_to_expiry}d`}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">{parseFloat(b.purchase_price).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{b.supplier_name ?? '—'}</td>
-                        <td className="px-4 py-3">
-                          <button onClick={() => setDelBatch(b)} className="p-1 text-gray-400 hover:text-red-600 rounded">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[750px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{[t('medicine_name'), t('lot_number'), t('quantity'), t('expiry_date'), t('status'), t('purchase_price'), t('supplier'), ''].map((h, i) => (
+                        <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {batches.length === 0 ? (
+                        <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                      ) : batches.map((b) => (
+                        <tr key={b.id} className={clsx('hover:bg-gray-50 dark:hover:bg-gray-700/50', b.expiry_status === 'expired' && 'bg-red-50/30 dark:bg-red-900/10')}>
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{b.medicine_name ?? '—'}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-gray-500">{b.lot_number ?? '—'}</td>
+                          <td className="px-4 py-3 font-semibold">{b.quantity}</td>
+                          <td className="px-4 py-3 text-gray-500">{b.expiry_date}</td>
+                          <td className="px-4 py-3">
+                            <span className={clsx('text-xs font-semibold px-2 py-0.5 rounded-full', expiryBadge(b.expiry_status))}>
+                              {b.days_to_expiry < 0 ? t('expired') : `${b.days_to_expiry}d`}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">{parseFloat(b.purchase_price).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{b.supplier_name ?? '—'}</td>
+                          <td className="px-4 py-3">
+                            <button onClick={() => setDelBatch(b)} className="p-1 text-gray-400 hover:text-red-600 rounded">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {batches.length === 0 ? (
+                    <div className="px-4 py-12 text-center text-gray-400">{t('no_data')}</div>
+                  ) : batches.map((b) => (
+                    <div key={b.id} className={clsx('p-4 space-y-1.5', b.expiry_status === 'expired' && 'bg-red-50/30 dark:bg-red-900/10')}>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-medium text-gray-900 dark:text-white">{b.medicine_name ?? '—'}</p>
+                        <span className={clsx('text-xs font-semibold px-2 py-0.5 rounded-full', expiryBadge(b.expiry_status))}>
+                          {b.days_to_expiry < 0 ? t('expired') : `${b.days_to_expiry}d`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs flex-wrap">
+                        {b.lot_number && <span className="font-mono text-gray-500">{b.lot_number}</span>}
+                        <span className="font-semibold text-gray-900 dark:text-white">{t('quantity')}: {b.quantity}</span>
+                        <span className="text-gray-500">{b.expiry_date}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">{b.supplier_name ?? '—'}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{parseFloat(b.purchase_price).toFixed(2)}</span>
+                      </div>
+                      <button onClick={() => setDelBatch(b)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">
+                        <Trash2 className="h-3 w-3" /> {isAr ? 'حذف' : 'Delete'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -393,7 +469,7 @@ export default function PharmacyPage() {
           <div className="card overflow-hidden">
             {rxLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[750px] text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>{['#', t('patient_name'), t('doctor_name'), t('issued_date'), t('items_count'), t('status'), t('actions')].map((h, i) => (
                       <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
@@ -441,7 +517,8 @@ export default function PharmacyPage() {
                           {isExpanded && (rx.items?.length ?? 0) > 0 && (
                             <tr key={`${rx.id}-items`}>
                               <td colSpan={7} className="px-6 pb-3 bg-gray-50 dark:bg-gray-800">
-                                <table className="w-full text-xs mt-1">
+                                <div className="overflow-x-auto">
+                                <table className="w-full min-w-[450px] text-xs mt-1">
                                   <thead><tr className="text-gray-400">
                                     {[t('medicine_name'), t('quantity_prescribed'), t('quantity_dispensed'), t('dosage_instructions'), t('status')].map((h, i) => (
                                       <th key={i} className="px-2 py-1.5 text-left font-medium">{h}</th>
@@ -467,6 +544,7 @@ export default function PharmacyPage() {
                                     ))}
                                   </tbody>
                                 </table>
+                                </div>
                               </td>
                             </tr>
                           )}

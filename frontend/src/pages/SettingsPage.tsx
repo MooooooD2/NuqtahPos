@@ -212,8 +212,21 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* Mobile: group selector dropdown */}
+      <div className="md:hidden">
+        <select
+          value={activeGroup}
+          onChange={(e) => setActiveGroup(e.target.value)}
+          className="input w-full"
+        >
+          {groups.map((g) => (
+            <option key={g.key} value={g.key}>{g.label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex gap-6">
-        <div className="w-52 flex-shrink-0 space-y-1">
+        <div className="hidden md:block w-52 flex-shrink-0 space-y-1">
           {groups.map((g) => (
             <button key={g.key} onClick={() => setActiveGroup(g.key)}
               className={clsx('w-full text-right px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
