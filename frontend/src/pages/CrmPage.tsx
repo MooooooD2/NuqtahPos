@@ -19,8 +19,7 @@ const emptyActivity = { customer_id: '', type: 'call', notes: '', due_date: '' }
 const emptyFollowup = { customer_id: '', due_date: '', notes: '', activity_type: 'call' }
 
 export default function CrmPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'overview' | 'activities' | 'followups'>('overview')

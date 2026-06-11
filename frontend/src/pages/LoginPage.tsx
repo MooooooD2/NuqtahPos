@@ -4,8 +4,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuthStore } from '@/stores/authStore'
-import { api, fetchCsrfCookie } from '@/services/api'
-import { Store, Eye, EyeOff, Loader2, Building2 } from 'lucide-react'
+import { api, fetchCsrfCookie, SERVER_URL_KEY } from '@/services/api'
+import { isTauriApp } from '@/lib/tauri'
+import { Store, Eye, EyeOff, Loader2, Building2, Server } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -18,6 +19,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const SAVED_CODE_KEY = 'pos-company-code'
+const isDesktop = isTauriApp()
 
 export default function LoginPage() {
   const { t } = useTranslation('pos')
@@ -25,6 +27,9 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login)
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [serverUrl, setServerUrl] = useState(
+    localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+  )
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -38,7 +43,11 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true)
     try {
-      await fetchCsrfCookie()
+      if (isDesktop) {
+        localStorage.setItem(SERVER_URL_KEY, serverUrl.replace(/\/$/, ''))
+      } else {
+        await fetchCsrfCookie()
+      }
       const res = await api.post('/login', data)
       const { user, token } = res.data
       localStorage.setItem(SAVED_CODE_KEY, data.tenant_code.toLowerCase())
@@ -68,6 +77,27 @@ export default function LoginPage() {
         {/* Card */}
         <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-lg p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+            {/* Server URL — desktop app only */}
+            {isDesktop && (
+              <div>
+                <label className="block text-sm font-medium text-slate-200 mb-1.5">
+                  Server URL
+                </label>
+                <div className="relative">
+                  <Server className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={serverUrl}
+                    onChange={(e) => setServerUrl(e.target.value)}
+                    placeholder="http://192.168.1.100:8000"
+                    dir="ltr"
+                    className={`${inputCls} ps-9`}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-slate-500">Your backend server address</p>
+              </div>
+            )}
 
             {/* Company Code */}
             <div>

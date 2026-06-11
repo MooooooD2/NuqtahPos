@@ -14,8 +14,7 @@ interface StatementData { supplier: Supplier; entries: AccountEntry[]; totals: {
 const movementBadge: Record<string, string> = { purchase_order: 'badge-info', payment: 'badge-success', purchase_return: 'badge-warning', adjustment: 'badge-gray' }
 
 export default function SupplierAccountsPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)

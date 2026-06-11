@@ -40,8 +40,7 @@ function AccountBalanceRows({ rows }: { rows: AccountBalance[] }) {
 }
 
 export default function FinancialReportsPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const [tab, setTab] = useState<'income' | 'balance' | 'statement'>('income')
 

@@ -33,8 +33,7 @@ const reasonBadge: Record<Reason, string> = {
 const emptyForm = { product_id: '', product_name: '', quantity: '', reason: 'expired' as Reason, notes: '' }
 
 export default function WastePage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [form, setForm] = useState({ ...emptyForm })

@@ -98,8 +98,7 @@ const breakTypeIcon = (type: BreakType) => {
 }
 
 export default function MyShiftPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const qc = useQueryClient()
   const [clockOutModal, setClockOutModal] = useState(false)
   const [clockOutForm, setClockOutForm] = useState({ ...emptyClockOut })

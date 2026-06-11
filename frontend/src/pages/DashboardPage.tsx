@@ -22,8 +22,7 @@ interface DashData {
 }
 
 export default function DashboardPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashData>('/dashboard-data'),

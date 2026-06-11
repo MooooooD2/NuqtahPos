@@ -5,12 +5,17 @@ import { isTauriApp } from '@/lib/tauri'
 // Detect if running in Tauri desktop app (works for Tauri v2 via __TAURI_INTERNALS__)
 const isTauri = isTauriApp()
 
-const BASE_URL = isTauri
-  ? import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-  : '/api'  // proxied via Vite dev server; relative in production
+export const SERVER_URL_KEY = 'pos-server-url'
+
+// Read at request time so changes made on the login page take effect immediately.
+export function getBaseUrl(): string {
+  if (isTauri) {
+    return (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+  }
+  return '/api'
+}
 
 export const api = axios.create({
-  baseURL: BASE_URL,
   timeout: 30_000,
   withCredentials: true,
   headers: {
@@ -20,8 +25,9 @@ export const api = axios.create({
   },
 })
 
-// ─── Request interceptor — attach Bearer token + tenant code ─────────────────
+// ─── Request interceptor — set baseURL dynamically + attach Bearer token + tenant code ───
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  config.baseURL = getBaseUrl()
   const token = useAuthStore.getState().token
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`
@@ -71,6 +77,6 @@ export const apiDelete = <T>(url: string) =>
 
 // ─── CSRF cookie (needed for Sanctum web guard) ───────────────────────────────
 export const fetchCsrfCookie = () =>
-  axios.get(`${isTauri ? (import.meta.env.VITE_API_URL ?? 'http://localhost:8000') : ''}/sanctum/csrf-cookie`, {
+  axios.get(`${isTauri ? getBaseUrl() : ''}/sanctum/csrf-cookie`, {
     withCredentials: true,
   })

@@ -19,8 +19,7 @@ const emptyAccount = { code: '', name: '', type: 'asset', parent_id: '' }
 const emptyJE = { date: new Date().toISOString().slice(0, 10), reference: '', description: '', lines: [{ account_id: '', debit: '', credit: '' }, { account_id: '', debit: '', credit: '' }] }
 
 export default function AccountingPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const qc = useQueryClient()
   const [tab, setTab] = useState<'accounts' | 'journal' | 'periods'>('accounts')

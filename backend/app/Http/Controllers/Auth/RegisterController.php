@@ -128,7 +128,7 @@ class RegisterController extends Controller
                     'username' => $user->username,
                     'role' => $user->role,
                     'language' => $user->language,
-                    'permissions' => array_values($user->getPermissionNames()->toArray()),
+                    'permissions' => array_values($user->getAllPermissions()->pluck('name')->toArray()),
                 ],
             ]);
 

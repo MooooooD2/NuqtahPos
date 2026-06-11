@@ -25,8 +25,7 @@ interface ProductForecast { product_name: string; avg_daily_qty: string; forecas
 interface StockDepletion { urgency: string; product_name: string; current_stock: number; daily_rate: string; days_remaining: number; depleted_on?: string; reorder_qty: number }
 
 export default function ForecastingPage() {
-  const { t, i18n } = useTranslation('pos')
-  const isAr = i18n.language.startsWith('ar')
+  const { t } = useTranslation('pos')
   const { hasPermission } = usePermission()
   const [tab, setTab] = useState<Tab>('sales')
   const [forecastDays, setForecastDays] = useState('30')

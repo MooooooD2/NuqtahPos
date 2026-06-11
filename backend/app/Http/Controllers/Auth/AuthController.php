@@ -93,7 +93,7 @@ class AuthController extends Controller
             $currentTenantId = tenancy()->tenant?->id;
             $isMaster = $masterId && $currentTenantId === $masterId;
 
-            $permissions = $user->getPermissionNames()->toArray();
+            $permissions = $user->getAllPermissions()->pluck('name')->toArray();
             if ($isMaster && $user->role === 'admin') {
                 $permissions = array_unique(array_merge($permissions, ['manage_tenants']));
             }

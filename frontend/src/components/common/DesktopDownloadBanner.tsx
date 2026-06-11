@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Monitor, Apple, Terminal, Download, X, ChevronDown, Loader2, AlertCircle } from 'lucide-react'
+import { Monitor, Apple, Terminal, Download, X, ChevronDown, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { clsx } from 'clsx'
 import toast from 'react-hot-toast'
+import { isTauriApp } from '@/lib/tauri'
 
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window
+const isTauri = isTauriApp()
 
 function detectOS(): Platform {
   const ua = navigator.userAgent.toLowerCase()
@@ -33,8 +34,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
   const { t } = useTranslation('pos')
   const [dismissed, setDismissed] = useState(() => !forceShow && sessionStorage.getItem('dl-banner-dismissed') === '1')
   const [showAll, setShowAll]     = useState(false)
-  const [check, setCheck]         = useState<CheckResult | null>(null)
-  const [downloading, setDownloading] = useState<Platform | null>(null)
+  const [check, setCheck] = useState<CheckResult | null>(null)
 
   useEffect(() => {
     if (isTauri) return
@@ -54,71 +54,51 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
     setDismissed(true)
   }
 
-  const handleDownload = async (platform: Platform) => {
+  const handleDownload = (platform: Platform) => {
     const info = check?.[platform]
     if (!info?.available) {
       toast.error(t('download_not_available'))
       return
     }
-    setDownloading(platform)
-    try {
-      const res = await fetch(`/api/desktop-app/download/${platform}`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        toast.error(body?.error ?? t('download_error'))
-        return
-      }
-      const blob = await res.blob()
-      const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      a.download = info.file
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch {
-      toast.error(t('download_error'))
-    } finally {
-      setDownloading(null)
-    }
+    const a = document.createElement('a')
+    a.href = `/api/desktop-app/download/${platform}`
+    a.download = info.file
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   const DownloadBtn = ({ platform, variant = 'primary' }: { platform: Platform; variant?: 'primary' | 'secondary' }) => {
     const { label, ext, icon: Icon } = META[platform]
     const info      = check?.[platform]
     const available = info?.available ?? false
-    const isLoading = downloading === platform
-    const isDisabled = !available || isLoading || !!downloading
 
     return (
       <button
         onClick={() => handleDownload(platform)}
-        disabled={isDisabled}
+        disabled={!available}
         title={!available ? t('coming_soon') : undefined}
         className={clsx(
           'inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors',
           variant === 'primary'
             ? available
-              ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm disabled:opacity-60'
+              ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm'
               : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
             : available
-              ? 'bg-white/10 text-white hover:bg-white/20 border border-white/20 disabled:opacity-60'
+              ? 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
               : 'bg-white/5 text-white/30 cursor-not-allowed border border-white/10',
         )}
       >
-        {isLoading
-          ? <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" />
-          : !available
-            ? <AlertCircle className="h-4 w-4 flex-shrink-0 opacity-50" />
-            : <Icon className="h-4 w-4 flex-shrink-0" />}
+        {!available
+          ? <AlertCircle className="h-4 w-4 flex-shrink-0 opacity-50" />
+          : <Icon className="h-4 w-4 flex-shrink-0" />}
         <span>{label}</span>
         {available && info?.size ? (
           <span className="opacity-60 text-xs">{formatBytes(info.size)}</span>
         ) : (
           <span className="opacity-50 text-xs">{available ? ext : t('coming_soon')}</span>
         )}
-        {available && !isLoading && <Download className="h-3.5 w-3.5 opacity-70" />}
+        {available && <Download className="h-3.5 w-3.5 opacity-70" />}
       </button>
     )
   }
@@ -152,7 +132,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
         <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
           {check === null ? (
             <div className="flex items-center gap-2 text-white/50 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white inline-block" />
               <span>{t('checking_availability')}</span>
             </div>
           ) : (
