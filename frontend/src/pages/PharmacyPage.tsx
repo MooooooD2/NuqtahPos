@@ -468,92 +468,148 @@ export default function PharmacyPage() {
           </div>
           <div className="card overflow-hidden">
             {rxLoading ? <div className="flex h-40 items-center justify-center"><LoadingSpinner /></div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[750px] text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>{['#', t('patient_name'), t('doctor_name'), t('issued_date'), t('items_count'), t('status'), t('actions')].map((h, i) => (
-                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
-                    ))}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {rxList.length === 0 ? (
-                      <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                    ) : rxList.map((rx) => {
-                      const isExpanded = expandedRxId === rx.id
-                      return (
-                        <Fragment key={rx.id}>
-                          <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td className="px-4 py-3 font-mono text-xs text-primary-600">{rx.prescription_number}</td>
-                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                              {rx.patient_name}
-                              {rx.patient_phone && <p className="text-xs text-gray-400">{rx.patient_phone}</p>}
-                            </td>
-                            <td className="px-4 py-3 text-gray-500">
-                              {rx.doctor_name}
-                              {rx.clinic_name && <p className="text-xs text-gray-400">{rx.clinic_name}</p>}
-                            </td>
-                            <td className="px-4 py-3 text-gray-500 text-xs">{rx.issued_date}</td>
-                            <td className="px-4 py-3 text-center">{rx.items_count ?? rx.items?.length ?? 0}</td>
-                            <td className="px-4 py-3">
-                              <span className={clsx('badge capitalize', rxStatusBadge(rx.status))}>
-                                {t(rx.status)}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex gap-1">
-                                {rx.status !== 'fully_dispensed' && (
-                                  <button onClick={() => openDispense(rx)} className="btn btn-secondary text-xs py-1 px-2 flex items-center gap-1">
-                                    <CheckCircle className="h-3 w-3" /> {t('dispense')}
-                                  </button>
-                                )}
-                                {(rx.items?.length ?? 0) > 0 && (
-                                  <button onClick={() => setExpandedRxId(isExpanded ? null : rx.id)} className="p-1 text-gray-400 hover:text-primary-600 rounded">
-                                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                          {isExpanded && (rx.items?.length ?? 0) > 0 && (
-                            <tr key={`${rx.id}-items`}>
-                              <td colSpan={7} className="px-6 pb-3 bg-gray-50 dark:bg-gray-800">
-                                <div className="overflow-x-auto">
-                                <table className="w-full min-w-[450px] text-xs mt-1">
-                                  <thead><tr className="text-gray-400">
-                                    {[t('medicine_name'), t('quantity_prescribed'), t('quantity_dispensed'), t('dosage_instructions'), t('status')].map((h, i) => (
-                                      <th key={i} className="px-2 py-1.5 text-left font-medium">{h}</th>
-                                    ))}
-                                  </tr></thead>
-                                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {rx.items!.map((item) => (
-                                      <tr key={item.id}>
-                                        <td className="px-2 py-1.5 font-medium">{item.medicine_name ?? '—'}</td>
-                                        <td className="px-2 py-1.5">{item.quantity_prescribed}</td>
-                                        <td className="px-2 py-1.5">
-                                          <span className={clsx(item.quantity_dispensed >= item.quantity_prescribed ? 'text-green-600' : 'text-orange-500')}>
-                                            {item.quantity_dispensed}
-                                          </span>
-                                        </td>
-                                        <td className="px-2 py-1.5 text-gray-500">{item.dosage_instructions ?? '—'}</td>
-                                        <td className="px-2 py-1.5">
-                                          <span className={clsx('badge text-xs', item.status === 'dispensed' ? 'badge-success' : 'badge-gray')}>
-                                            {t(item.status)}
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[750px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>{['#', t('patient_name'), t('doctor_name'), t('issued_date'), t('items_count'), t('status'), t('actions')].map((h, i) => (
+                        <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {rxList.length === 0 ? (
+                        <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                      ) : rxList.map((rx) => {
+                        const isExpanded = expandedRxId === rx.id
+                        return (
+                          <Fragment key={rx.id}>
+                            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                              <td className="px-4 py-3 font-mono text-xs text-primary-600">{rx.prescription_number}</td>
+                              <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                                {rx.patient_name}
+                                {rx.patient_phone && <p className="text-xs text-gray-400">{rx.patient_phone}</p>}
+                              </td>
+                              <td className="px-4 py-3 text-gray-500">
+                                {rx.doctor_name}
+                                {rx.clinic_name && <p className="text-xs text-gray-400">{rx.clinic_name}</p>}
+                              </td>
+                              <td className="px-4 py-3 text-gray-500 text-xs">{rx.issued_date}</td>
+                              <td className="px-4 py-3 text-center">{rx.items_count ?? rx.items?.length ?? 0}</td>
+                              <td className="px-4 py-3">
+                                <span className={clsx('badge capitalize', rxStatusBadge(rx.status))}>
+                                  {t(rx.status)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1">
+                                  {rx.status !== 'fully_dispensed' && (
+                                    <button onClick={() => openDispense(rx)} className="btn btn-secondary text-xs py-1 px-2 flex items-center gap-1">
+                                      <CheckCircle className="h-3 w-3" /> {t('dispense')}
+                                    </button>
+                                  )}
+                                  {(rx.items?.length ?? 0) > 0 && (
+                                    <button onClick={() => setExpandedRxId(isExpanded ? null : rx.id)} className="p-1 text-gray-400 hover:text-primary-600 rounded">
+                                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
+                            {isExpanded && (rx.items?.length ?? 0) > 0 && (
+                              <tr key={`${rx.id}-items`}>
+                                <td colSpan={7} className="px-6 pb-3 bg-gray-50 dark:bg-gray-800">
+                                  <div className="overflow-x-auto">
+                                  <table className="w-full min-w-[450px] text-xs mt-1">
+                                    <thead><tr className="text-gray-400">
+                                      {[t('medicine_name'), t('quantity_prescribed'), t('quantity_dispensed'), t('dosage_instructions'), t('status')].map((h, i) => (
+                                        <th key={i} className="px-2 py-1.5 text-left font-medium">{h}</th>
+                                      ))}
+                                    </tr></thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                      {rx.items!.map((item) => (
+                                        <tr key={item.id}>
+                                          <td className="px-2 py-1.5 font-medium">{item.medicine_name ?? '—'}</td>
+                                          <td className="px-2 py-1.5">{item.quantity_prescribed}</td>
+                                          <td className="px-2 py-1.5">
+                                            <span className={clsx(item.quantity_dispensed >= item.quantity_prescribed ? 'text-green-600' : 'text-orange-500')}>
+                                              {item.quantity_dispensed}
+                                            </span>
+                                          </td>
+                                          <td className="px-2 py-1.5 text-gray-500">{item.dosage_instructions ?? '—'}</td>
+                                          <td className="px-2 py-1.5">
+                                            <span className={clsx('badge text-xs', item.status === 'dispensed' ? 'badge-success' : 'badge-gray')}>
+                                              {t(item.status)}
+                                            </span>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {rxList.length === 0 ? (
+                    <div className="px-4 py-12 text-center text-gray-400">{t('no_data')}</div>
+                  ) : rxList.map((rx) => {
+                    const isExpanded = expandedRxId === rx.id
+                    return (
+                      <div key={rx.id} className="p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-mono text-xs text-primary-600">{rx.prescription_number}</p>
+                            <p className="font-medium text-gray-900 dark:text-white mt-0.5">{rx.patient_name}</p>
+                            {rx.patient_phone && <p className="text-xs text-gray-400">{rx.patient_phone}</p>}
+                          </div>
+                          <span className={clsx('badge capitalize shrink-0', rxStatusBadge(rx.status))}>
+                            {t(rx.status)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 space-y-0.5">
+                          <p>{rx.doctor_name}{rx.clinic_name ? ` · ${rx.clinic_name}` : ''}</p>
+                          <p>{rx.issued_date} · {rx.items_count ?? rx.items?.length ?? 0} {t('items_count')}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          {rx.status !== 'fully_dispensed' && (
+                            <button onClick={() => openDispense(rx)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100 transition-colors font-medium">
+                              <CheckCircle className="h-3 w-3" /> {isAr ? 'صرف' : 'Dispense'}
+                            </button>
                           )}
-                        </Fragment>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          {(rx.items?.length ?? 0) > 0 && (
+                            <button onClick={() => setExpandedRxId(isExpanded ? null : rx.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-colors font-medium">
+                              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                              {isAr ? 'التفاصيل' : 'Details'}
+                            </button>
+                          )}
+                        </div>
+                        {isExpanded && (rx.items?.length ?? 0) > 0 && (
+                          <div className="mt-2 border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
+                            {rx.items!.map((item) => (
+                              <div key={item.id} className="px-3 py-2 text-xs space-y-0.5">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">{item.medicine_name ?? '—'}</span>
+                                  <span className={clsx('badge text-xs', item.status === 'dispensed' ? 'badge-success' : 'badge-gray')}>{t(item.status)}</span>
+                                </div>
+                                <p className="text-gray-500">
+                                  {t('quantity_prescribed')}: {item.quantity_prescribed} · {t('quantity_dispensed')}: <span className={clsx(item.quantity_dispensed >= item.quantity_prescribed ? 'text-green-600' : 'text-orange-500')}>{item.quantity_dispensed}</span>
+                                </p>
+                                {item.dosage_instructions && <p className="text-gray-400">{item.dosage_instructions}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
             )}
           </div>
         </div>

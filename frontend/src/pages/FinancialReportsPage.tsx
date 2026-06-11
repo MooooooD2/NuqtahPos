@@ -208,60 +208,96 @@ export default function FinancialReportsPage() {
                   <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b dark:border-gray-700">
                     <h3 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2"><TrendingUp className="h-4 w-4" /> {t('revenue')}</h3>
                   </div>
-                  <div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
-                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('amount')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <>
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full min-w-[600px] text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('amount')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {incomeData.revenues.length === 0 ? (
+                            <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
+                          ) : incomeData.revenues.map((row, i) => (
+                            <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                              <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{row.account_name}</td>
+                              <td className="px-4 py-2 text-right font-semibold text-green-600 dark:text-green-400">{fmt(row.total)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
+                          <tr>
+                            <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')}</td>
+                            <td className="px-4 py-2 text-right font-bold text-green-600 dark:text-green-400">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
                       {incomeData.revenues.length === 0 ? (
-                        <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
+                        <div className="px-4 py-6 text-center text-gray-400 text-sm">{t('no_data')}</div>
                       ) : incomeData.revenues.map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{row.account_name}</td>
-                          <td className="px-4 py-2 text-right font-semibold text-green-600 dark:text-green-400">{fmt(row.total)}</td>
-                        </tr>
+                        <div key={i} className="px-4 py-3 flex items-center justify-between gap-2">
+                          <span className="text-gray-800 dark:text-gray-200 text-sm">{row.account_name}</span>
+                          <span className="font-semibold text-green-600 dark:text-green-400 text-sm">{fmt(row.total)}</span>
+                        </div>
                       ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
-                      <tr>
-                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')}</td>
-                        <td className="px-4 py-2 text-right font-bold text-green-600 dark:text-green-400">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    </tfoot>
-                  </table></div>
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 flex items-center justify-between">
+                        <span className="font-bold text-gray-900 dark:text-white text-sm">{t('total')}</span>
+                        <span className="font-bold text-green-600 dark:text-green-400 text-sm">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </>
                 </div>
 
                 <div className="card overflow-hidden">
                   <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b dark:border-gray-700">
                     <h3 className="font-semibold text-red-700 dark:text-red-300 flex items-center gap-2"><TrendingDown className="h-4 w-4" /> {t('expenses')}</h3>
                   </div>
-                  <div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
-                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('amount')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <>
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full min-w-[600px] text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('amount')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {incomeData.expenses.length === 0 ? (
+                            <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
+                          ) : incomeData.expenses.map((row, i) => (
+                            <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                              <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{row.account_name}</td>
+                              <td className="px-4 py-2 text-right font-semibold text-red-600 dark:text-red-400">{fmt(row.total)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
+                          <tr>
+                            <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')}</td>
+                            <td className="px-4 py-2 text-right font-bold text-red-600 dark:text-red-400">{incomeTotalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
                       {incomeData.expenses.length === 0 ? (
-                        <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
+                        <div className="px-4 py-6 text-center text-gray-400 text-sm">{t('no_data')}</div>
                       ) : incomeData.expenses.map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                          <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{row.account_name}</td>
-                          <td className="px-4 py-2 text-right font-semibold text-red-600 dark:text-red-400">{fmt(row.total)}</td>
-                        </tr>
+                        <div key={i} className="px-4 py-3 flex items-center justify-between gap-2">
+                          <span className="text-gray-800 dark:text-gray-200 text-sm">{row.account_name}</span>
+                          <span className="font-semibold text-red-600 dark:text-red-400 text-sm">{fmt(row.total)}</span>
+                        </div>
                       ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
-                      <tr>
-                        <td className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')}</td>
-                        <td className="px-4 py-2 text-right font-bold text-red-600 dark:text-red-400">{incomeTotalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    </tfoot>
-                  </table></div>
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 flex items-center justify-between">
+                        <span className="font-bold text-gray-900 dark:text-white text-sm">{t('total')}</span>
+                        <span className="font-bold text-red-600 dark:text-red-400 text-sm">{incomeTotalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </>
                 </div>
               </div>
             </>
@@ -299,28 +335,51 @@ export default function FinancialReportsPage() {
                   <div className={clsx('px-4 py-3 border-b dark:border-gray-700', bg)}>
                     <h3 className={clsx('font-semibold', hdr)}>{label}</h3>
                   </div>
-                  <div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_code')}</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
-                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('balance')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <>
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full min-w-[600px] text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_code')}</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">{t('account_name')}</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold uppercase text-gray-500">{t('balance')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {rows.length === 0 ? (
+                            <tr><td colSpan={3} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
+                          ) : <AccountBalanceRows rows={rows} />}
+                        </tbody>
+                        {total !== null && (
+                          <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
+                            <tr>
+                              <td colSpan={2} className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')} {label}</td>
+                              <td className={clsx('px-4 py-2 text-right font-bold', color)}>{fmt(total)}</td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                    <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
                       {rows.length === 0 ? (
-                        <tr><td colSpan={3} className="px-4 py-6 text-center text-gray-400">{t('no_data')}</td></tr>
-                      ) : <AccountBalanceRows rows={rows} />}
-                    </tbody>
-                    {total !== null && (
-                      <tfoot className="bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600">
-                        <tr>
-                          <td colSpan={2} className="px-4 py-2 font-bold text-gray-900 dark:text-white">{t('total')} {label}</td>
-                          <td className={clsx('px-4 py-2 text-right font-bold', color)}>{fmt(total)}</td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table></div>
+                        <div className="px-4 py-6 text-center text-gray-400 text-sm">{t('no_data')}</div>
+                      ) : rows.map((row, i) => (
+                        <div key={i} className="px-4 py-3 flex items-center justify-between gap-2">
+                          <div>
+                            <p className="text-gray-800 dark:text-gray-200 text-sm">{row.account_name}</p>
+                            {row.account_code && <p className="text-xs text-gray-500 font-mono">{row.account_code}</p>}
+                          </div>
+                          <span className={clsx('font-bold text-sm', color)}>{fmt(row.balance)}</span>
+                        </div>
+                      ))}
+                      {total !== null && (
+                        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 flex items-center justify-between">
+                          <span className="font-bold text-gray-900 dark:text-white text-sm">{t('total')} {label}</span>
+                          <span className={clsx('font-bold text-sm', color)}>{fmt(total)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 </div>
               ))}
             </>
@@ -370,47 +429,87 @@ export default function FinancialReportsPage() {
 
           {!stmtLoading && stmtData && (
             <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      {[t('entry_number'), t('date'), t('description'), t('debit'), t('credit')].map((h, i) => (
-                        <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full min-w-[600px] text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        {[t('entry_number'), t('date'), t('description'), t('debit'), t('credit')].map((h, i) => (
+                          <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {stmtData.lines.length === 0 ? (
+                        <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                      ) : stmtData.lines.map((line) => (
+                        <tr key={line.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 font-mono text-xs text-primary-600 dark:text-primary-400">{line.entry?.reference ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{line.entry?.entry_date?.slice(0, 10) ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-xs truncate">{line.entry?.description ?? '—'}</td>
+                          <td className="px-4 py-3 font-semibold text-green-600 dark:text-green-400">
+                            {parseFloat(String(line.debit)) > 0 ? fmt(String(line.debit)) : '—'}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-red-600 dark:text-red-400">
+                            {parseFloat(String(line.credit)) > 0 ? fmt(String(line.credit)) : '—'}
+                          </td>
+                        </tr>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {stmtData.lines.length === 0 ? (
-                      <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
-                    ) : stmtData.lines.map((line) => (
-                      <tr key={line.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3 font-mono text-xs text-primary-600 dark:text-primary-400">{line.entry?.reference ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{line.entry?.entry_date?.slice(0, 10) ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-xs truncate">{line.entry?.description ?? '—'}</td>
-                        <td className="px-4 py-3 font-semibold text-green-600 dark:text-green-400">
-                          {parseFloat(String(line.debit)) > 0 ? fmt(String(line.debit)) : '—'}
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-red-600 dark:text-red-400">
-                          {parseFloat(String(line.credit)) > 0 ? fmt(String(line.credit)) : '—'}
+                    </tbody>
+                    <tfoot className="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-200 dark:border-gray-600">
+                      <tr>
+                        <td colSpan={3} className="px-4 py-3 font-bold text-gray-900 dark:text-white">{t('totals')}</td>
+                        <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{fmt(String(stmtData.total_debit))}</td>
+                        <td className="px-4 py-3 font-bold text-red-600 dark:text-red-400">{fmt(String(stmtData.total_credit))}</td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">{t('net_balance')}</td>
+                        <td colSpan={2} className={clsx('px-4 py-2 font-bold text-lg', Number(stmtData.net_balance) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
+                          {fmt(String(stmtData.net_balance))}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-200 dark:border-gray-600">
-                    <tr>
-                      <td colSpan={3} className="px-4 py-3 font-bold text-gray-900 dark:text-white">{t('totals')}</td>
-                      <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{fmt(String(stmtData.total_debit))}</td>
-                      <td className="px-4 py-3 font-bold text-red-600 dark:text-red-400">{fmt(String(stmtData.total_credit))}</td>
-                    </tr>
-                    <tr>
-                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">{t('net_balance')}</td>
-                      <td colSpan={2} className={clsx('px-4 py-2 font-bold text-lg', Number(stmtData.net_balance) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
+                    </tfoot>
+                  </table>
+                </div>
+                <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {stmtData.lines.length === 0 ? (
+                    <div className="px-4 py-12 text-center text-gray-400">{t('no_data')}</div>
+                  ) : stmtData.lines.map((line) => (
+                    <div key={line.id} className="p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-xs text-primary-600 dark:text-primary-400">{line.entry?.reference ?? '—'}</span>
+                        <span className="text-xs text-gray-500">{line.entry?.entry_date?.slice(0, 10) ?? '—'}</span>
+                      </div>
+                      {line.entry?.description && (
+                        <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{line.entry.description}</p>
+                      )}
+                      <div className="flex gap-4 text-xs">
+                        {parseFloat(String(line.debit)) > 0 && (
+                          <span className="font-semibold text-green-600 dark:text-green-400">{t('debit')}: {fmt(String(line.debit))}</span>
+                        )}
+                        {parseFloat(String(line.credit)) > 0 && (
+                          <span className="font-semibold text-red-600 dark:text-red-400">{t('credit')}: {fmt(String(line.credit))}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-bold text-gray-900 dark:text-white">{t('totals')}</span>
+                      <div className="flex gap-3">
+                        <span className="font-bold text-green-600 dark:text-green-400">{fmt(String(stmtData.total_debit))}</span>
+                        <span className="font-bold text-red-600 dark:text-red-400">{fmt(String(stmtData.total_credit))}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('net_balance')}</span>
+                      <span className={clsx('font-bold text-lg', Number(stmtData.net_balance) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
                         {fmt(String(stmtData.net_balance))}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </>
             </div>
           )}
 

@@ -497,7 +497,7 @@ function GenericTable({ cols, rows }: { cols: string[]; rows: Record<string, unk
   const displayed = rows.slice(0, 200);
   return (
     <div>
-      <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
+      <div className="hidden lg:block overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
         <table className="w-full min-w-[600px] text-xs">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
@@ -520,6 +520,18 @@ function GenericTable({ cols, rows }: { cols: string[]; rows: Record<string, unk
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700 rounded-lg border border-gray-100 dark:border-gray-700">
+        {displayed.map((row, i) => (
+          <div key={i} className="p-3 space-y-1.5">
+            {cols.map((col) => (
+              <div key={col} className="flex items-start justify-between gap-2 text-xs">
+                <span className="text-gray-500 font-medium capitalize shrink-0">{col.replace(/_/g, " ")}</span>
+                <span className="text-gray-800 dark:text-gray-200 text-right">{formatCell(col, row[col])}</span>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
       <div className="flex items-center justify-between mt-2 px-1">
         <p className="text-xs text-gray-400">
@@ -558,30 +570,44 @@ function SectionTable({ title, rows, totalLabel, total }: {
           </span>
         )}
       </div>
-      <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700 mb-1">
-        <table className="w-full min-w-[600px] text-xs">
-          <thead>
-            <tr className="bg-gray-50 dark:bg-gray-700/50">
-              {display.map((c) => (
-                <th key={c} className="py-2 px-3 text-left font-semibold text-[11px] uppercase tracking-wide text-gray-400 whitespace-nowrap">
-                  {c === "total" ? "Amount" : c.replace(/_/g, " ")}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {rows.map((row, i) => (
-              <tr key={i} className="hover:bg-gray-50/80 dark:hover:bg-gray-700/30">
-                {display.map((col) => (
-                  <td key={col} className="py-1.5 px-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    {formatCell(col, row[col])}
-                  </td>
+      <>
+        <div className="hidden lg:block overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700 mb-1">
+          <table className="w-full min-w-[600px] text-xs">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-700/50">
+                {display.map((c) => (
+                  <th key={c} className="py-2 px-3 text-left font-semibold text-[11px] uppercase tracking-wide text-gray-400 whitespace-nowrap">
+                    {c === "total" ? "Amount" : c.replace(/_/g, " ")}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              {rows.map((row, i) => (
+                <tr key={i} className="hover:bg-gray-50/80 dark:hover:bg-gray-700/30">
+                  {display.map((col) => (
+                    <td key={col} className="py-1.5 px-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {formatCell(col, row[col])}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="lg:hidden divide-y divide-gray-100 dark:divide-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 mb-1">
+          {rows.map((row, i) => (
+            <div key={i} className="p-3 space-y-1.5">
+              {display.map((col) => (
+                <div key={col} className="flex items-start justify-between gap-2 text-xs">
+                  <span className="text-gray-500 font-medium capitalize shrink-0">{col === "total" ? "Amount" : col.replace(/_/g, " ")}</span>
+                  <span className="text-gray-800 dark:text-gray-200 text-right">{formatCell(col, row[col])}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </>
     </div>
   );
 }
