@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuthStore } from '@/stores/authStore'
-import { api, fetchCsrfCookie, SERVER_URL_KEY } from '@/services/api'
+import { api, fetchCsrfCookie, getBaseUrl, SERVER_URL_KEY } from '@/services/api'
 import { isTauriApp } from '@/lib/tauri'
 import { Store, Eye, EyeOff, Loader2, Building2, Server } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -182,7 +182,12 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
+        {isDesktop && (
+          <p className="mt-4 text-center text-xs text-slate-500 break-all">
+            {getBaseUrl()}
+          </p>
+        )}
+        <p className="mt-2 text-center text-xs text-slate-500">
           © 2025 POS Enterprise. All rights reserved.
         </p>
       </div>
