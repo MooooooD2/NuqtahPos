@@ -62,8 +62,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
       return
     }
     const a = document.createElement('a')
-    // Use direct static URL — simpler and works without streaming through PHP
-    a.href = `${webBase}/downloads/${info.file}`
+    a.href = `${webBase}/downloads/${encodeURIComponent(info.file)}`
     a.download = info.file
     document.body.appendChild(a)
     a.click()

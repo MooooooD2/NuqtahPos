@@ -674,54 +674,62 @@ Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('pharmacy')->group(f
 });
 
 // ── Desktop App Downloads (public — no auth required) ────────────────────
+
+// Resolve the downloads directory: check public/downloads/ first (standard),
+// then fall back to ../downloads/ relative to the backend root (the layout used
+// on shared-hosting where the web root sits one level above the Laravel app).
+function resolveDownloadsDir(): string {
+    $publicDir = public_path('downloads');
+    if (is_dir($publicDir)) return $publicDir;
+    $webRootDir = base_path('../downloads');
+    if (is_dir($webRootDir)) return $webRootDir;
+    return $publicDir; // default even if missing
+}
+
+function findDownloadFile(string $dir, array $patterns): ?string {
+    foreach ($patterns as $pattern) {
+        $matches = glob("{$dir}/{$pattern}");
+        if (!empty($matches)) return $matches[0];
+    }
+    return null;
+}
+
 Route::get('/desktop-app/check', function () {
-    // Canonical name → fallback glob patterns (Tauri generates versioned names like
-    // "POS Enterprise_1.0.0_x64-setup.exe"). The first existing file wins.
+    $dir = resolveDownloadsDir();
     $candidates = [
-        'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe'],
-        'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',            'POS-Enterprise_*.dmg'],
-        'linux'   => ['POS-Enterprise.AppImage',   'POS Enterprise_*.AppImage',       'POS-Enterprise_*.AppImage'],
+        'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe', '*.exe'],
+        'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',           'POS-Enterprise_*.dmg',           '*.dmg'],
+        'linux'   => ['POS-Enterprise.AppImage',   'POS Enterprise_*.AppImage',      'POS-Enterprise_*.AppImage',      '*.AppImage'],
     ];
     $result = [];
     foreach ($candidates as $platform => $patterns) {
-        $found = null;
-        foreach ($patterns as $pattern) {
-            $matches = glob(public_path("downloads/{$pattern}"));
-            if (!empty($matches)) {
-                $found = basename($matches[0]);
-                break;
-            }
-        }
-        $path = $found ? public_path("downloads/{$found}") : null;
+        $file = findDownloadFile($dir, $patterns);
         $result[$platform] = [
-            'available' => (bool) $found,
-            'file'      => $found ?? $patterns[0],
-            'size'      => $found ? filesize($path) : null,
+            'available' => (bool) $file,
+            'file'      => $file ? basename($file) : $patterns[0],
+            'size'      => $file ? filesize($file) : null,
         ];
     }
     return response()->json($result)->header('Cache-Control', 'no-cache');
 })->name('desktop-app.check');
 
 Route::get('/desktop-app/download/{platform}', function (string $platform) {
+    $dir = resolveDownloadsDir();
     $candidates = [
-        'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe'],
-        'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',            'POS-Enterprise_*.dmg'],
-        'linux'   => ['POS-Enterprise.AppImage',   'POS Enterprise_*.AppImage',       'POS-Enterprise_*.AppImage'],
+        'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe', '*.exe'],
+        'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',           'POS-Enterprise_*.dmg',           '*.dmg'],
+        'linux'   => ['POS-Enterprise.AppImage',   'POS Enterprise_*.AppImage',      'POS-Enterprise_*.AppImage',      '*.AppImage'],
     ];
     if (!array_key_exists($platform, $candidates)) {
         return response()->json(['error' => 'Invalid platform'], 404);
     }
-    $found = null;
-    foreach ($candidates[$platform] as $pattern) {
-        $matches = glob(public_path("downloads/{$pattern}"));
-        if (!empty($matches)) { $found = $matches[0]; break; }
-    }
-    if (!$found) {
+    $file = findDownloadFile($dir, $candidates[$platform]);
+    if (!$file) {
         return response()->json(['error' => 'File not available yet', 'available' => false], 404);
     }
-    return response()->download($found, basename($found), [
-        'Content-Type'        => 'application/octet-stream',
-        'Content-Disposition' => 'attachment; filename="POS-Enterprise-Setup.' . pathinfo($found, PATHINFO_EXTENSION) . '"',
+    $ext = pathinfo($file, PATHINFO_EXTENSION);
+    return response()->download($file, "POS-Enterprise-Setup.{$ext}", [
+        'Content-Type' => 'application/octet-stream',
     ]);
 })->name('desktop-app.download');
 
