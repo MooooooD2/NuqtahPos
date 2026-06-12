@@ -675,18 +675,8 @@ Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('pharmacy')->group(f
 
 // ── Desktop App Downloads (public — no auth required) ────────────────────
 
-// Resolve the downloads directory: check public/downloads/ first (standard),
-// then fall back to ../downloads/ relative to the backend root (the layout used
-// on shared-hosting where the web root sits one level above the Laravel app).
-function resolveDownloadsDir(): string {
-    $publicDir = public_path('downloads');
-    if (is_dir($publicDir)) return $publicDir;
-    $webRootDir = base_path('../downloads');
-    if (is_dir($webRootDir)) return $webRootDir;
-    return $publicDir; // default even if missing
-}
-
-function findDownloadFile(string $dir, array $patterns): ?string {
+function findDownloadFile(array $patterns): ?string {
+    $dir = env('DOWNLOADS_PATH', public_path('downloads'));
     foreach ($patterns as $pattern) {
         $matches = glob("{$dir}/{$pattern}");
         if (!empty($matches)) return $matches[0];
@@ -695,7 +685,6 @@ function findDownloadFile(string $dir, array $patterns): ?string {
 }
 
 Route::get('/desktop-app/check', function () {
-    $dir = resolveDownloadsDir();
     $candidates = [
         'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe', '*.exe'],
         'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',           'POS-Enterprise_*.dmg',           '*.dmg'],
@@ -703,7 +692,7 @@ Route::get('/desktop-app/check', function () {
     ];
     $result = [];
     foreach ($candidates as $platform => $patterns) {
-        $file = findDownloadFile($dir, $patterns);
+        $file = findDownloadFile($patterns);
         $result[$platform] = [
             'available' => (bool) $file,
             'file'      => $file ? basename($file) : $patterns[0],
@@ -714,7 +703,6 @@ Route::get('/desktop-app/check', function () {
 })->name('desktop-app.check');
 
 Route::get('/desktop-app/download/{platform}', function (string $platform) {
-    $dir = resolveDownloadsDir();
     $candidates = [
         'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe', '*.exe'],
         'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',           'POS-Enterprise_*.dmg',           '*.dmg'],
@@ -723,7 +711,7 @@ Route::get('/desktop-app/download/{platform}', function (string $platform) {
     if (!array_key_exists($platform, $candidates)) {
         return response()->json(['error' => 'Invalid platform'], 404);
     }
-    $file = findDownloadFile($dir, $candidates[$platform]);
+    $file = findDownloadFile($candidates[$platform]);
     if (!$file) {
         return response()->json(['error' => 'File not available yet', 'available' => false], 404);
     }

@@ -62,8 +62,8 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
       return
     }
     const a = document.createElement('a')
-    a.href = `${webBase}/downloads/${encodeURIComponent(info.file)}`
-    a.download = info.file
+    a.href = `${webBase}/api/desktop-app/download/${platform}`
+    a.download = `POS-Enterprise-Setup.${info.file.split('.').pop()}`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
