@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { isTauriApp } from '@/lib/tauri'
 
 const isTauri = isTauriApp()
+const webBase = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
 
 function detectOS(): Platform {
   const ua = navigator.userAgent.toLowerCase()
@@ -38,7 +39,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
 
   useEffect(() => {
     if (isTauri) return
-    fetch('/api/desktop-app/check')
+    fetch(`${webBase}/api/desktop-app/check`)
       .then((r) => r.json())
       .then((d) => setCheck(d))
       .catch(() => setCheck(null))
@@ -61,7 +62,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
       return
     }
     const a = document.createElement('a')
-    a.href = `/api/desktop-app/download/${platform}`
+    a.href = `${webBase}/api/desktop-app/download/${platform}`
     a.download = info.file
     document.body.appendChild(a)
     a.click()
