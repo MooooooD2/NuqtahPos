@@ -21,7 +21,8 @@ export function getBaseUrl(): string {
 
 export const api = axios.create({
   timeout: 30_000,
-  withCredentials: true,
+  // Desktop uses Bearer-token auth only — cookies not needed and cause CORS pre-flight friction
+  withCredentials: !isTauri,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
@@ -48,7 +49,10 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    // Don't redirect when the 401 came from the login endpoint itself —
+    // the form's catch block already shows the error toast and the user is already on /login
+    const isLoginRequest = error.config?.url?.endsWith('/login')
+    if (error.response?.status === 401 && !isLoginRequest) {
       useAuthStore.getState().logout()
       window.location.href = `${webBase}/login`
     }
