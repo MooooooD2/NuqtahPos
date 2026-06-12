@@ -13,8 +13,13 @@ function getTauri(): TauriInternals | undefined {
   return (window as unknown as { __TAURI_INTERNALS__?: TauriInternals }).__TAURI_INTERNALS__
 }
 
-export const isTauriApp = (): boolean =>
-  !!getTauri() || !!(import.meta.env.TAURI_ARCH) || !!(import.meta.env.TAURI_ENV_ARCH)
+export const isTauriApp = (): boolean => {
+  if (getTauri()) return true
+  if (import.meta.env.TAURI_ARCH || import.meta.env.TAURI_ENV_ARCH) return true
+  // Tauri v2 on Windows: http://tauri.localhost; on macOS/Linux: tauri://localhost
+  const origin = window.location.origin
+  return origin === 'http://tauri.localhost' || origin === 'https://tauri.localhost' || origin === 'tauri://localhost'
+}
 
 export async function invokeTauri<T = unknown>(
   command: string,
