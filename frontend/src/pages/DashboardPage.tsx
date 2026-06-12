@@ -23,14 +23,23 @@ interface DashData {
 
 export default function DashboardPage() {
   const { t } = useTranslation('pos')
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, isError, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => apiGet<DashData>('/dashboard-data'),
     refetchInterval: 60_000,
+    retry: 1,
   })
 
-  if (isLoading || !stats) return (
+  if (isLoading) return (
     <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>
+  )
+
+  if (isError || !stats) return (
+    <div className="flex flex-col h-64 items-center justify-center gap-3 text-center">
+      <AlertTriangle className="h-10 w-10 text-amber-400" />
+      <p className="text-sm text-gray-500 dark:text-gray-400">{t('failed_to_load_dashboard') || 'Failed to load dashboard data'}</p>
+      <button onClick={() => refetch()} className="btn btn-secondary text-xs">{t('retry') || 'Retry'}</button>
+    </div>
   )
 
   const todaySales = parseFloat(String(stats.today_sales_total ?? 0))
