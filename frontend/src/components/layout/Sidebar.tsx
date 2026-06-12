@@ -3,6 +3,8 @@ import { useUIStore } from '@/stores/uiStore'
 import { useAuthStore } from '@/stores/authStore'
 import { usePermission } from '@/hooks/usePermission'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/services/api'
 import { clsx } from 'clsx'
 import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Users, Truck,
@@ -20,6 +22,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>
   permission?: string | string[]
   adminOnly?: boolean
+  planFeature?: string
 }
 
 interface NavGroup {
@@ -32,70 +35,70 @@ const navGroups: NavGroup[] = [
     groupKey: 'nav_group_main',
     items: [
       { labelKey: 'dashboard',  path: '/',         icon: LayoutDashboard },
-      { labelKey: 'pos',        path: '/pos',       icon: ShoppingCart, permission: 'view_pos' },
+      { labelKey: 'pos',        path: '/pos',       icon: ShoppingCart, permission: 'view_pos',    planFeature: 'pos' },
       { labelKey: 'my_shift',   path: '/my-shift',  icon: Clock },
     ],
   },
   {
     groupKey: 'nav_group_sales',
     items: [
-      { labelKey: 'invoices',      path: '/invoices',       icon: FileText,   permission: ['view_pos', 'view_reports'] },
-      { labelKey: 'returns',       path: '/returns',        icon: RotateCcw,  permission: 'view_returns' },
-      { labelKey: 'customers',     path: '/customers',      icon: Users,      permission: ['view_customers', 'view_pos'] },
-      { labelKey: 'promotions',    path: '/promotions',     icon: Tag,        permission: 'view_reports' },
-      { labelKey: 'pricing_rules', path: '/pricing-rules',  icon: Zap,        permission: 'view_reports' },
-      { labelKey: 'cashback',      path: '/cashback',       icon: Gift,       permission: 'manage_cashback' },
-      { labelKey: 'crm',           path: '/crm',            icon: Heart,      permission: 'view_warehouse' },
+      { labelKey: 'invoices',      path: '/invoices',       icon: FileText,   permission: ['view_pos', 'view_reports'],         planFeature: 'reports_basic' },
+      { labelKey: 'returns',       path: '/returns',        icon: RotateCcw,  permission: 'view_returns',                      planFeature: 'returns' },
+      { labelKey: 'customers',     path: '/customers',      icon: Users,      permission: ['view_customers', 'view_pos'],       planFeature: 'customers' },
+      { labelKey: 'promotions',    path: '/promotions',     icon: Tag,        permission: 'view_reports',                      planFeature: 'promotions' },
+      { labelKey: 'pricing_rules', path: '/pricing-rules',  icon: Zap,        permission: 'view_reports',                      planFeature: 'pricing_rules' },
+      { labelKey: 'cashback',      path: '/cashback',       icon: Gift,       permission: 'manage_cashback',                   planFeature: 'cashback' },
+      { labelKey: 'crm',           path: '/crm',            icon: Heart,      permission: 'view_warehouse',                    planFeature: 'crm' },
     ],
   },
   {
     groupKey: 'nav_group_inventory',
     items: [
-      { labelKey: 'products',         path: '/products',   icon: Package,   permission: ['view_products', 'view_warehouse'] },
-      { labelKey: 'inventory',        path: '/inventory',  icon: Boxes,     permission: 'view_warehouse' },
-      { labelKey: 'warehouse',        path: '/warehouse',  icon: Warehouse, permission: 'view_warehouse' },
-      { labelKey: 'pharmacy',         path: '/pharmacy',   icon: Pill,      permission: 'view_warehouse' },
-      { labelKey: 'waste_management', path: '/waste',      icon: Trash2,    permission: 'manage_waste' },
+      { labelKey: 'products',         path: '/products',   icon: Package,   permission: ['view_products', 'view_warehouse'],  planFeature: 'inventory' },
+      { labelKey: 'inventory',        path: '/inventory',  icon: Boxes,     permission: 'view_warehouse',                    planFeature: 'inventory' },
+      { labelKey: 'warehouse',        path: '/warehouse',  icon: Warehouse, permission: 'view_warehouse',                    planFeature: 'multi_warehouse' },
+      { labelKey: 'pharmacy',         path: '/pharmacy',   icon: Pill,      permission: 'view_warehouse',                    planFeature: 'pharmacy' },
+      { labelKey: 'waste_management', path: '/waste',      icon: Trash2,    permission: 'manage_waste',                      planFeature: 'waste_tracking' },
     ],
   },
   {
     groupKey: 'nav_group_purchasing',
     items: [
-      { labelKey: 'suppliers',          path: '/suppliers',          icon: Truck,       permission: 'view_warehouse' },
-      { labelKey: 'purchase_orders',    path: '/purchases',          icon: ShoppingBag, permission: 'view_warehouse' },
-      { labelKey: 'purchase_returns',   path: '/purchase-returns',   icon: PackageX,    permission: 'view_warehouse' },
-      { labelKey: 'supplier_payments',  path: '/supplier-payments',  icon: CreditCard,  permission: 'view_warehouse' },
-      { labelKey: 'supplier_accounts',  path: '/supplier-accounts',  icon: Receipt,     permission: 'view_warehouse' },
+      { labelKey: 'suppliers',          path: '/suppliers',          icon: Truck,       permission: 'view_warehouse',  planFeature: 'purchase_orders' },
+      { labelKey: 'purchase_orders',    path: '/purchases',          icon: ShoppingBag, permission: 'view_warehouse',  planFeature: 'purchase_orders' },
+      { labelKey: 'purchase_returns',   path: '/purchase-returns',   icon: PackageX,    permission: 'view_warehouse',  planFeature: 'purchase_orders' },
+      { labelKey: 'supplier_payments',  path: '/supplier-payments',  icon: CreditCard,  permission: 'view_warehouse',  planFeature: 'purchase_orders' },
+      { labelKey: 'supplier_accounts',  path: '/supplier-accounts',  icon: Receipt,     permission: 'view_warehouse',  planFeature: 'purchase_orders' },
     ],
   },
   {
     groupKey: 'nav_group_finance',
     items: [
-      { labelKey: 'expenses',                      path: '/expenses',          icon: DollarSign, permission: 'view_pos' },
-      { labelKey: 'cash_register_reconciliation',  path: '/cash-register',     icon: Banknote,   permission: 'view_pos' },
-      { labelKey: 'accounting',                    path: '/accounting',         icon: BookOpen,   permission: 'view_accounting' },
-      { labelKey: 'financial_reports',             path: '/financial-reports',  icon: PieChart,   permission: 'view_accounting' },
-      { labelKey: 'reports',                       path: '/reports',            icon: BarChart3,  permission: 'view_reports' },
-      { labelKey: 'profit_reports',                path: '/profit-reports',     icon: TrendingUp, permission: 'view_reports' },
+      { labelKey: 'expenses',                      path: '/expenses',          icon: DollarSign, permission: 'view_pos',        planFeature: 'expenses' },
+      { labelKey: 'cash_register_reconciliation',  path: '/cash-register',     icon: Banknote,   permission: 'view_pos',        planFeature: 'pos' },
+      { labelKey: 'accounting',                    path: '/accounting',         icon: BookOpen,   permission: 'view_accounting', planFeature: 'accounting' },
+      { labelKey: 'financial_reports',             path: '/financial-reports',  icon: PieChart,   permission: 'view_accounting', planFeature: 'reports_financial' },
+      { labelKey: 'reports',                       path: '/reports',            icon: BarChart3,  permission: 'view_reports',    planFeature: 'reports_basic' },
+      { labelKey: 'profit_reports',                path: '/profit-reports',     icon: TrendingUp, permission: 'view_reports',    planFeature: 'reports_advanced' },
     ],
   },
   {
     groupKey: 'nav_group_operations',
     items: [
-      { labelKey: 'kitchen_display',    path: '/kitchen',     icon: UtensilsCrossed, permission: 'view_kitchen' },
-      { labelKey: 'qr_tables',          path: '/qr',          icon: QrCode,          permission: 'manage_qr_orders' },
-      { labelKey: 'whatsapp',           path: '/whatsapp',    icon: MessageCircle,   permission: 'manage_roles' },
-      { labelKey: 'ai_forecasting_title', path: '/forecasting', icon: LineChart,     permission: 'view_reports' },
+      { labelKey: 'kitchen_display',      path: '/kitchen',     icon: UtensilsCrossed, permission: 'view_kitchen',      planFeature: 'kitchen_display' },
+      { labelKey: 'qr_tables',            path: '/qr',          icon: QrCode,          permission: 'manage_qr_orders',  planFeature: 'qr_ordering' },
+      { labelKey: 'whatsapp',             path: '/whatsapp',    icon: MessageCircle,   permission: 'manage_roles',      planFeature: 'whatsapp' },
+      { labelKey: 'ai_forecasting_title', path: '/forecasting', icon: LineChart,       permission: 'view_reports',      planFeature: 'ai_forecasting' },
     ],
   },
   {
     groupKey: 'nav_group_admin',
     items: [
       { labelKey: 'users_roles',     path: '/users',           icon: UserCog,   permission: 'manage_roles' },
-      { labelKey: 'branches',        path: '/branches',        icon: GitBranch, permission: 'manage_roles' },
-      { labelKey: 'hr_module',       path: '/hr',              icon: Users2,    permission: 'manage_hr' },
-      { labelKey: 'currencies',      path: '/currencies',      icon: Coins,     permission: 'manage_roles' },
-      { labelKey: 'device_sessions', path: '/device-sessions', icon: Monitor },
+      { labelKey: 'branches',        path: '/branches',        icon: GitBranch, permission: 'manage_roles',    planFeature: 'multi_branch' },
+      { labelKey: 'hr_module',       path: '/hr',              icon: Users2,    permission: 'manage_hr',       planFeature: 'hr_module' },
+      { labelKey: 'currencies',      path: '/currencies',      icon: Coins,     permission: 'manage_roles',    planFeature: 'currencies' },
+      { labelKey: 'device_sessions', path: '/device-sessions', icon: Monitor,                                  planFeature: 'device_sessions' },
       { labelKey: 'settings',        path: '/settings',        icon: Settings,  permission: 'manage_settings' },
     ],
   },
@@ -109,11 +112,27 @@ export default function Sidebar() {
   const { hasPermission } = usePermission()
   const { t } = useTranslation('pos')
 
+  const companyCode = localStorage.getItem('pos-company-code') ?? ''
+  const isMaster = companyCode === 'main'
+
+  const { data: sub } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: () => api.get<{ features: string[] }>('/subscription').then((r) => r.data),
+    staleTime: 1000 * 60 * 10,
+    enabled: !!user && !isMaster,
+  })
+
+  // Master tenant always gets all features; non-master use plan features (null = still loading → show all)
+  const planFeatures: string[] | null = isMaster ? null : (sub?.features ?? null)
+
   const isVisible = (item: NavItem) => {
-    if (!item.permission) return true
     if (item.adminOnly && user?.role !== 'admin') return false
-    const perms = Array.isArray(item.permission) ? item.permission : [item.permission]
-    return hasPermission(...perms)
+    if (item.permission) {
+      const perms = Array.isArray(item.permission) ? item.permission : [item.permission]
+      if (!hasPermission(...perms)) return false
+    }
+    if (item.planFeature && planFeatures !== null && !planFeatures.includes(item.planFeature)) return false
+    return true
   }
 
   return (
@@ -159,8 +178,8 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-          {/* Master-tenant admin section — only visible when logged into the main tenant */}
-          {user?.role === 'admin' && localStorage.getItem('pos-company-code') === 'main' && (
+          {/* Master-tenant admin section */}
+          {user?.role === 'admin' && isMaster && (
             <div>
               {!sidebarCollapsed && (
                 <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-amber-500/80 select-none">
@@ -207,7 +226,6 @@ export default function Sidebar() {
             if (visibleItems.length === 0) return null
             return (
               <div key={group.groupKey}>
-                {/* Section label — hidden when collapsed */}
                 {!sidebarCollapsed && (
                   <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500 select-none">
                     {t(group.groupKey)}

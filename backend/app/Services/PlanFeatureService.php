@@ -40,6 +40,7 @@ class PlanFeatureService
             'accounting', 'purchase_orders', 'multi_warehouse',
             'whatsapp', 'kitchen_display', 'qr_ordering', 'kiosk',
             'crm', 'dynamic_pricing', 'pricing_rules', 'waste_tracking',
+            'pharmacy',
         ],
         'enterprise' => [
             'pos', 'inventory', 'returns', 'expenses',
@@ -52,6 +53,7 @@ class PlanFeatureService
             'white_label', 'currencies', 'franchise',
             'ai_forecasting', 'budget_vs_actual',
             'device_sessions', 'backup_monitor',
+            'pharmacy',
         ],
     ];
 

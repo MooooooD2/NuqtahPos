@@ -91,6 +91,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/subscription', funct
         'trial_ends_at' => $trialEndsAt?->toIso8601String(),
         'days_left'     => $daysLeft !== null ? max(0, $daysLeft) : null,
         'is_expired'    => $trialEndsAt ? now()->gt($trialEndsAt) : false,
+        'features'      => \App\Services\PlanFeatureService::features(),
     ]);
 });
 
