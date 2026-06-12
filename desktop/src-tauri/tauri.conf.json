@@ -7,7 +7,7 @@
     "frontendDist": "../../frontend/dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "cd ../frontend && npm run dev",
-    "beforeBuildCommand": "set TAURI_ARCH=x86_64 && set VITE_API_URL=https://biskumarket.life/pos && cd ../frontend && npm run build"
+    "beforeBuildCommand": "cd ../frontend && npm run build:desktop"
   },
   "app": {
     "windows": [

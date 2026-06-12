@@ -33,7 +33,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [serverUrl, setServerUrl] = useState(
-    localStorage.getItem(SERVER_URL_KEY) ?? builtInServerUrl ?? 'http://localhost:8000',
+    localStorage.getItem(SERVER_URL_KEY) ?? builtInServerUrl ?? 'https://biskumarket.life/pos',
   )
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
