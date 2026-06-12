@@ -8,6 +8,8 @@ import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
 import { Tag, Plus, ToggleLeft, ToggleRight, Trash2, Pencil, Check } from 'lucide-react'
 
+type PlanFeature = string | { ar: string; en: string }
+
 interface Plan {
   id: string
   name: string
@@ -16,7 +18,7 @@ interface Plan {
   trial_days: number
   max_users: number | null
   max_products: number | null
-  features: string[]
+  features: PlanFeature[]
   feature_flags: string[]
   sort_order: number
   is_active: boolean
@@ -34,6 +36,11 @@ interface PlansData {
   tenant_counts: Record<string, number>
   all_modules: Record<string, Module>
   module_groups: Record<string, { ar: string; en: string }>
+}
+
+const featureLabel = (f: PlanFeature, isAr: boolean): string => {
+  if (typeof f === 'string') return f
+  return isAr ? (f.ar ?? '') : (f.en ?? '')
 }
 
 const emptyPlan = (): Omit<Plan, 'is_active'> => ({
@@ -273,7 +280,7 @@ export default function AdminPlansPage() {
             <div className="flex flex-wrap gap-1">
               {form.features.map((f, i) => (
                 <span key={i} className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 text-xs">
-                  {f}
+                  {featureLabel(f, isAr)}
                   <button onClick={() => setForm((p) => ({ ...p, features: p.features.filter((_, j) => j !== i) }))} className="text-red-400 hover:text-red-600 ms-1">×</button>
                 </span>
               ))}
