@@ -5,6 +5,23 @@
 
     RewriteEngine On
 
+    # ── CORS for Tauri desktop app (Windows: http://tauri.localhost, Mac/Linux: tauri://localhost)
+    <IfModule mod_headers.c>
+        SetEnvIf Origin "^http://tauri\.localhost$"  CORS_ORIGIN=http://tauri.localhost
+        SetEnvIf Origin "^https://tauri\.localhost$" CORS_ORIGIN=https://tauri.localhost
+        SetEnvIf Origin "^tauri://localhost$"         CORS_ORIGIN=tauri://localhost
+        Header always unset Access-Control-Allow-Origin env=CORS_ORIGIN
+        Header always set   Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
+        Header always set   Access-Control-Allow-Credentials "true" env=CORS_ORIGIN
+        Header always set   Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" env=CORS_ORIGIN
+        Header always set   Access-Control-Allow-Headers "Accept, Authorization, Content-Type, X-Requested-With, X-Tenant-Code" env=CORS_ORIGIN
+    </IfModule>
+    # Short-circuit OPTIONS preflight — respond 204 before hitting PHP
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteCond %{HTTP:Origin} ^(http://tauri\.localhost|https://tauri\.localhost|tauri://localhost)$
+    RewriteRule .* - [R=204,L]
+    # ──────────────────────────────────────────────────────────────────────────
+
     # Pass Authorization header through Apache CGI/FastCGI (shared hosting fix)
     SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
