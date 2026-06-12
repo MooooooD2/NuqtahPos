@@ -257,7 +257,13 @@ class TenantController extends Controller
         $tenant = Tenant::findOrFail($id);
         $data = $request->validate([
             'name' => 'required|string|max:100',
-            'plan' => 'nullable|string|max:50|exists:plans,id',
+            'plan' => ['nullable', 'string', 'max:50',
+                function ($attr, $value, $fail) {
+                    if ($value && ! Plan::where('id', $value)->exists()) {
+                        $fail('The selected plan is invalid.');
+                    }
+                },
+            ],
         ]);
 
         $tenant->update($data);
