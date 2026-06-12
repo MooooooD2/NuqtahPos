@@ -66,7 +66,12 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('api', function (Request $request) {
+            // Authenticated users get a much higher limit — the POS fires many
+            // concurrent requests on page load and React Query refetches on focus.
+            $limit = $request->user() ? 600 : 60;
+            return Limit::perMinute($limit)->by($request->user()?->id ?: $request->ip());
+        });
 
         // Outputs nonce="..." for inline <script> tags to satisfy CSP
         Blade::directive('nonce', fn () => "<?php echo 'nonce=\"' . (app()->has('csp-nonce') ? app('csp-nonce') : '') . '\"'; ?>");
