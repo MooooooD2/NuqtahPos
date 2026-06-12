@@ -7,7 +7,7 @@
     "frontendDist": "../../frontend/dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "cd ../frontend && npm run dev",
-    "beforeBuildCommand": "cd ../frontend && npm run build"
+    "beforeBuildCommand": "set TAURI_ARCH=x86_64 && cd ../frontend && npm run build"
   },
   "app": {
     "windows": [

@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 // https://vite.dev/config/
 export default defineConfig(() => {
-    const isDesktop = process.env.TAURI_ARCH !== undefined;
+    // Tauri v1 sets TAURI_ARCH; Tauri v2 sets TAURI_ENV_ARCH; manual builds may set either
+    const isDesktop = process.env.TAURI_ARCH !== undefined
+        || process.env.TAURI_ENV_ARCH !== undefined
+        || process.env.TAURI_ENV_TARGET_TRIPLE !== undefined;
     return {
         plugins: [react()],
         base: isDesktop ? '/' : '/pos/',

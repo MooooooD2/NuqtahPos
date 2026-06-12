@@ -1,8 +1,9 @@
 // Tauri bridge — works whether or not @tauri-apps/api is installed.
-// Detection uses two signals:
+// Detection uses two build-time signals plus the runtime injection:
 //   1. window.__TAURI_INTERNALS__ — injected by Tauri v2 runtime at startup
-//   2. import.meta.env.TAURI_ARCH — set by Tauri build system (vite envPrefix includes 'TAURI_')
-// Both are checked so the app works even if the runtime injection races the module evaluation.
+//   2. import.meta.env.TAURI_ARCH — set manually or by Tauri v1
+//   3. import.meta.env.TAURI_ENV_ARCH — set by Tauri v2 CLI during build
+// Multiple signals checked so the app works regardless of Tauri CLI version.
 
 type TauriInternals = {
   invoke: (command: string, args?: Record<string, unknown>) => Promise<unknown>
@@ -13,7 +14,7 @@ function getTauri(): TauriInternals | undefined {
 }
 
 export const isTauriApp = (): boolean =>
-  !!getTauri() || !!(import.meta.env.TAURI_ARCH)
+  !!getTauri() || !!(import.meta.env.TAURI_ARCH) || !!(import.meta.env.TAURI_ENV_ARCH)
 
 export async function invokeTauri<T = unknown>(
   command: string,
