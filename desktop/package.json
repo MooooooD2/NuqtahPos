@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
+    "build:release": "tauri build && powershell -Command \"$src = 'src-tauri\\\\target\\\\release\\\\bundle\\\\nsis'; $f = (Get-ChildItem $src -Filter '*-setup.exe' | Select-Object -First 1).FullName; if ($f) { $out = '..\\\\releases'; New-Item -ItemType Directory -Force -Path $out | Out-Null; Copy-Item $f -Destination \"$out\\\\POS-Enterprise-Setup.exe\" -Force; Write-Host ('Ready: ' + $out + '\\\\POS-Enterprise-Setup.exe') } else { Write-Host 'ERROR: installer not found' -ForegroundColor Red; exit 1 }\"",
     "preview": "vite preview",
     "tauri": "tauri"
   },
