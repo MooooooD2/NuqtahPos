@@ -7,7 +7,7 @@ return [
 
     'login' => [
         'max_attempts' => (int) env('LOGIN_MAX_ATTEMPTS', 5),
-        'lockout_seconds' => (int) env('LOGIN_LOCKOUT_SECONDS', 900),
+        'lockout_seconds' => (int) env('LOGIN_LOCKOUT_SECONDS', 300),
     ],
 
     'anomaly' => [
