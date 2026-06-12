@@ -64,21 +64,16 @@ class AuthController extends Controller
 
         Tenancy::initialize($tenant);
 
-        if (Auth::guard('web')->attempt([
-            'username' => $credentials['username'],
-            'password' => $credentials['password'],
-            'is_active' => true,
-        ])) {
-            try {
-                $request->session()->put('tenant_id', $tenant->id);
-                $request->session()->regenerate();
-            } catch (Throwable) {
-                // Stateless API request — no session available
-            }
+        // Verify credentials directly — avoids requiring a web session (StartSession
+        // middleware only runs on web routes, not API routes, so the SessionGuard's
+        // attempt() would fail silently for stateless requests like the Tauri desktop app).
+        $user = User::where('username', $credentials['username'])
+            ->where('is_active', true)
+            ->first();
 
+        if ($user && Hash::check($credentials['password'], $user->password)) {
             RateLimiter::clear($lockKey);
 
-            $user = Auth::user();
             $this->writeAuthLog('auth.login_success', (int) $user->id, $user->username, $request);
 
             // Phase 6: Track device session
