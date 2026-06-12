@@ -60,7 +60,10 @@ export default function LoginPage() {
       toast.success(t('welcome_back', { name: user.name }))
       navigate('/')
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('login_failed')
+      const e = err as { response?: { data?: { message?: string }; status?: number }; code?: string }
+      const msg = e?.response?.data?.message
+        ?? (e?.response?.status ? `HTTP ${e.response.status}` : null)
+        ?? (e?.code ?? t('login_failed'))
       toast.error(msg)
     } finally {
       setLoading(false)
