@@ -21,6 +21,11 @@ type FormData = z.infer<typeof schema>
 const SAVED_CODE_KEY = 'pos-company-code'
 const isDesktop = isTauriApp()
 
+// When built with VITE_API_URL (the official release build), the server URL is fixed —
+// no need to expose the field to end-users.
+const builtInServerUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '')
+const showServerUrlField = isDesktop && !builtInServerUrl
+
 export default function LoginPage() {
   const { t } = useTranslation('pos')
   const navigate = useNavigate()
@@ -28,7 +33,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [serverUrl, setServerUrl] = useState(
-    localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+    localStorage.getItem(SERVER_URL_KEY) ?? builtInServerUrl ?? 'http://localhost:8000',
   )
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -78,8 +83,8 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-lg p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-            {/* Server URL — desktop app only */}
-            {isDesktop && (
+            {/* Server URL — shown only in dev/custom desktop builds without a baked-in URL */}
+            {showServerUrlField && (
               <div>
                 <label className="block text-sm font-medium text-slate-200 mb-1.5">
                   Server URL

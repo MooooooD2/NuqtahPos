@@ -6,7 +6,10 @@ import { Toaster } from 'react-hot-toast'
 import AppLayout from '@/components/layout/AppLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
+import { isTauriApp } from '@/lib/tauri'
 import i18n from './i18n'
+
+const isDesktop = isTauriApp()
 
 // Lazy-loaded pages
 const LandingPage            = lazy(() => import('@/pages/LandingPage'))
@@ -56,7 +59,8 @@ const PaymentMethodsPage       = lazy(() => import('@/pages/PaymentMethodsPage')
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  return isAuthenticated ? <>{children}</> : <Navigate to="/welcome" replace />
+  // Desktop users should see the login form directly, not the marketing landing page
+  return isAuthenticated ? <>{children}</> : <Navigate to={isDesktop ? '/login' : '/welcome'} replace />
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -179,7 +183,7 @@ export default function App() {
             <Route path="admin/plans" element={<AdminRoute><AdminPlansPage /></AdminRoute>} />
             <Route path="admin/payment-accounts" element={<AdminRoute><AdminPaymentAccountsPage /></AdminRoute>} />
           </Route>
-          <Route path="*" element={<Navigate to="/welcome" replace />} />
+          <Route path="*" element={<Navigate to={isDesktop ? '/login' : '/welcome'} replace />} />
         </Routes>
       </Suspense>
       </ErrorBoundary>
