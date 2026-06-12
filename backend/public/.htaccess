@@ -18,8 +18,11 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # API, Sanctum, storage, and download routes go to Laravel
+    RewriteRule ^(api|sanctum|_ignition|telescope|storage|downloads)(\/.*)?$ index.php [L]
+
+    # All other non-file, non-directory requests go to the React SPA
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    RewriteRule ^ index.html [L]
 </IfModule>

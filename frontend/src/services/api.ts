@@ -13,7 +13,8 @@ export const SERVER_URL_KEY = 'pos-server-url'
 // Read at request time so changes made on the login page take effect immediately.
 export function getBaseUrl(): string {
   if (isTauri) {
-    return (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+    const serverUrl = (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+    return `${serverUrl}/api`
   }
   return `${webBase}/api`
 }
@@ -79,7 +80,9 @@ export const apiDelete = <T>(url: string) =>
   api.delete<T>(url).then((r) => r.data)
 
 // ─── CSRF cookie (needed for Sanctum web guard) ───────────────────────────────
-export const fetchCsrfCookie = () =>
-  axios.get(`${isTauri ? getBaseUrl() : webBase}/sanctum/csrf-cookie`, {
-    withCredentials: true,
-  })
+export const fetchCsrfCookie = () => {
+  const base = isTauri
+    ? (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+    : webBase
+  return axios.get(`${base}/sanctum/csrf-cookie`, { withCredentials: true })
+}
