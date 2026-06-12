@@ -5,7 +5,10 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
+    # Pass Authorization header through Apache CGI/FastCGI (shared hosting fix)
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+    # Handle Authorization Header (fallback for some Apache configs)
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
@@ -18,11 +21,14 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # API, Sanctum, storage, and download routes go to Laravel
-    RewriteRule ^(api|sanctum|_ignition|telescope|storage|downloads)(\/.*)?$ index.php [L]
+    # Serve existing static files directly (JS, CSS, images, fonts, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
 
-    # All other non-file, non-directory requests go to the React SPA
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # API, Sanctum, storage and downloads → Laravel (match on full REQUEST_URI)
+    RewriteCond %{REQUEST_URI} ^/pos/(api|sanctum|_ignition|telescope|storage|downloads)(/|$) [NC]
+    RewriteRule ^ index.php [L]
+
+    # Everything else → React SPA index.html
     RewriteRule ^ index.html [L]
 </IfModule>

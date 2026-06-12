@@ -501,19 +501,19 @@ Route::prefix('webhook/whatsapp')->name('webhook.whatsapp.')->group(function () 
 });
 
 // Stock Reconciliation #21
-Route::middleware(['auth', 'permission:add_stock', 'throttle:30,1'])->group(function () {
+Route::middleware(['auth:sanctum','permission:add_stock', 'throttle:30,1'])->group(function () {
     Route::post('/stock/reconcile', [StockReconciliationController::class, 'reconcile'])->name('stock.reconcile');
     Route::get('/stock/audit-trail/{productId}', [StockReconciliationController::class, 'auditTrail'])->name('stock.audit-trail');
 });
 
 // Waste / Spoilage Recording
-Route::middleware(['auth', 'permission:add_stock', 'throttle:30,1'])->group(function () {
+Route::middleware(['auth:sanctum','permission:add_stock', 'throttle:30,1'])->group(function () {
     Route::post('/waste', [WasteController::class, 'store'])->name('waste.store');
     Route::get('/waste', [WasteController::class, 'history'])->name('waste.history');
 });
 
 // ── تسوية الخزينة ──────────────────────────────────────────────────────────
-Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->group(function () {
+Route::middleware(['auth:sanctum','permission:view_pos', 'throttle:60,1'])->group(function () {
     Route::get('/cash-session/current', [CashRegisterController::class, 'currentSession'])->name('cash-session.current');
     Route::post('/cash-session/open', [CashRegisterController::class, 'open'])->name('cash-session.open');
     Route::post('/cash-session/{id}/close', [CashRegisterController::class, 'close'])->name('cash-session.close');
@@ -547,14 +547,14 @@ Route::middleware(['throttle:30,1'])->prefix('qr')->group(function () {
 });
 
 // ── Forecasting API ───────────────────────────────────────────────────────
-Route::middleware(['auth', 'permission:view_reports', 'throttle:30,1'])->group(function () {
+Route::middleware(['auth:sanctum','permission:view_reports', 'throttle:30,1'])->group(function () {
     Route::get('/forecast/sales', [ForecastController::class, 'salesForecast'])->name('api.forecast.sales');
     Route::get('/forecast/products', [ForecastController::class, 'productForecast'])->name('api.forecast.products');
     Route::get('/forecast/stock', [ForecastController::class, 'stockForecast'])->name('api.forecast.stock');
 });
 
 // ── Dynamic Pricing API ───────────────────────────────────────────────────
-Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->prefix('pricing-rules')->group(function () {
+Route::middleware(['auth:sanctum','permission:view_pos', 'throttle:60,1'])->prefix('pricing-rules')->group(function () {
     Route::get('/', [DynamicPricingController::class, 'all'])->name('api.pricing-rules.all');
     Route::post('/', [DynamicPricingController::class, 'store'])->name('api.pricing-rules.store');
     Route::put('/{id}', [DynamicPricingController::class, 'update'])->name('api.pricing-rules.update');
@@ -571,7 +571,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
 });
 
 // ── Cashback API ──────────────────────────────────────────────────────────
-Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->group(function () {
+Route::middleware(['auth:sanctum','permission:view_pos', 'throttle:60,1'])->group(function () {
     Route::get('/cashback/customer/{id}', [CashbackController::class, 'balance'])->name('api.cashback.balance');
     Route::post('/cashback/redeem', [CashbackController::class, 'redeem'])->name('api.cashback.redeem');
     Route::get('/cashback/history', [CashbackController::class, 'history'])->name('api.cashback.history');
@@ -583,7 +583,7 @@ Route::middleware(['auth', 'permission:view_pos', 'throttle:60,1'])->group(funct
 });
 
 // ── CRM API ───────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'permission:view_warehouse', 'throttle:60,1'])->prefix('crm')->group(function () {
+Route::middleware(['auth:sanctum','permission:view_warehouse', 'throttle:60,1'])->prefix('crm')->group(function () {
     Route::get('/customers/{id}/activities', [CrmController::class, 'activities'])->name('api.crm.activities');
     Route::post('/activities', [CrmController::class, 'storeActivity'])->name('api.crm.store');
     Route::put('/activities/{id}', [CrmController::class, 'updateActivity'])->name('api.crm.update');
@@ -658,7 +658,7 @@ Route::middleware(['auth:sanctum', 'permission:manage_roles'])->post('/dev/test-
 })->name('dev.test-notification');
 
 // ── Pharmacy Module ───────────────────────────────────────────────────────
-Route::middleware(['auth', 'throttle:60,1'])->prefix('pharmacy')->group(function () {
+Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('pharmacy')->group(function () {
     Route::get('/dashboard',             [PharmacyController::class, 'dashboard']);
     Route::get('/medicines',             [PharmacyController::class, 'medicines']);
     Route::post('/medicines',            [PharmacyController::class, 'storeMedicine']);
