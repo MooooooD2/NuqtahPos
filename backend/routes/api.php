@@ -675,41 +675,53 @@ Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('pharmacy')->group(f
 
 // ── Desktop App Downloads (public — no auth required) ────────────────────
 Route::get('/desktop-app/check', function () {
-    $files = [
-        'windows' => 'POS-Enterprise-Setup.exe',
-        'mac'     => 'POS-Enterprise.dmg',
-        'linux'   => 'POS-Enterprise.AppImage',
+    // Canonical name → fallback glob patterns (Tauri generates versioned names like
+    // "POS Enterprise_1.0.0_x64-setup.exe"). The first existing file wins.
+    $candidates = [
+        'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe'],
+        'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',            'POS-Enterprise_*.dmg'],
+        'linux'   => ['POS-Enterprise.AppImage',   'POS Enterprise_*.AppImage',       'POS-Enterprise_*.AppImage'],
     ];
     $result = [];
-    foreach ($files as $platform => $file) {
-        $path      = public_path("downloads/{$file}");
-        $exists    = file_exists($path);
+    foreach ($candidates as $platform => $patterns) {
+        $found = null;
+        foreach ($patterns as $pattern) {
+            $matches = glob(public_path("downloads/{$pattern}"));
+            if (!empty($matches)) {
+                $found = basename($matches[0]);
+                break;
+            }
+        }
+        $path = $found ? public_path("downloads/{$found}") : null;
         $result[$platform] = [
-            'available' => $exists,
-            'file'      => $file,
-            'size'      => $exists ? filesize($path) : null,
+            'available' => (bool) $found,
+            'file'      => $found ?? $patterns[0],
+            'size'      => $found ? filesize($path) : null,
         ];
     }
     return response()->json($result)->header('Cache-Control', 'no-cache');
 })->name('desktop-app.check');
 
 Route::get('/desktop-app/download/{platform}', function (string $platform) {
-    $map = [
-        'windows' => 'POS-Enterprise-Setup.exe',
-        'mac'     => 'POS-Enterprise.dmg',
-        'linux'   => 'POS-Enterprise.AppImage',
+    $candidates = [
+        'windows' => ['POS-Enterprise-Setup.exe', 'POS Enterprise_*_x64-setup.exe', 'POS-Enterprise_*_x64-setup.exe'],
+        'mac'     => ['POS-Enterprise.dmg',        'POS Enterprise_*.dmg',            'POS-Enterprise_*.dmg'],
+        'linux'   => ['POS-Enterprise.AppImage',   'POS Enterprise_*.AppImage',       'POS-Enterprise_*.AppImage'],
     ];
-    if (!array_key_exists($platform, $map)) {
+    if (!array_key_exists($platform, $candidates)) {
         return response()->json(['error' => 'Invalid platform'], 404);
     }
-    $file = $map[$platform];
-    $path = public_path("downloads/{$file}");
-    if (!file_exists($path)) {
+    $found = null;
+    foreach ($candidates[$platform] as $pattern) {
+        $matches = glob(public_path("downloads/{$pattern}"));
+        if (!empty($matches)) { $found = $matches[0]; break; }
+    }
+    if (!$found) {
         return response()->json(['error' => 'File not available yet', 'available' => false], 404);
     }
-    return response()->download($path, $file, [
+    return response()->download($found, basename($found), [
         'Content-Type'        => 'application/octet-stream',
-        'Content-Disposition' => "attachment; filename=\"{$file}\"",
+        'Content-Disposition' => 'attachment; filename="POS-Enterprise-Setup.' . pathinfo($found, PATHINFO_EXTENSION) . '"',
     ]);
 })->name('desktop-app.download');
 
