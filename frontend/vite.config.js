@@ -6,6 +6,7 @@ export default defineConfig(() => {
     const isDesktop = process.env.TAURI_ARCH !== undefined;
     return {
         plugins: [react()],
+        base: isDesktop ? '/' : '/pos/',
         resolve: {
             alias: {
                 '@': path.resolve(__dirname, './src'),

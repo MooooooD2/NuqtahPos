@@ -5,6 +5,9 @@ import { isTauriApp } from '@/lib/tauri'
 // Detect if running in Tauri desktop app (works for Tauri v2 via __TAURI_INTERNALS__)
 const isTauri = isTauriApp()
 
+// '/pos' in web production build, '' in desktop/dev (BASE_URL is '/pos/' or '/')
+const webBase = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
+
 export const SERVER_URL_KEY = 'pos-server-url'
 
 // Read at request time so changes made on the login page take effect immediately.
@@ -12,7 +15,7 @@ export function getBaseUrl(): string {
   if (isTauri) {
     return (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
   }
-  return '/api'
+  return `${webBase}/api`
 }
 
 export const api = axios.create({
@@ -46,7 +49,7 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().logout()
-      window.location.href = '/login'
+      window.location.href = `${webBase}/login`
     }
 
     // Network error — queue for offline sync
@@ -77,6 +80,6 @@ export const apiDelete = <T>(url: string) =>
 
 // ─── CSRF cookie (needed for Sanctum web guard) ───────────────────────────────
 export const fetchCsrfCookie = () =>
-  axios.get(`${isTauri ? getBaseUrl() : ''}/sanctum/csrf-cookie`, {
+  axios.get(`${isTauri ? getBaseUrl() : webBase}/sanctum/csrf-cookie`, {
     withCredentials: true,
   })

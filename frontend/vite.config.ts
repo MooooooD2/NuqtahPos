@@ -8,6 +8,7 @@ export default defineConfig(() => {
   
   return {
     plugins: [react()],
+    base: isDesktop ? '/' : '/pos/',
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
