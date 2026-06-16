@@ -21,12 +21,8 @@ interface Plan {
   max_products: number | null
   features: (PlanFeature | string)[]
 }
-interface ContactInfo {
-  name: string
-  phone: string
-  email: string
-  whatsapp: string
-}
+interface PaymentMethod { id: number; method: string; account_number: string }
+interface ContactInfo   { whatsapp: string }
 
 /* ─── Static data ───────────────────────────────────────────────────────── */
 
@@ -210,15 +206,18 @@ function planAccentClass(id: string) {
 export default function LandingPage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [contact, setContact] = useState<ContactInfo | null>(null)
 
   useEffect(() => {
     api.get('/public/plans').then((r) => setPlans(r.data.plans ?? [])).catch(() => {})
+    api.get('/public/payment-methods').then((r) => setPaymentMethods(r.data.methods ?? [])).catch(() => {})
     api.get('/public/contact').then((r) => setContact(r.data)).catch(() => {})
   }, [])
 
-  const waLink = contact?.whatsapp
-    ? `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hello! I\'m interested in POS Enterprise.')}`
+  const waNumber = paymentMethods.find((m) => m.method === 'whatsapp')?.account_number || contact?.whatsapp
+  const waLink = waNumber
+    ? `https://wa.me/${waNumber.replace(/\D/g, '')}?text=${encodeURIComponent('Hello! I\'m interested in POS Enterprise.')}`
     : null
 
   return (

@@ -23,6 +23,8 @@ interface NavItem {
   permission?: string | string[]
   adminOnly?: boolean
   planFeature?: string
+  /** If set, item is only shown when current business type is in this list */
+  businessTypes?: string[]
 }
 
 interface NavGroup {
@@ -30,63 +32,72 @@ interface NavGroup {
   items: NavItem[]
 }
 
+// Business types that use POS / retail flows
+const POS_TYPES = ['retail', 'restaurant', 'pharmacy', 'general']
+// Business types that see restaurant-specific modules
+const RESTAURANT_TYPES = ['restaurant', 'general']
+// Pharmacy-specific modules
+const PHARMACY_TYPES = ['pharmacy', 'general']
+// Sales-marketing tools (not meaningful for contracting)
+const SALES_TYPES = ['retail', 'restaurant', 'pharmacy', 'general']
+
 const navGroups: NavGroup[] = [
   {
     groupKey: 'nav_group_main',
     items: [
       { labelKey: 'dashboard',  path: '/',         icon: LayoutDashboard },
-      { labelKey: 'pos',        path: '/pos',       icon: ShoppingCart, permission: 'view_pos',    planFeature: 'pos' },
-      { labelKey: 'my_shift',   path: '/my-shift',  icon: Clock },
+      { labelKey: 'pos',        path: '/pos',       icon: ShoppingCart,       permission: 'view_pos',    planFeature: 'pos',       businessTypes: POS_TYPES },
+      { labelKey: 'my_shift',   path: '/my-shift',  icon: Clock,                                                                   businessTypes: POS_TYPES },
     ],
   },
   {
     groupKey: 'nav_group_sales',
     items: [
-      { labelKey: 'invoices',      path: '/invoices',       icon: FileText,   permission: ['view_pos', 'view_reports'],         planFeature: 'reports_basic' },
-      { labelKey: 'returns',       path: '/returns',        icon: RotateCcw,  permission: 'view_returns',                      planFeature: 'returns' },
-      { labelKey: 'customers',     path: '/customers',      icon: Users,      permission: ['view_customers', 'view_pos'],       planFeature: 'customers' },
-      { labelKey: 'promotions',    path: '/promotions',     icon: Tag,        permission: 'view_reports',                      planFeature: 'promotions' },
-      { labelKey: 'pricing_rules', path: '/pricing-rules',  icon: Zap,        permission: 'view_reports',                      planFeature: 'pricing_rules' },
-      { labelKey: 'cashback',      path: '/cashback',       icon: Gift,       permission: 'manage_cashback',                   planFeature: 'cashback' },
-      { labelKey: 'crm',           path: '/crm',            icon: Heart,      permission: 'view_warehouse',                    planFeature: 'crm' },
+      { labelKey: 'invoices',      path: '/invoices',       icon: FileText,   permission: ['view_pos', 'view_reports'],   planFeature: 'reports_basic' },
+      { labelKey: 'returns',       path: '/returns',        icon: RotateCcw,  permission: 'view_returns',                planFeature: 'returns',        businessTypes: POS_TYPES },
+      { labelKey: 'customers',     path: '/customers',      icon: Users,      permission: ['view_customers', 'view_pos'], planFeature: 'customers' },
+      { labelKey: 'promotions',    path: '/promotions',     icon: Tag,        permission: 'view_reports',                planFeature: 'promotions',     businessTypes: SALES_TYPES },
+      { labelKey: 'pricing_rules', path: '/pricing-rules',  icon: Zap,        permission: 'view_reports',                planFeature: 'pricing_rules',  businessTypes: SALES_TYPES },
+      { labelKey: 'cashback',      path: '/cashback',       icon: Gift,       permission: 'manage_cashback',             planFeature: 'cashback',       businessTypes: SALES_TYPES },
+      { labelKey: 'crm',           path: '/crm',            icon: Heart,      permission: 'view_warehouse',              planFeature: 'crm',            businessTypes: SALES_TYPES },
     ],
   },
   {
     groupKey: 'nav_group_inventory',
     items: [
-      { labelKey: 'products',         path: '/products',   icon: Package,   permission: ['view_products', 'view_warehouse'],  planFeature: 'inventory' },
+      { labelKey: 'products',         path: '/products',   icon: Package,   permission: ['view_products', 'view_warehouse'], planFeature: 'inventory' },
       { labelKey: 'inventory',        path: '/inventory',  icon: Boxes,     permission: 'view_warehouse',                    planFeature: 'inventory' },
       { labelKey: 'warehouse',        path: '/warehouse',  icon: Warehouse, permission: 'view_warehouse',                    planFeature: 'multi_warehouse' },
-      { labelKey: 'pharmacy',         path: '/pharmacy',   icon: Pill,      permission: 'view_warehouse',                    planFeature: 'pharmacy' },
+      { labelKey: 'pharmacy',         path: '/pharmacy',   icon: Pill,      permission: 'view_warehouse',                    planFeature: 'pharmacy',       businessTypes: PHARMACY_TYPES },
       { labelKey: 'waste_management', path: '/waste',      icon: Trash2,    permission: 'manage_waste',                      planFeature: 'waste_tracking' },
     ],
   },
   {
     groupKey: 'nav_group_purchasing',
     items: [
-      { labelKey: 'suppliers',          path: '/suppliers',          icon: Truck,       permission: 'view_warehouse',  planFeature: 'purchase_orders' },
-      { labelKey: 'purchase_orders',    path: '/purchases',          icon: ShoppingBag, permission: 'view_warehouse',  planFeature: 'purchase_orders' },
-      { labelKey: 'purchase_returns',   path: '/purchase-returns',   icon: PackageX,    permission: 'view_warehouse',  planFeature: 'purchase_orders' },
-      { labelKey: 'supplier_payments',  path: '/supplier-payments',  icon: CreditCard,  permission: 'view_warehouse',  planFeature: 'purchase_orders' },
-      { labelKey: 'supplier_accounts',  path: '/supplier-accounts',  icon: Receipt,     permission: 'view_warehouse',  planFeature: 'purchase_orders' },
+      { labelKey: 'suppliers',          path: '/suppliers',          icon: Truck,       permission: 'view_warehouse', planFeature: 'purchase_orders' },
+      { labelKey: 'purchase_orders',    path: '/purchases',          icon: ShoppingBag, permission: 'view_warehouse', planFeature: 'purchase_orders' },
+      { labelKey: 'purchase_returns',   path: '/purchase-returns',   icon: PackageX,    permission: 'view_warehouse', planFeature: 'purchase_orders' },
+      { labelKey: 'supplier_payments',  path: '/supplier-payments',  icon: CreditCard,  permission: 'view_warehouse', planFeature: 'purchase_orders' },
+      { labelKey: 'supplier_accounts',  path: '/supplier-accounts',  icon: Receipt,     permission: 'view_warehouse', planFeature: 'purchase_orders' },
     ],
   },
   {
     groupKey: 'nav_group_finance',
     items: [
-      { labelKey: 'expenses',                      path: '/expenses',          icon: DollarSign, permission: 'view_pos',        planFeature: 'expenses' },
-      { labelKey: 'cash_register_reconciliation',  path: '/cash-register',     icon: Banknote,   permission: 'view_pos',        planFeature: 'pos' },
-      { labelKey: 'accounting',                    path: '/accounting',         icon: BookOpen,   permission: 'view_accounting', planFeature: 'accounting' },
-      { labelKey: 'financial_reports',             path: '/financial-reports',  icon: PieChart,   permission: 'view_accounting', planFeature: 'reports_financial' },
-      { labelKey: 'reports',                       path: '/reports',            icon: BarChart3,  permission: 'view_reports',    planFeature: 'reports_basic' },
-      { labelKey: 'profit_reports',                path: '/profit-reports',     icon: TrendingUp, permission: 'view_reports',    planFeature: 'reports_advanced' },
+      { labelKey: 'expenses',                     path: '/expenses',          icon: DollarSign, permission: 'view_pos',        planFeature: 'expenses' },
+      { labelKey: 'cash_register_reconciliation', path: '/cash-register',     icon: Banknote,   permission: 'view_pos',        planFeature: 'pos',               businessTypes: POS_TYPES },
+      { labelKey: 'accounting',                   path: '/accounting',         icon: BookOpen,   permission: 'view_accounting', planFeature: 'accounting' },
+      { labelKey: 'financial_reports',            path: '/financial-reports',  icon: PieChart,   permission: 'view_accounting', planFeature: 'reports_financial' },
+      { labelKey: 'reports',                      path: '/reports',            icon: BarChart3,  permission: 'view_reports',    planFeature: 'reports_basic' },
+      { labelKey: 'profit_reports',               path: '/profit-reports',     icon: TrendingUp, permission: 'view_reports',    planFeature: 'reports_advanced' },
     ],
   },
   {
     groupKey: 'nav_group_operations',
     items: [
-      { labelKey: 'kitchen_display',      path: '/kitchen',     icon: UtensilsCrossed, permission: 'view_kitchen',      planFeature: 'kitchen_display' },
-      { labelKey: 'qr_tables',            path: '/qr',          icon: QrCode,          permission: 'manage_qr_orders',  planFeature: 'qr_ordering' },
+      { labelKey: 'kitchen_display',      path: '/kitchen',     icon: UtensilsCrossed, permission: 'view_kitchen',      planFeature: 'kitchen_display', businessTypes: RESTAURANT_TYPES },
+      { labelKey: 'qr_tables',            path: '/qr',          icon: QrCode,          permission: 'manage_qr_orders',  planFeature: 'qr_ordering',     businessTypes: RESTAURANT_TYPES },
       { labelKey: 'whatsapp',             path: '/whatsapp',    icon: MessageCircle,   permission: 'manage_roles',      planFeature: 'whatsapp' },
       { labelKey: 'ai_forecasting_title', path: '/forecasting', icon: LineChart,       permission: 'view_reports',      planFeature: 'ai_forecasting' },
     ],
@@ -95,10 +106,10 @@ const navGroups: NavGroup[] = [
     groupKey: 'nav_group_admin',
     items: [
       { labelKey: 'users_roles',     path: '/users',           icon: UserCog,   permission: 'manage_roles' },
-      { labelKey: 'branches',        path: '/branches',        icon: GitBranch, permission: 'manage_roles',    planFeature: 'multi_branch' },
-      { labelKey: 'hr_module',       path: '/hr',              icon: Users2,    permission: 'manage_hr',       planFeature: 'hr_module' },
-      { labelKey: 'currencies',      path: '/currencies',      icon: Coins,     permission: 'manage_roles',    planFeature: 'currencies' },
-      { labelKey: 'device_sessions', path: '/device-sessions', icon: Monitor,                                  planFeature: 'device_sessions' },
+      { labelKey: 'branches',        path: '/branches',        icon: GitBranch, permission: 'manage_roles',  planFeature: 'multi_branch' },
+      { labelKey: 'hr_module',       path: '/hr',              icon: Users2,    permission: 'manage_hr',     planFeature: 'hr_module' },
+      { labelKey: 'currencies',      path: '/currencies',      icon: Coins,     permission: 'manage_roles',  planFeature: 'currencies' },
+      { labelKey: 'device_sessions', path: '/device-sessions', icon: Monitor,                                planFeature: 'device_sessions' },
       { labelKey: 'settings',        path: '/settings',        icon: Settings,  permission: 'manage_settings' },
     ],
   },
@@ -117,13 +128,15 @@ export default function Sidebar() {
 
   const { data: sub } = useQuery({
     queryKey: ['subscription'],
-    queryFn: () => api.get<{ features: string[] }>('/subscription').then((r) => r.data),
+    queryFn: () => api.get<{ features: string[]; business_type?: string }>('/subscription').then((r) => r.data),
     staleTime: 1000 * 60 * 10,
     enabled: !!user && !isMaster,
   })
 
   // Master tenant always gets all features; non-master use plan features (null = still loading → show all)
   const planFeatures: string[] | null = isMaster ? null : (sub?.features ?? null)
+  // business_type drives which modules are visible; null means still loading → show all
+  const businessType: string | null = isMaster ? null : (sub?.business_type ?? null)
 
   const isVisible = (item: NavItem) => {
     if (item.adminOnly && user?.role !== 'admin') return false
@@ -132,6 +145,7 @@ export default function Sidebar() {
       if (!hasPermission(...perms)) return false
     }
     if (item.planFeature && planFeatures !== null && !planFeatures.includes(item.planFeature)) return false
+    if (item.businessTypes && businessType && !item.businessTypes.includes(businessType)) return false
     return true
   }
 

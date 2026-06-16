@@ -62,11 +62,20 @@ Route::prefix('public')->group(function () {
             ->table('settings')
             ->whereIn('key', ['store_name', 'store_phone', 'store_email', 'saas_whatsapp_number'])
             ->pluck('value', 'key');
+
+        // WhatsApp number: payment account → saas_whatsapp_number setting → store_phone
+        $waAccount = \App\Models\PaymentAccount::where('method', 'whatsapp')
+            ->whereNotNull('account_number')
+            ->where('account_number', '!=', '')
+            ->first();
+        $whatsapp = $waAccount?->account_number
+            ?: ($settings->get('saas_whatsapp_number') ?: $settings->get('store_phone', ''));
+
         return response()->json([
             'name'     => $settings->get('store_name', 'POS Enterprise'),
             'phone'    => $settings->get('store_phone', ''),
             'email'    => $settings->get('store_email', ''),
-            'whatsapp' => $settings->get('saas_whatsapp_number') ?: $settings->get('store_phone', ''),
+            'whatsapp' => $whatsapp,
         ]);
     });
 });
@@ -86,12 +95,13 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/subscription', funct
     $trialEndsAt = $tenant->trial_ends_at ? \Carbon\Carbon::parse($tenant->trial_ends_at) : null;
     $daysLeft    = $trialEndsAt ? (int) now()->diffInDays($trialEndsAt, false) : null;
     return response()->json([
-        'status'        => $tenant->subscription_status,
-        'plan'          => $tenant->plan,
-        'trial_ends_at' => $trialEndsAt?->toIso8601String(),
-        'days_left'     => $daysLeft !== null ? max(0, $daysLeft) : null,
-        'is_expired'    => $trialEndsAt ? now()->gt($trialEndsAt) : false,
-        'features'      => \App\Services\PlanFeatureService::features(),
+        'status'         => $tenant->subscription_status,
+        'plan'           => $tenant->plan,
+        'business_type'  => $tenant->business_type ?? 'general',
+        'trial_ends_at'  => $trialEndsAt?->toIso8601String(),
+        'days_left'      => $daysLeft !== null ? max(0, $daysLeft) : null,
+        'is_expired'     => $trialEndsAt ? now()->gt($trialEndsAt) : false,
+        'features'       => \App\Services\PlanFeatureService::features(),
     ]);
 });
 
@@ -493,6 +503,23 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('admin')->group(fun
 
     Route::get('/payment-accounts', [PaymentAccountController::class, 'index']);
     Route::put('/payment-accounts/{id}', [PaymentAccountController::class, 'update']);
+
+    // SaaS-level contact settings (stored in central DB, shown on public payment page)
+    Route::get('/saas-contact', function () {
+        $val = \Illuminate\Support\Facades\DB::connection('mysql')
+            ->table('settings')
+            ->where('key', 'saas_whatsapp_number')
+            ->value('value');
+        return response()->json(['whatsapp' => $val ?? '']);
+    });
+    Route::patch('/saas-contact', function (\Illuminate\Http\Request $request) {
+        $data = $request->validate(['whatsapp' => 'nullable|string|max:30']);
+        \Illuminate\Support\Facades\DB::connection('mysql')
+            ->table('settings')
+            ->where('key', 'saas_whatsapp_number')
+            ->update(['value' => $data['whatsapp'] ?? '']);
+        return response()->json(['success' => true]);
+    });
 });
 
 // WhatsApp Webhook (public — Meta verification + inbound messages)

@@ -7,6 +7,8 @@ import { isTauriApp } from '@/lib/tauri'
 
 const isTauri = isTauriApp()
 const webBase = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
+// In dev, Vite intercepts /pos/... before proxy — call Laravel directly
+const apiBase = import.meta.env.DEV ? 'http://localhost:8000/api' : `${webBase}/api`
 
 function detectOS(): Platform {
   const ua = navigator.userAgent.toLowerCase()
@@ -39,7 +41,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
 
   useEffect(() => {
     if (isTauri) return
-    fetch(`${webBase}/api/desktop-app/check`)
+    fetch(`${apiBase}/desktop-app/check`)
       .then((r) => r.json())
       .then((d) => setCheck(d))
       .catch(() => setCheck(null))
@@ -62,7 +64,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
       return
     }
     const a = document.createElement('a')
-    a.href = `${webBase}/api/desktop-app/download/${platform}`
+    a.href = `${apiBase}/desktop-app/download/${platform}`
     a.download = `POS-Enterprise-Setup.${info.file.split('.').pop()}`
     document.body.appendChild(a)
     a.click()

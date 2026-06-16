@@ -16,6 +16,10 @@ export function getBaseUrl(): string {
     const serverUrl = (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
     return `${serverUrl}/api`
   }
+  // Dev: Vite intercepts /pos/... before proxy can handle it, so call Laravel directly.
+  // CORS already allows http://localhost:5173 (see backend/config/cors.php).
+  if (import.meta.env.DEV) return 'http://localhost:8000/api'
+  // Production: Apache routes /pos/api/... → Laravel (see backend/public/.htaccess)
   return `${webBase}/api`
 }
 
@@ -85,8 +89,13 @@ export const apiDelete = <T>(url: string) =>
 
 // ─── CSRF cookie (needed for Sanctum web guard) ───────────────────────────────
 export const fetchCsrfCookie = () => {
-  const base = isTauri
-    ? (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
-    : webBase
+  let base: string
+  if (isTauri) {
+    base = (localStorage.getItem(SERVER_URL_KEY) ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+  } else if (import.meta.env.DEV) {
+    base = 'http://localhost:8000'
+  } else {
+    base = webBase
+  }
   return axios.get(`${base}/sanctum/csrf-cookie`, { withCredentials: true })
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Copy, Check, Store } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Copy, Check, Store, CreditCard, Wallet, Banknote, Smartphone, Landmark } from 'lucide-react'
 import { api } from '@/services/api'
 
 interface PaymentMethod {
@@ -22,14 +22,15 @@ interface ContactInfo {
   whatsapp: string
 }
 
-/* ── Method icon map: font-awesome class → inline SVG path or emoji ─────── */
-const METHOD_ICONS: Record<string, string> = {
-  instapay:  '⚡',
-  vodafone:  '📱',
-  etisalat:  '📱',
-  orange:    '🍊',
-  fawry:     '🏪',
-  bank:      '🏦',
+const PHONE_METHODS = new Set(['whatsapp', 'instapay'])
+const WALLET_METHODS = new Set(['vodafone', 'etisalat', 'orange', 'fawry'])
+
+function PaymentMethodIcon({ method, className }: { method: string; className?: string }) {
+  if (PHONE_METHODS.has(method))  return <Smartphone className={`${className} text-slate-400`} />
+  if (WALLET_METHODS.has(method)) return <Wallet     className={`${className} text-slate-400`} />
+  if (method === 'bank')          return <Landmark   className={`${className} text-slate-400`} />
+  if (method === 'cash')          return <Banknote   className={`${className} text-slate-400`} />
+  return <CreditCard className={`${className} text-slate-400`} />
 }
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -83,8 +84,9 @@ export default function PaymentMethodsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const waLink = contact?.whatsapp
-    ? `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hello! I\'ve made a payment and would like to confirm my subscription.')}`
+  const waNumber = methods.find((m) => m.method === 'whatsapp')?.account_number || contact?.whatsapp
+  const waLink = waNumber
+    ? `https://wa.me/${waNumber.replace(/\D/g, '')}?text=${encodeURIComponent('Hello! I\'ve made a payment and would like to confirm my subscription.')}`
     : null
 
   return (
@@ -158,11 +160,8 @@ export default function PaymentMethodsPage() {
 
                   {/* Icon + label */}
                   <div className="mb-4 flex items-center gap-3">
-                    <div
-                      className="flex h-11 w-11 items-center justify-center rounded-xl text-xl shadow-sm"
-                      style={{ backgroundColor: m.color + '22', border: `1px solid ${m.color}44` }}
-                    >
-                      {METHOD_ICONS[m.method] ?? '💳'}
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                      <PaymentMethodIcon method={m.method} className="h-11 w-11" />
                     </div>
                     <div>
                       <p className="font-semibold text-white">{m.label_en}</p>

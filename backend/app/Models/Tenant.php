@@ -13,13 +13,13 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     protected $connection = 'mysql';
 
     protected $fillable = [
-        'name', 'code', 'plan', 'is_active',
+        'name', 'code', 'plan', 'business_type', 'is_active',
         'subscription_status', 'trial_ends_at', 'subscription_ends_at',
     ];
 
     public static function getCustomColumns(): array
     {
-        return ['id', 'name', 'code', 'plan', 'is_active', 'subscription_status', 'trial_ends_at', 'subscription_ends_at'];
+        return ['id', 'name', 'code', 'plan', 'business_type', 'is_active', 'subscription_status', 'trial_ends_at', 'subscription_ends_at'];
     }
 
     protected $casts = [

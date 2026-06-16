@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 56">
+  <rect width="180" height="56" rx="8" fill="#25D366"/>
+  <!-- WhatsApp phone-in-bubble mark (simplified) -->
+  <g transform="translate(10,6)">
+    <circle cx="22" cy="22" r="20" fill="white" opacity="0.95"/>
+    <!-- Phone handset path (dark green on white circle) -->
+    <path d="M22 12 C16.5 12 12 16.5 12 22 C12 24.3 12.8 26.4 14.1 28.1 L13 33 L17.9 31.9 C19.5 32.9 21.2 33.5 22.9 33.5 L23 33.5 C28.5 33.5 33 29 33 23.5 C33 18 28.5 12 22 12 Z"
+          fill="#25D366"/>
+    <!-- Inner phone icon -->
+    <path d="M17.5 20.5 C18 23.5 20.5 26 23.5 26.5 L24.5 25 C24.8 24.7 25.2 24.7 25.5 24.9 L27.5 26 C27.8 26.2 27.9 26.6 27.7 26.9 L26.5 28.5 C26.3 28.7 26 28.8 25.7 28.8 C21 28 17 24 16.2 19.3 C16.2 19 16.3 18.7 16.5 18.5 L18.1 17.3 C18.4 17.1 18.8 17.2 19 17.5 L20.1 19.5 C20.3 19.8 20.3 20.2 20 20.5 Z"
+          fill="white"/>
+  </g>
+  <!-- WhatsApp wordmark -->
+  <text x="112" y="34" text-anchor="middle" dominant-baseline="auto"
+        fill="white" font-family="Arial,sans-serif"
+        font-weight="700" font-size="18">WhatsApp</text>
+</svg>

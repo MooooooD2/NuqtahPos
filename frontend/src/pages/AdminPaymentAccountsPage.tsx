@@ -5,7 +5,7 @@ import { apiGet, apiPut } from '@/services/api'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
-import { CreditCard, Save, ToggleLeft, ToggleRight } from 'lucide-react'
+import { CreditCard, Save, ToggleLeft, ToggleRight, Wallet, Banknote, Smartphone, Landmark } from 'lucide-react'
 
 interface PaymentAccount {
   id: number
@@ -18,11 +18,15 @@ interface PaymentAccount {
   sort_order: number
 }
 
-const METHOD_ICONS: Record<string, string> = {
-  whatsapp: '📱',
-  bank: '🏦',
-  wallet: '💳',
-  cash: '💵',
+const PHONE_METHODS = new Set(['whatsapp', 'instapay'])
+const WALLET_METHODS = new Set(['vodafone', 'etisalat', 'orange', 'fawry'])
+
+function PaymentMethodIcon({ method, className }: { method: string; className?: string }) {
+  if (PHONE_METHODS.has(method))  return <Smartphone className={`${className} text-slate-500`} />
+  if (WALLET_METHODS.has(method)) return <Wallet     className={`${className} text-slate-500`} />
+  if (method === 'bank')          return <Landmark   className={`${className} text-slate-500`} />
+  if (method === 'cash')          return <Banknote   className={`${className} text-slate-500`} />
+  return <CreditCard className={`${className} text-slate-500`} />
 }
 
 export default function AdminPaymentAccountsPage() {
@@ -76,14 +80,18 @@ export default function AdminPaymentAccountsPage() {
         <CreditCard className="h-6 w-6 text-primary-500" />
         {isAr ? 'وسائل الدفع' : 'Payment Methods'}
       </h1>
-      <p className="text-sm text-gray-500">{isAr ? 'ضبط أرقام الحسابات التي تظهر للمستأجرين عند الاشتراك.' : 'Configure payment account details shown to tenants during subscription.'}</p>
+      <p className="text-sm text-gray-500">
+        {isAr
+          ? 'ضبط أرقام الحسابات التي تظهر للمستأجرين عند الاشتراك. رقم واتساب للتواصل يُؤخذ من بطاقة WhatsApp أدناه.'
+          : 'Configure payment accounts shown during subscription. The WhatsApp contact button uses the number set in the WhatsApp card below.'}
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {accounts.map((acc) => (
           <div key={acc.id} className={clsx('card p-5', !getField(acc, 'is_active') && 'opacity-60')}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{METHOD_ICONS[acc.method] ?? '💳'}</span>
+                <PaymentMethodIcon method={acc.method} className="h-8 w-8 rounded-lg overflow-hidden" />
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{acc.label}</h3>
                   <p className="text-xs text-gray-400 font-mono">{acc.method}</p>

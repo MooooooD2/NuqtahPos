@@ -57,13 +57,14 @@ class RegisterController extends Controller
             'full_name' => 'required|string|max:100',
             'username'  => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/'],
             'password'  => 'required|string|min:8|confirmed',
-            'plan_id'   => ['nullable', 'string', 'max:50',
+            'plan_id'       => ['nullable', 'string', 'max:50',
                 function ($attr, $value, $fail) {
                     if ($value && ! Plan::where('id', $value)->where('is_active', true)->exists()) {
                         $fail('The selected plan is invalid.');
                     }
                 },
             ],
+            'business_type' => ['nullable', 'string', 'in:retail,restaurant,pharmacy,contracting,general'],
         ], [
             'store_code.alpha_dash' => 'Store code may only contain letters, numbers, hyphens and underscores.',
             'password.confirmed'    => 'The passwords do not match.',
@@ -80,6 +81,7 @@ class RegisterController extends Controller
                 'name'                => $data['store_name'],
                 'code'                => Str::lower($data['store_code']),
                 'plan'                => $planId,
+                'business_type'       => $data['business_type'] ?? 'general',
                 'is_active'           => true,
                 'subscription_status' => 'trial',
                 'trial_ends_at'       => now()->addDays($trialDays),
