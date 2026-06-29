@@ -56,6 +56,7 @@ const AdminCpanelPage        = lazy(() => import('@/pages/AdminCpanelPage'))
 const AdminTenantsPage       = lazy(() => import('@/pages/AdminTenantsPage'))
 const AdminPlansPage         = lazy(() => import('@/pages/AdminPlansPage'))
 const AdminPaymentAccountsPage = lazy(() => import('@/pages/AdminPaymentAccountsPage'))
+const AdminLicensesPage        = lazy(() => import('@/pages/AdminLicensesPage'))
 const PaymentMethodsPage       = lazy(() => import('@/pages/PaymentMethodsPage'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -183,6 +184,7 @@ export default function App() {
             <Route path="admin/tenants" element={<AdminRoute><AdminTenantsPage /></AdminRoute>} />
             <Route path="admin/plans" element={<AdminRoute><AdminPlansPage /></AdminRoute>} />
             <Route path="admin/payment-accounts" element={<AdminRoute><AdminPaymentAccountsPage /></AdminRoute>} />
+            <Route path="admin/licenses" element={<AdminRoute><AdminLicensesPage /></AdminRoute>} />
           </Route>
           <Route path="*" element={<Navigate to={isDesktop ? '/login' : '/welcome'} replace />} />
         </Routes>

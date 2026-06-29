@@ -13,7 +13,7 @@ import {
   DollarSign, RotateCcw, Banknote, Tag, PackageX, Zap, Gift,
   CreditCard, Receipt, TrendingUp, GitBranch, LineChart,
   Monitor, MessageCircle, Coins, Trash2, PieChart,
-  UtensilsCrossed, QrCode, Clock, Pill, LayoutGrid, Building2,
+  UtensilsCrossed, QrCode, Clock, Pill, LayoutGrid, Building2, KeyRound,
 } from 'lucide-react'
 
 interface NavItem {
@@ -207,6 +207,7 @@ export default function Sidebar() {
                   { labelKey: 'admin_tenants', path: '/admin/tenants', icon: Building2 },
                   { labelKey: 'admin_plans', path: '/admin/plans', icon: Tag },
                   { labelKey: 'admin_payment_accounts', path: '/admin/payment-accounts', icon: CreditCard },
+                  { labelKey: 'admin_licenses', path: '/admin/licenses', icon: KeyRound },
                 ].map((item) => {
                   const label = t(item.labelKey)
                   const isActive = item.path === '/admin'
