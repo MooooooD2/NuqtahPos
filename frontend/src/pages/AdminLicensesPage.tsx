@@ -6,7 +6,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import Modal from '@/components/common/Modal'
 import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
-import { KeyRound, Plus, Ban, Copy, Laptop } from 'lucide-react'
+import { KeyRound, Plus, Ban, Copy, Laptop, Eye, EyeOff } from 'lucide-react'
 
 interface License {
   id: number
@@ -43,6 +43,7 @@ export default function AdminLicensesPage() {
   const [tenantId, setTenantId] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
+  const [showKey, setShowKey] = useState(false)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-licenses'],
@@ -77,6 +78,7 @@ export default function AdminLicensesPage() {
     setTenantId('')
     setExpiresAt('')
     setGeneratedKey(null)
+    setShowKey(false)
     setShowCreate(true)
   }
 
@@ -168,9 +170,12 @@ export default function AdminLicensesPage() {
                 : 'This key is shown only once — copy it now and hand it to the customer.'}
             </p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-2 font-mono text-sm tracking-wider">
-                {generatedKey}
+              <code className="flex-1 rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-2 font-mono text-sm tracking-wider select-all">
+                {showKey ? generatedKey : generatedKey.replace(/[^-]/g, '•')}
               </code>
+              <button onClick={() => setShowKey(v => !v)} className="btn btn-secondary p-2" title={showKey ? 'إخفاء' : 'إظهار'}>
+                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
               <button onClick={() => copyKey(generatedKey)} className="btn btn-secondary p-2">
                 <Copy className="h-4 w-4" />
               </button>
