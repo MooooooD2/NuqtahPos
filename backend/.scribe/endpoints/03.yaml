@@ -1,0 +1,680 @@
+name: Customers
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/customers/search
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"success":false,"message":"\u063a\u064a\u0631 \u0645\u0635\u0631\u062d."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+          set-cookie: 'nuqtahpos_session=eyJpdiI6ImZneitjWStrR3ZieTVPUER2SWgreEE9PSIsInZhbHVlIjoiRzlpaVE2VXFRTXFqb1pJUUh1VkxBaEhIZDBsbWRSd2c5MlZLWWx3N2FEbk44VHpYRW5kV3hZYWhQL0lPQVR2eG1DUGNiR1M3QXdLT2xneWpsTWVpamxZRC8zQUk5ZUh3cWJsT3NScENPYVlLZi83VDRDSFJhejFNTEw2cndTbC8iLCJtYWMiOiI4ODA0ZDQ0OGM5MDdmYzdiNzI4Y2ViMGE4YzY4ZWE3NzRmMzE2ZTdkMDZmMzY0MGFmOGNhODM2Mzk0ZmI5NGU3IiwidGFnIjoiIn0%3D; expires=Tue, 30 Jun 2026 05:35:31 GMT; Max-Age=28800; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/customers/quick
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Quick-create a customer from the POS (name + phone only).'
+      description: 'Accessible to view_pos users without full CRM permissions.'
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 150 characters.'
+        required: true
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      phone:
+        custom: []
+        name: phone
+        description: 'Must not be greater than 20 characters.'
+        required: false
+        example: amniihfqcoynlazgh
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      name: vmqeopfuudtdsufvyvddq
+      phone: amniihfqcoynlazgh
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/customers
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"success":false,"message":"\u063a\u064a\u0631 \u0645\u0635\u0631\u062d."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+          set-cookie: 'nuqtahpos_session=eyJpdiI6IldUb2RFby9aMWlnY2RBMW5Zei9OQlE9PSIsInZhbHVlIjoiY0dIeGNkbENjUzRmM2NsY2haUVl2dnFJN2FKc08vRGhCaW1sV3JvT0JCdW5jZEY4R2hwQlB0bnp6T3plczkyWEw1bGg3MjFON1FqSnE0SGxvNW5KUW1xd2JQK2w1dWlNNjkyN0RISUlXbVQxck8xTjZYYkpVbExnWU1HQWR0UGciLCJtYWMiOiIzNDUxOTRmMTJlYjYzNDFkODQ5Njc5NWM4NjExMWY2ZjBjOTZkMzc4ZTZlYjA5ZGEzOGJiZjkyNTE2ZmI4OGUxIiwidGFnIjoiIn0%3D; expires=Tue, 30 Jun 2026 05:35:31 GMT; Max-Age=28800; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/customers
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 150 characters.'
+        required: true
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      phone:
+        custom: []
+        name: phone
+        description: 'Must not be greater than 20 characters.'
+        required: false
+        example: amniihfqcoynlazgh
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      email:
+        custom: []
+        name: email
+        description: 'Must be a valid email address. Must not be greater than 150 characters.'
+        required: false
+        example: roob.mona@example.org
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      type:
+        custom: []
+        name: type
+        description: ''
+        required: false
+        example: business
+        type: string
+        enumValues:
+          - individual
+          - business
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      national_id:
+        custom: []
+        name: national_id
+        description: 'Must not be greater than 14 characters.'
+        required: false
+        example: xbajwbpilpmu
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      tax_number:
+        custom: []
+        name: tax_number
+        description: 'Must not be greater than 20 characters.'
+        required: false
+        example: finllwloauydlsmsj
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      commercial_register:
+        custom: []
+        name: commercial_register
+        description: 'Must not be greater than 30 characters.'
+        required: false
+        example: uryvojcybzvrbyickznky
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      governate:
+        custom: []
+        name: governate
+        description: 'Must not be greater than 50 characters.'
+        required: false
+        example: gloigmkwxphlvazjrcnfb
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      city:
+        custom: []
+        name: city
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: aqywuxhgjjmzuxjubqouz
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      address:
+        custom: []
+        name: address
+        description: 'Must not be greater than 500 characters.'
+        required: false
+        example: swiwxtrkimfcatbxspzmr
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      credit_limit:
+        custom: []
+        name: credit_limit
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 1
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      notes:
+        custom: []
+        name: notes
+        description: 'Must not be greater than 500 characters.'
+        required: false
+        example: zsroyjpxmqesedyghenqc
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      customer_group_id:
+        custom: []
+        name: customer_group_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      price_level:
+        custom: []
+        name: price_level
+        description: ''
+        required: false
+        example: retail
+        type: string
+        enumValues:
+          - retail
+          - wholesale
+          - vip
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      is_active:
+        custom: []
+        name: is_active
+        description: ''
+        required: false
+        example: true
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: vmqeopfuudtdsufvyvddq
+      phone: amniihfqcoynlazgh
+      email: roob.mona@example.org
+      type: business
+      national_id: xbajwbpilpmu
+      tax_number: finllwloauydlsmsj
+      commercial_register: uryvojcybzvrbyickznky
+      governate: gloigmkwxphlvazjrcnfb
+      city: aqywuxhgjjmzuxjubqouz
+      address: swiwxtrkimfcatbxspzmr
+      credit_limit: 1
+      notes: zsroyjpxmqesedyghenqc
+      customer_group_id: 17
+      price_level: retail
+      is_active: true
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/customers/{id}'
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the customer.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"success":false,"message":"\u063a\u064a\u0631 \u0645\u0635\u0631\u062d."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+          set-cookie: 'nuqtahpos_session=eyJpdiI6Ik92b3FsQkd6V3VvVXRnRnBiM1RrS1E9PSIsInZhbHVlIjoiYWtOdVRMc2FQQXhoWEFQblplQ2xLMjlrcHp1K0FZb0QrMlRyUUNOZVQyL1ZGb2t3aHNyYU5FOCt3eGtVYkxYZTBCZWdiRW5qN0c4alRHVFl4N1NjckFKdmR5NEZUMHRIdVZGYnFwaCtYVWhNdGNjWmpndm8vZGxDd3JRT0ptcHgiLCJtYWMiOiI1ZDczZTkxZGRlNjk3ZjRkNWIxNzYxNzA0NGFhNTE1MmE0Njc1ZmM4OGU4YTM2MzdjMGM4ZDhjYjA4Y2VjN2Y4IiwidGFnIjoiIn0%3D; expires=Tue, 30 Jun 2026 05:35:31 GMT; Max-Age=28800; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PUT
+    uri: 'api/customers/{id}'
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the customer.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 150 characters.'
+        required: false
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      phone:
+        custom: []
+        name: phone
+        description: 'Must not be greater than 20 characters.'
+        required: false
+        example: amniihfqcoynlazgh
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      email:
+        custom: []
+        name: email
+        description: 'Must be a valid email address. Must not be greater than 150 characters.'
+        required: false
+        example: roob.mona@example.org
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      type:
+        custom: []
+        name: type
+        description: ''
+        required: false
+        example: business
+        type: string
+        enumValues:
+          - individual
+          - business
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      national_id:
+        custom: []
+        name: national_id
+        description: 'Must not be greater than 14 characters.'
+        required: false
+        example: xbajwbpilpmu
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      tax_number:
+        custom: []
+        name: tax_number
+        description: 'Must not be greater than 20 characters.'
+        required: false
+        example: finllwloauydlsmsj
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      commercial_register:
+        custom: []
+        name: commercial_register
+        description: 'Must not be greater than 30 characters.'
+        required: false
+        example: uryvojcybzvrbyickznky
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      governate:
+        custom: []
+        name: governate
+        description: 'Must not be greater than 50 characters.'
+        required: false
+        example: gloigmkwxphlvazjrcnfb
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      city:
+        custom: []
+        name: city
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: aqywuxhgjjmzuxjubqouz
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      address:
+        custom: []
+        name: address
+        description: 'Must not be greater than 500 characters.'
+        required: false
+        example: swiwxtrkimfcatbxspzmr
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      credit_limit:
+        custom: []
+        name: credit_limit
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 1
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      notes:
+        custom: []
+        name: notes
+        description: 'Must not be greater than 500 characters.'
+        required: false
+        example: zsroyjpxmqesedyghenqc
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      customer_group_id:
+        custom: []
+        name: customer_group_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      price_level:
+        custom: []
+        name: price_level
+        description: ''
+        required: false
+        example: retail
+        type: string
+        enumValues:
+          - retail
+          - wholesale
+          - vip
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      is_active:
+        custom: []
+        name: is_active
+        description: ''
+        required: false
+        example: true
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: vmqeopfuudtdsufvyvddq
+      phone: amniihfqcoynlazgh
+      email: roob.mona@example.org
+      type: business
+      national_id: xbajwbpilpmu
+      tax_number: finllwloauydlsmsj
+      commercial_register: uryvojcybzvrbyickznky
+      governate: gloigmkwxphlvazjrcnfb
+      city: aqywuxhgjjmzuxjubqouz
+      address: swiwxtrkimfcatbxspzmr
+      credit_limit: 1
+      notes: zsroyjpxmqesedyghenqc
+      customer_group_id: 17
+      price_level: retail
+      is_active: true
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - DELETE
+    uri: 'api/customers/{id}'
+    metadata:
+      custom: []
+      groupName: Customers
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the customer.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

@@ -29,6 +29,12 @@ async fn get_system_info() -> serde_json::Value {
     })
 }
 
+/// Stable per-machine identifier used to bind a license key to this device.
+#[tauri::command]
+async fn get_device_id() -> Result<String, String> {
+    machine_uid::get().map_err(|e| e.to_string())
+}
+
 // ─── App setup ────────────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -63,6 +69,7 @@ pub fn run() {
             print_receipt,
             open_cash_drawer,
             get_system_info,
+            get_device_id,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tauri application");

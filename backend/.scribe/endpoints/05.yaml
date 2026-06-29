@@ -1,0 +1,748 @@
+name: Products
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/products
+    metadata:
+      custom: []
+      groupName: Products
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      search:
+        custom: []
+        name: search
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      category:
+        custom: []
+        name: category
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: amniihfqcoynlazghdtqt
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      low_stock:
+        custom: []
+        name: low_stock
+        description: ''
+        required: false
+        example: 'false'
+        type: string
+        enumValues:
+          - '0'
+          - '1'
+          - 'true'
+          - 'false'
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      per_page:
+        custom: []
+        name: per_page
+        description: 'Must be at least 10. Must not be greater than 200.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      all:
+        custom: []
+        name: all
+        description: ''
+        required: false
+        example: '1'
+        type: string
+        enumValues:
+          - '0'
+          - '1'
+          - 'true'
+          - 'false'
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      search: vmqeopfuudtdsufvyvddq
+      category: amniihfqcoynlazghdtqt
+      low_stock: 'false'
+      per_page: 16
+      all: '1'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"success":false,"message":"\u063a\u064a\u0631 \u0645\u0635\u0631\u062d."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+          set-cookie: 'nuqtahpos_session=eyJpdiI6IkZLeWV2ajExZU9tejkvWDNwcVhqbkE9PSIsInZhbHVlIjoiMWkyOTZCYXhtOHcxa0UyVWwxd0NwUWE3OGhUL0wyYmZPZnBEcmk3cU92UjE3NGxxNmRndXVNNGxvYkdVNEtBbHFVTzMyUEtQSm1YN25tSUErZjFSZ095Y2VINENwYW9NOVlocEl6N1JJNVFHYUFOYlBpc0xuYjhzUHBHV24rTVciLCJtYWMiOiJhY2FkODNiOTVjNzYzZjk5OTgwOWI5MTBiNmUwMzllMTNjMDA4ZGI0MDI4ZGE0M2ZlZjBiM2NhNTAwMjA1NGFjIiwidGFnIjoiIn0%3D; expires=Tue, 30 Jun 2026 05:35:32 GMT; Max-Age=28800; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/products/by-barcode
+    metadata:
+      custom: []
+      groupName: Products
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      barcode:
+        custom: []
+        name: barcode
+        description: 'Must not be greater than 100 characters.'
+        required: true
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      barcode: vmqeopfuudtdsufvyvddq
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"success":false,"message":"\u063a\u064a\u0631 \u0645\u0635\u0631\u062d."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+          set-cookie: 'nuqtahpos_session=eyJpdiI6IndZdjhoaTdjWnh0aWQyd0hKcnozOWc9PSIsInZhbHVlIjoiQWozZ3l2c3VSUlV6c2pMdWJEWVpHUXNtRndiL1RRZEYvcjhKeGwrWDMxcUhFU0Fzc2V2cHZmVE0ydm9Xb0RYRHBRODNINmdqZE13VndGQVZpZmNJL3E2NU90a2RBeXJkcmRGS2huYm9GVlNmSW5KQ3JQWWw4eGRVMVJwd0F1SEYiLCJtYWMiOiIwM2M3NTllNjNjYWI4NmVjMjU2YTRjZDZhN2QzM2VjOGZiNjhhM2E5MWIwNmFmYzRhMTIzMmM4MGY2ZDI4YzRlIiwidGFnIjoiIn0%3D; expires=Tue, 30 Jun 2026 05:35:32 GMT; Max-Age=28800; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/products
+    metadata:
+      custom: []
+      groupName: Products
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      price:
+        custom: []
+        name: price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: true
+        example: 1
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      wholesale_price:
+        custom: []
+        name: wholesale_price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 13
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      vip_price:
+        custom: []
+        name: vip_price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 13
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      cost_price:
+        custom: []
+        name: cost_price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 8
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      min_stock:
+        custom: []
+        name: min_stock
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 9
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      reorder_point:
+        custom: []
+        name: reorder_point
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 8
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      reorder_qty:
+        custom: []
+        name: reorder_qty
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 6
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      barcode:
+        custom: []
+        name: barcode
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: qcoynlazghdtqtqxbajwb
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      category:
+        custom: []
+        name: category
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: pilpmufinllwloauydlsm
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      supplier:
+        custom: []
+        name: supplier
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: sjuryvojcybzvrbyickzn
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      unit_id:
+        custom: []
+        name: unit_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      tax_category_id:
+        custom: []
+        name: tax_category_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      track_batches:
+        custom: []
+        name: track_batches
+        description: ''
+        required: false
+        example: false
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      initial_quantity:
+        custom: []
+        name: initial_quantity
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 13
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      warehouse_id:
+        custom: []
+        name: warehouse_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      name: vmqeopfuudtdsufvyvddq
+      price: 1
+      wholesale_price: 13
+      vip_price: 13
+      cost_price: 8
+      min_stock: 9
+      reorder_point: 8
+      reorder_qty: 6
+      barcode: qcoynlazghdtqtqxbajwb
+      category: pilpmufinllwloauydlsm
+      supplier: sjuryvojcybzvrbyickzn
+      unit_id: 17
+      tax_category_id: 17
+      track_batches: false
+      initial_quantity: 13
+      warehouse_id: 17
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PUT
+    uri: 'api/products/{id}'
+    metadata:
+      custom: []
+      groupName: Products
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the product.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      price:
+        custom: []
+        name: price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: true
+        example: 1
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      wholesale_price:
+        custom: []
+        name: wholesale_price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 13
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      vip_price:
+        custom: []
+        name: vip_price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 13
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      cost_price:
+        custom: []
+        name: cost_price
+        description: 'Must be at least 0. Must not be greater than 9999999.'
+        required: false
+        example: 8
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      min_stock:
+        custom: []
+        name: min_stock
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 9
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      quantity:
+        custom: []
+        name: quantity
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 8
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      reorder_point:
+        custom: []
+        name: reorder_point
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 6
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      reorder_qty:
+        custom: []
+        name: reorder_qty
+        description: 'Must be at least 0. Must not be greater than 999999.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      barcode:
+        custom: []
+        name: barcode
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: coynlazghdtqtqxbajwbp
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      category:
+        custom: []
+        name: category
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: ilpmufinllwloauydlsms
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      supplier:
+        custom: []
+        name: supplier
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: juryvojcybzvrbyickznk
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      unit_id:
+        custom: []
+        name: unit_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      tax_category_id:
+        custom: []
+        name: tax_category_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: 17
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      track_batches:
+        custom: []
+        name: track_batches
+        description: ''
+        required: false
+        example: true
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      name: vmqeopfuudtdsufvyvddq
+      price: 1
+      wholesale_price: 13
+      vip_price: 13
+      cost_price: 8
+      min_stock: 9
+      quantity: 8
+      reorder_point: 6
+      reorder_qty: 16
+      barcode: coynlazghdtqtqxbajwbp
+      category: ilpmufinllwloauydlsms
+      supplier: juryvojcybzvrbyickznk
+      unit_id: 17
+      tax_category_id: 17
+      track_batches: true
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - DELETE
+    uri: 'api/products/{id}'
+    metadata:
+      custom: []
+      groupName: Products
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the product.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/products/{product_id}/add-stock'
+    metadata:
+      custom: []
+      groupName: Products
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      product_id:
+        custom: []
+        name: product_id
+        description: 'The ID of the product.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      product_id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      quantity:
+        custom: []
+        name: quantity
+        description: 'Must be at least 1. Must not be greater than 999999.'
+        required: true
+        example: 21
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      reason:
+        custom: []
+        name: reason
+        description: 'Must not be greater than 500 characters.'
+        required: false
+        example: mqeopfuudtdsufvyvddqa
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      reference_type:
+        custom: []
+        name: reference_type
+        description: ''
+        required: false
+        example: purchase
+        type: string
+        enumValues:
+          - purchase
+          - adjustment
+          - return
+          - initial
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      warehouse_id:
+        custom: []
+        name: warehouse_id
+        description: 'Must match an existing stored value.'
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      quantity: 21
+      reason: mqeopfuudtdsufvyvddqa
+      reference_type: purchase
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

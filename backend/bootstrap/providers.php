@@ -2,6 +2,7 @@
 
 use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
+use App\Providers\PluginServiceProvider;
 use App\Providers\PrintingServiceProvider;
 use App\Providers\RepositoryServiceProvider;
 
@@ -10,4 +11,5 @@ return [
     AuthServiceProvider::class,
     RepositoryServiceProvider::class,
     PrintingServiceProvider::class,
+    PluginServiceProvider::class,
 ];

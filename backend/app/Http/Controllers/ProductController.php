@@ -16,6 +16,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
+/**
+ * @group Products
+ */
 class ProductController extends Controller
 {
     use ApiResponse;

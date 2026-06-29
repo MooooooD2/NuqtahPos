@@ -21,6 +21,8 @@ use App\Http\Controllers\HeldInvoiceController;
 use App\Http\Controllers\HrController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KitchenDisplayController;
+use App\Http\Controllers\LicenseController;
+use App\Http\Controllers\PluginController;
 use App\Http\Controllers\OfflineSyncController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\ProductController;
@@ -84,6 +86,10 @@ Route::prefix('public')->group(function () {
 Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login'])->middleware('throttle:30,1');
 Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'apiRegister'])->middleware('throttle:20,60');
 Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+// ── Desktop app licensing (no auth — device proves itself via license key) ───
+Route::post('/license/activate', [LicenseController::class, 'activate'])->middleware('throttle:10,1');
+Route::post('/license/validate', [LicenseController::class, 'validateLicense'])->middleware('throttle:30,1');
 
 // ── Subscription status (auth but bypasses CheckSubscriptionActive so expired
 //    tenants can still fetch their status and see the banner) ───────────────
@@ -503,6 +509,13 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('admin')->group(fun
 
     Route::get('/payment-accounts', [PaymentAccountController::class, 'index']);
     Route::put('/payment-accounts/{id}', [PaymentAccountController::class, 'update']);
+
+    Route::get('/licenses', [LicenseController::class, 'adminIndex']);
+    Route::post('/licenses', [LicenseController::class, 'store']);
+    Route::patch('/licenses/{id}/revoke', [LicenseController::class, 'revoke']);
+
+    Route::get('/plugins', [PluginController::class, 'index']);
+    Route::patch('/plugins/{slug}/toggle', [PluginController::class, 'toggle']);
 
     // SaaS-level contact settings (stored in central DB, shown on public payment page)
     Route::get('/saas-contact', function () {

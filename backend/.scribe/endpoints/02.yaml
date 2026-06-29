@@ -1,0 +1,268 @@
+name: Licensing
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/license/activate
+    metadata:
+      custom: []
+      groupName: Licensing
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: |-
+        Activate a license key for a device. First activation binds the
+        device; subsequent calls from the same device re-confirm it.
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      license_key:
+        custom: []
+        name: license_key
+        description: ''
+        required: true
+        example: consequatur
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      device_id:
+        custom: []
+        name: device_id
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: mqeopfuudtdsufvyvddqa
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      device_name:
+        custom: []
+        name: device_name
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: mniihfqcoynlazghdtqtq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      license_key: consequatur
+      device_id: mqeopfuudtdsufvyvddqa
+      device_name: mniihfqcoynlazghdtqtq
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/license/validate
+    metadata:
+      custom: []
+      groupName: Licensing
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: |-
+        Periodic online re-validation (e.g. every 24h) from an already
+        activated device.
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      license_key:
+        custom: []
+        name: license_key
+        description: ''
+        required: true
+        example: consequatur
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      device_id:
+        custom: []
+        name: device_id
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: mqeopfuudtdsufvyvddqa
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      license_key: consequatur
+      device_id: mqeopfuudtdsufvyvddqa
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/admin/licenses
+    metadata:
+      custom: []
+      groupName: Licensing
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"success":false,"message":"\u063a\u064a\u0631 \u0645\u0635\u0631\u062d."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+          set-cookie: 'nuqtahpos_session=eyJpdiI6IlJoRXZKellDQzNBc3BFYjM4V3dxdHc9PSIsInZhbHVlIjoiSnZIMVl4TGdyR25USS8yS0k2MXg5bnlySSs4alpyTEFBY0Q2d3BUdUd4UkViZkQ4WEp5R091L1ZpWjFhRko1RnR6K1N0NzF3VHV3OHAvNVZtUXRGeTZXRG0wd1loUlBQU2Z3RjNGN1JHbFpxZkw1aHUwZ3lGdmVRbjF0WEZ5UTkiLCJtYWMiOiI5ZjcwYjZkNjBlYzNmNDUwMTFjZmQ0NjM4MjM5YzA2ZjQ4Y2Q5NGYxZGJlZDBjM2EwM2Q0NGNhYzU3ZDA3NDE2IiwidGFnIjoiIn0%3D; expires=Tue, 30 Jun 2026 05:35:33 GMT; Max-Age=28800; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/admin/licenses
+    metadata:
+      custom: []
+      groupName: Licensing
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      tenant_id:
+        custom: []
+        name: tenant_id
+        description: 'Must not be greater than 50 characters.'
+        required: false
+        example: vmqeopfuudtdsufvyvddq
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      expires_at:
+        custom: []
+        name: expires_at
+        description: 'Must be a valid date.'
+        required: false
+        example: '2026-06-29T21:35:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      tenant_id: vmqeopfuudtdsufvyvddq
+      expires_at: '2026-06-29T21:35:33'
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/licenses/{id}/revoke'
+    metadata:
+      custom: []
+      groupName: Licensing
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the license.'
+        required: true
+        example: consequatur
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: consequatur
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

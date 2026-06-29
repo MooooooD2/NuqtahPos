@@ -1,0 +1,8 @@
+{
+    "slug": "example-audit-logger",
+    "name": "Example Audit Logger",
+    "version": "1.0.0",
+    "description": "Demo plugin: writes an extra audit-channel log line whenever an invoice is created.",
+    "namespace": "Plugins\\ExampleAuditLogger",
+    "provider": "Plugins\\ExampleAuditLogger\\AuditLoggerServiceProvider"
+}

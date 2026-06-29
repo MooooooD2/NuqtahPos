@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Contracts\Repositories\SettingRepositoryInterface;
+use App\Events\InvoiceCreated;
 use App\Jobs\SubmitInvoiceToETA;
 use App\Models\Branch;
 use App\Models\Customer;
@@ -332,6 +333,8 @@ class InvoiceService
 
             return $invoice->load(['items.product.unit', 'customer']);
         });
+
+        event(new InvoiceCreated($invoice));
 
         if (config('eta.enabled')) {
             SubmitInvoiceToETA::dispatch($invoice->id);

@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
+/**
+ * @group Invoices
+ */
 class InvoiceController extends Controller
 {
     use ApiResponse;

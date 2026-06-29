@@ -105,6 +105,8 @@ return [
         ),
     ],
 
+    'license_signing_key' => env('LICENSE_SIGNING_KEY'),
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

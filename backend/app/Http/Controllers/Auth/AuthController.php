@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Stancl\Tenancy\Facades\Tenancy;
 use Throwable;
 
+/**
+ * @group Authentication
+ */
 class AuthController extends Controller
 {
     public function showLogin()
@@ -26,6 +29,11 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
+    /**
+     * Log in
+     *
+     * Authenticate with tenant code, username and password; returns a Sanctum bearer token.
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([

@@ -7,6 +7,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
 import { isTauriApp } from '@/lib/tauri'
+import LicenseGate from '@/components/license/LicenseGate'
 import i18n from './i18n'
 
 const isDesktop = isTauriApp()
@@ -96,7 +97,7 @@ export default function App() {
     i18n.changeLanguage(language)
   }, [theme, language])
 
-  return (
+  const content = (
     <>
       <Toaster
         position={language === 'ar' ? 'top-left' : 'top-right'}
@@ -189,4 +190,6 @@ export default function App() {
       </ErrorBoundary>
     </>
   )
+
+  return isDesktop ? <LicenseGate>{content}</LicenseGate> : content
 }
