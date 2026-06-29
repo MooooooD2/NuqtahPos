@@ -12,6 +12,7 @@ interface License {
   id: number
   tenant_id: string | null
   key_prefix: string
+  full_key: string | null
   device_id: string | null
   device_name: string | null
   status: 'pending' | 'active' | 'revoked' | 'expired'
@@ -44,6 +45,14 @@ export default function AdminLicensesPage() {
   const [expiresAt, setExpiresAt] = useState('')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
   const [showKey, setShowKey] = useState(false)
+  const [revealedRows, setRevealedRows] = useState<Set<number>>(new Set())
+
+  const toggleRow = (id: number) =>
+    setRevealedRows((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-licenses'],
@@ -122,7 +131,27 @@ export default function AdminLicensesPage() {
           <tbody>
             {licenses.map((l) => (
               <tr key={l.id} className="border-b border-gray-50 dark:border-gray-700/50">
-                <td className="px-4 py-3 font-mono text-xs">{l.key_prefix}…</td>
+                <td className="px-4 py-3 font-mono text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="tracking-wider">
+                      {l.full_key
+                        ? (revealedRows.has(l.id) ? l.full_key : l.key_prefix + '-••••-••••-••••')
+                        : l.key_prefix + '…'}
+                    </span>
+                    {l.full_key && (
+                      <>
+                        <button onClick={() => toggleRow(l.id)} className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={revealedRows.has(l.id) ? 'إخفاء' : 'إظهار'}>
+                          {revealedRows.has(l.id) ? <EyeOff className="h-3.5 w-3.5 text-gray-400" /> : <Eye className="h-3.5 w-3.5 text-gray-400" />}
+                        </button>
+                        {revealedRows.has(l.id) && (
+                          <button onClick={() => copyKey(l.full_key!)} className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Copy className="h-3.5 w-3.5 text-gray-400" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-xs">{l.tenant_id ?? <span className="text-gray-400">—</span>}</td>
                 <td className="px-4 py-3 text-xs">
                   {l.device_name
@@ -166,8 +195,8 @@ export default function AdminLicensesPage() {
           <div className="space-y-4">
             <p className="text-sm text-gray-500">
               {isAr
-                ? 'هذا المفتاح يظهر مرة واحدة فقط — احفظه أو انسخه الآن وسلّمه للعميل.'
-                : 'This key is shown only once — copy it now and hand it to the customer.'}
+                ? 'انسخ المفتاح وسلّمه للعميل. يمكنك الاطلاع عليه مجددًا من جدول التراخيص.'
+                : 'Copy the key and hand it to the customer. You can view it again from the licenses table.'}
             </p>
             <div className="flex items-center gap-2">
               <code className="flex-1 rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-2 font-mono text-sm tracking-wider select-all">

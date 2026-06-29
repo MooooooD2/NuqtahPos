@@ -12,11 +12,11 @@ class License extends Model
     protected $connection = 'mysql';
 
     protected $fillable = [
-        'tenant_id', 'key_prefix', 'license_key', 'device_id', 'device_name',
+        'tenant_id', 'key_prefix', 'license_key', 'key_encrypted', 'device_id', 'device_name',
         'status', 'activated_at', 'expires_at', 'last_validated_at',
     ];
 
-    protected $hidden = ['license_key'];
+    protected $hidden = ['license_key', 'key_encrypted'];
 
     protected $casts = [
         'activated_at' => 'datetime',

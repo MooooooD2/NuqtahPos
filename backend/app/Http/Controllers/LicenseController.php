@@ -6,6 +6,7 @@ use App\Models\License;
 use App\Services\LicenseTokenService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -110,7 +111,9 @@ class LicenseController extends Controller
     {
         $licenses = License::orderByDesc('created_at')->get();
 
-        return $this->success(['licenses' => $licenses]);
+        return $this->success([
+            'licenses' => $licenses->map(fn($l) => $this->presentLicense($l, true)),
+        ]);
     }
 
     public function store(Request $request)
@@ -123,16 +126,17 @@ class LicenseController extends Controller
         $plainKey = License::generateKey();
 
         $license = License::create([
-            'tenant_id' => $data['tenant_id'] ?? null,
-            'key_prefix' => License::keyPrefix($plainKey),
-            'license_key' => License::hashKey($plainKey),
-            'expires_at' => $data['expires_at'] ?? null,
-            'status' => 'pending',
+            'tenant_id'     => $data['tenant_id'] ?? null,
+            'key_prefix'    => License::keyPrefix($plainKey),
+            'license_key'   => License::hashKey($plainKey),
+            'key_encrypted' => Crypt::encryptString($plainKey),
+            'expires_at'    => $data['expires_at'] ?? null,
+            'status'        => 'pending',
         ]);
 
         return $this->success([
-            'license' => $this->presentLicense($license),
-            'plain_key' => $plainKey, // shown once; not retrievable afterwards
+            'license'   => $this->presentLicense($license, true),
+            'plain_key' => $plainKey,
         ], 'License created.', 201);
     }
 
@@ -157,18 +161,28 @@ class LicenseController extends Controller
         return null;
     }
 
-    private function presentLicense(License $license): array
+    private function presentLicense(License $license, bool $includeKey = false): array
     {
-        return [
-            'id' => $license->id,
-            'tenant_id' => $license->tenant_id,
-            'key_prefix' => $license->key_prefix,
-            'device_id' => $license->device_id,
-            'device_name' => $license->device_name,
-            'status' => $license->status,
-            'activated_at' => $license->activated_at?->toIso8601String(),
-            'expires_at' => $license->expires_at?->toIso8601String(),
-            'last_validated_at' => $license->last_validated_at?->toIso8601String(),
+        $data = [
+            'id'                 => $license->id,
+            'tenant_id'          => $license->tenant_id,
+            'key_prefix'         => $license->key_prefix,
+            'device_id'          => $license->device_id,
+            'device_name'        => $license->device_name,
+            'status'             => $license->status,
+            'activated_at'       => $license->activated_at?->toIso8601String(),
+            'expires_at'         => $license->expires_at?->toIso8601String(),
+            'last_validated_at'  => $license->last_validated_at?->toIso8601String(),
         ];
+
+        if ($includeKey && $license->key_encrypted) {
+            try {
+                $data['full_key'] = Crypt::decryptString($license->key_encrypted);
+            } catch (\Exception) {
+                $data['full_key'] = null;
+            }
+        }
+
+        return $data;
     }
 }
