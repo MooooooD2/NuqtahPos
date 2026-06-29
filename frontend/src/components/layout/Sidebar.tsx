@@ -33,13 +33,13 @@ interface NavGroup {
 }
 
 // Business types that use POS / retail flows
-const POS_TYPES = ['retail', 'restaurant', 'pharmacy', 'general']
+const POS_TYPES = ['retail', 'restaurant', 'pharmacy', 'medical_supplies', 'general']
 // Business types that see restaurant-specific modules
 const RESTAURANT_TYPES = ['restaurant', 'general']
 // Pharmacy-specific modules
-const PHARMACY_TYPES = ['pharmacy', 'general']
+const PHARMACY_TYPES = ['pharmacy', 'medical_supplies', 'general']
 // Sales-marketing tools (not meaningful for contracting)
-const SALES_TYPES = ['retail', 'restaurant', 'pharmacy', 'general']
+const SALES_TYPES = ['retail', 'restaurant', 'pharmacy', 'medical_supplies', 'general']
 
 const navGroups: NavGroup[] = [
   {

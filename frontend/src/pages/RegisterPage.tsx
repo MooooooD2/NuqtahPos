@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { api, fetchCsrfCookie } from '@/services/api'
 import {
   Store, Eye, EyeOff, Loader2, Building2, User, KeyRound, BadgeCheck,
-  Check, Sparkles, ShoppingCart, UtensilsCrossed, Pill, HardHat, LayoutGrid, ChevronRight,
+  Check, Sparkles, ShoppingCart, UtensilsCrossed, Pill, HardHat, LayoutGrid, ChevronRight, Syringe,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -23,7 +23,7 @@ const SAVED_CODE_KEY = 'pos-company-code'
 
 // ─── Business types ───────────────────────────────────────────────────────────
 
-type BusinessType = 'retail' | 'restaurant' | 'pharmacy' | 'contracting' | 'general'
+type BusinessType = 'retail' | 'restaurant' | 'pharmacy' | 'medical_supplies' | 'contracting' | 'general'
 
 interface BusinessTypeOption {
   id: BusinessType
@@ -74,6 +74,18 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     bg: 'bg-emerald-500/15',
     border: 'border-emerald-500/40',
     examples: 'صيدلية · مستودع أدوية',
+  },
+  {
+    id: 'medical_supplies',
+    labelEn: 'Medical Supplies',
+    labelAr: 'مستلزمات طبية',
+    descEn: 'Batch tracking, expiry alerts, serials',
+    descAr: 'تتبع الدُّفعات، تنبيهات الانتهاء، الأرقام التسلسلية',
+    icon: Syringe,
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/15',
+    border: 'border-cyan-500/40',
+    examples: 'مستلزمات طبية · أجهزة طبية · مستودع أدوات',
   },
   {
     id: 'contracting',

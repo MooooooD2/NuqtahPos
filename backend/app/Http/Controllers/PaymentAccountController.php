@@ -19,8 +19,19 @@ class PaymentAccountController extends Controller
 
     public function index()
     {
+        $accounts = PaymentAccount::orderBy('sort_order')->get();
+
+        $accounts->each(function (PaymentAccount $acc) {
+            if ($acc->method === 'whatsapp' && empty($acc->account_number)) {
+                $acc->account_number = \Illuminate\Support\Facades\DB::connection('mysql')
+                    ->table('settings')
+                    ->where('key', 'saas_whatsapp_number')
+                    ->value('value') ?: '';
+            }
+        });
+
         return $this->success([
-            'accounts' => PaymentAccount::orderBy('sort_order')->get(),
+            'accounts' => $accounts,
         ]);
     }
 

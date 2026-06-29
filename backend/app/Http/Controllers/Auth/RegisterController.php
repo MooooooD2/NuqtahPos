@@ -64,7 +64,7 @@ class RegisterController extends Controller
                     }
                 },
             ],
-            'business_type' => ['nullable', 'string', 'in:retail,restaurant,pharmacy,contracting,general'],
+            'business_type' => ['nullable', 'string', 'in:retail,restaurant,pharmacy,medical_supplies,contracting,general'],
         ], [
             'store_code.alpha_dash' => 'Store code may only contain letters, numbers, hyphens and underscores.',
             'password.confirmed'    => 'The passwords do not match.',
