@@ -25,6 +25,7 @@ class StoreInvoiceRequest extends FormRequest
             'items' => 'required|array|min:1|max:200',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1|max:9999',
+            'items.*.discount_amount' => 'nullable|numeric|min:0',
             'discount' => [
                 'nullable', 'numeric', 'min:0',
                 function ($attribute, $value, $fail) {
@@ -34,6 +35,7 @@ class StoreInvoiceRequest extends FormRequest
                 },
             ],
             'customer_id' => 'nullable|exists:customers,id',
+            'cashback_amount' => 'nullable|numeric|min:0',
             // Single payment OR split payments — one must be present
             'payment_method' => 'required_without:payments|nullable|in:cash,card,transfer,wallet,credit',
             'cash_received' => 'nullable|numeric|min:0',

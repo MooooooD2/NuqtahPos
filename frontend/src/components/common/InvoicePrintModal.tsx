@@ -24,6 +24,7 @@ export interface PrintableInvoice {
   change_amount?: string | number | null
   subtotal?: string | number | null
   discount?: string | number | null
+  cashback_redeemed?: string | number | null
   tax_amount?: string | number | null
   tax_rate?: string | number | null
   final_total: string | number
@@ -72,6 +73,7 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
 
   const subtotal = parseFloat(fmt(invoice.subtotal ?? invoice.final_total))
   const discount = parseFloat(fmt(invoice.discount ?? 0))
+  const cashbackRedeemed = parseFloat(fmt(invoice.cashback_redeemed ?? 0))
   const tax = parseFloat(fmt(invoice.tax_amount ?? 0))
   const total = parseFloat(fmt(invoice.final_total))
   const cashReceived = parseFloat(fmt(invoice.cash_received ?? 0))
@@ -229,6 +231,12 @@ export default function InvoicePrintModal({ invoice, onClose, title }: Props) {
                 <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
                   <span style={{ color: '#555' }}>{taxLabel}</span>
                   <span>{fmt(tax)}</span>
+                </div>
+              )}
+              {cashbackRedeemed > 0 && (
+                <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
+                  <span style={{ color: '#555' }}>{t('cashback')}</span>
+                  <span style={{ color: '#c00' }}>-{fmt(cashbackRedeemed)}</span>
                 </div>
               )}
               <div className="row" style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0', fontWeight: 'bold', fontSize: 14 }}>

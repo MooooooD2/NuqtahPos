@@ -223,6 +223,7 @@ export default function PosPage() {
         ...inv,
         cash_received: isCashPayment && capturedTendered > 0 ? capturedTendered : inv.cash_received,
         change_amount: isCashPayment && capturedTendered > 0 ? capturedChange : inv.change_amount,
+        cashback_redeemed: cbUsed > 0 ? cbUsed : inv.cashback_redeemed,
       })
       // Redeem cashback points after invoice is created
       if (cbUsed > 0 && customerId && inv?.id) {
@@ -239,12 +240,15 @@ export default function PosPage() {
   const handleCheckout = () => {
     if (cart.items.length === 0) return
     const isCash = cart.payment_method === 'cash'
+    const orderDiscount = cart.discount_amount > 0
+      ? cart.discount_amount
+      : cart.subtotal() * (cart.discount_percent / 100)
     const payload = {
       customer_id: cart.customer?.id ?? null,
       items: cart.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, unit_price: i.unit_price, discount_amount: i.discount_amount })),
       payment_method: cart.payment_method,
-      discount_amount: cart.discount_amount + cashbackToUse,
-      discount_percent: cart.discount_percent,
+      discount: orderDiscount,
+      cashback_amount: cashbackToUse || undefined,
       notes: cart.notes || undefined,
       cash_received: isCash && tendered > 0 ? tendered : undefined,
       change_amount: isCash && tendered > 0 ? Math.max(0, change) : undefined,

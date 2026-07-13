@@ -32,6 +32,7 @@ class InvoiceService
         private CustomerService $customerService,
         private TaxService $taxService,
         private RecipeService $recipeService,
+        private DynamicPricingService $pricingService,
         private ?CashbackService $cashbackService = null,
     ) {
         $this->cashbackService ??= app(CashbackService::class);
@@ -70,6 +71,7 @@ class InvoiceService
 
             // Resolve customer price level: customer override > group default > retail
             $priceLevel = 'retail';
+            $customerGroupId = null;
             if (! empty($data['customer_id'])) {
                 $customer = Customer::with('group')
                     ->find($data['customer_id']);
@@ -77,20 +79,33 @@ class InvoiceService
                     $priceLevel = ($customer->price_level !== 'retail')
                         ? $customer->price_level
                         : ($customer->group?->price_level ?? 'retail');
+                    $customerGroupId = $customer->customer_group_id;
                 }
             }
 
             // Build per-line data: subtotal + resolved tax rate
             $lineData = [];
+            $rawTotal = 0;
             $total = 0;
             foreach ($data['items'] as $idx => $item) {
                 $product = $products->get($item['product_id']);
-                $unitPrice = $product->priceFor($priceLevel);
-                $subtotal = $unitPrice * $item['quantity'];
+                $listPrice = (float) $product->priceFor($priceLevel);
+                $effectivePrice = $this->pricingService->getEffectivePrice(
+                    $item['product_id'],
+                    $item['quantity'],
+                    $customerGroupId,
+                )['price'];
+                // Never pay more than either the price-level list price or the active dynamic-pricing/promo price
+                $unitPrice = min($listPrice, $effectivePrice);
+                $itemDiscount = max(0.0, min((float) ($item['discount_amount'] ?? 0), $unitPrice));
+                $netUnitPrice = $unitPrice - $itemDiscount;
+                $subtotal = $netUnitPrice * $item['quantity'];
+                $rawTotal += $unitPrice * $item['quantity'];
                 $total += $subtotal;
                 $lineData[$idx] = [
                     'product_id' => $item['product_id'],
                     'unit_price' => $unitPrice,
+                    'item_discount' => $itemDiscount,
                     'subtotal' => $subtotal,
                     'tax_rate' => $this->taxService->resolveRate($product),
                 ];
@@ -101,15 +116,18 @@ class InvoiceService
                 config('security.invoice.max_discount_percent', 20),
             );
             $requestedDiscount = (float) ($data['discount'] ?? 0);
-            $maxAllowedDiscount = $total * ($maxDiscountPercent / 100);
+            $maxAllowedDiscount = $rawTotal * ($maxDiscountPercent / 100);
+            $itemDiscountTotal = $rawTotal - $total;
+            $combinedDiscount = $itemDiscountTotal + $requestedDiscount;
 
-            if ($requestedDiscount > $maxAllowedDiscount) {
+            if ($combinedDiscount > $maxAllowedDiscount) {
                 Log::channel('audit')->warning('invoice.discount_cap_exceeded', [
                     'user_id' => Auth::id(),
                     'username' => Auth::user()?->username,
                     'requested_discount' => $requestedDiscount,
+                    'item_discount_total' => $itemDiscountTotal,
                     'max_allowed' => $maxAllowedDiscount,
-                    'total' => $total,
+                    'total' => $rawTotal,
                     'ip' => request()->ip(),
                     'timestamp' => now()->toIso8601String(),
                 ]);
@@ -117,7 +135,7 @@ class InvoiceService
                 throw new Exception(__('pos.discount_exceeds_limit', ['max' => $maxDiscountPercent]));
             }
 
-            $discount = max(0.0, min($requestedDiscount, $total, $maxAllowedDiscount));
+            $discount = max(0.0, min($requestedDiscount, $total));
             $afterDiscount = $total - $discount;
 
             // Loyalty point redemption (applied as additional discount)
@@ -132,6 +150,16 @@ class InvoiceService
                     $loyaltyPointsUsed = $pointsToRedeem;
                     $afterDiscount -= $loyaltyDiscount;
                 }
+            }
+
+            // Cashback redemption — the customer spending their own earned balance, not a
+            // discretionary discount, so it's excluded from the max_discount_percent cap above.
+            $cashbackAmount = 0.0;
+            $requestedCashback = (float) ($data['cashback_amount'] ?? 0);
+            if ($requestedCashback > 0 && ! empty($data['customer_id'])) {
+                $availableCashback = $this->cashbackService->getBalance((int) $data['customer_id']);
+                $cashbackAmount = max(0.0, min($requestedCashback, $availableCashback, $afterDiscount));
+                $afterDiscount -= $cashbackAmount;
             }
 
             // Distribute discount proportionally and calculate per-line taxes
@@ -236,13 +264,14 @@ class InvoiceService
                     $totalAllocQty = array_sum(array_column($allocations, 'quantity'));
                     foreach ($allocations as $alloc) {
                         $qtyRatio = $totalAllocQty > 0 ? $alloc['quantity'] / $totalAllocQty : 0;
-                        $allocSubtotal = round($line['unit_price'] * $alloc['quantity'], 2);
+                        $allocSubtotal = round(($line['unit_price'] - $line['item_discount']) * $alloc['quantity'], 2);
                         InvoiceItem::create([
                             'invoice_id' => $invoice->id,
                             'product_id' => $product->id,
                             'product_name' => $product->name,
                             'quantity' => $alloc['quantity'],
                             'price' => $line['unit_price'],
+                            'discount_amount' => $line['item_discount'],
                             'cost_price' => $product->avg_cost > 0 ? $product->avg_cost : $product->cost_price,
                             'subtotal' => $allocSubtotal,
                             'tax_rate' => $line['tax_rate'],
@@ -268,8 +297,9 @@ class InvoiceService
                         'product_name' => $product->name,
                         'quantity' => $item['quantity'],
                         'price' => $line['unit_price'],
+                        'discount_amount' => $line['item_discount'],
                         'cost_price' => $unitCost > 0 ? $unitCost : ($product->avg_cost > 0 ? $product->avg_cost : $product->cost_price),
-                        'subtotal' => round($line['unit_price'] * $item['quantity'], 2),
+                        'subtotal' => round(($line['unit_price'] - $line['item_discount']) * $item['quantity'], 2),
                         'tax_rate' => $line['tax_rate'],
                         'tax_amount' => $line['tax_amount'],
                         'warehouse_id' => $warehouseId,

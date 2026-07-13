@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $quantity
  * @property int $returned_qty
  * @property string $price
+ * @property string $discount_amount
  * @property string $cost_price
  * @property string $subtotal
  * @property string $tax_rate
@@ -28,12 +29,13 @@ class InvoiceItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['invoice_id', 'product_id', 'product_name', 'quantity', 'returned_qty', 'price', 'cost_price', 'subtotal', 'tax_rate', 'tax_amount', 'returned_tax', 'warehouse_id', 'batch_id'];
+    protected $fillable = ['invoice_id', 'product_id', 'product_name', 'quantity', 'returned_qty', 'price', 'discount_amount', 'cost_price', 'subtotal', 'tax_rate', 'tax_amount', 'returned_tax', 'warehouse_id', 'batch_id'];
 
     protected $casts = [
         'quantity' => 'integer',
         'returned_qty' => 'integer',
         'price' => 'decimal:4',
+        'discount_amount' => 'decimal:4',
         'cost_price' => 'decimal:4',
         'subtotal' => 'decimal:4',
         'tax_rate' => 'decimal:4',
