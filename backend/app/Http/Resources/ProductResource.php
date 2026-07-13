@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\TaxService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
@@ -12,6 +13,8 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'price' => $this->price,
+            'tax_category_id' => $this->tax_category_id,
+            'tax_rate' => app(TaxService::class)->resolveRate($this->resource),
             'cost_price' => $this->when(auth()->user()?->can('view_accounting'), $this->cost_price),
             'avg_cost' => $this->when(auth()->user()?->can('add_stock'), $this->avg_cost > 0 ? $this->avg_cost : $this->cost_price),
             'quantity' => $this->quantity,
