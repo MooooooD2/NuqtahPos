@@ -22,6 +22,7 @@ interface ApiProduct {
   id: number; name: string; price: string; barcode: string | null
   category: string | null; quantity: number; min_stock: number; low_stock: boolean
   supplier: string | null; unit_name: string | null; tax_rate?: string
+  image_url?: string | null
   // Dynamic pricing (populated when with_pricing=true or happy hour is active)
   effective_price?: number; discount_pct?: number; has_discount?: boolean
   price_rule?: { id: number; name: string; type: string } | null
@@ -46,6 +47,7 @@ function toCartProduct(p: ApiProduct): Product {
     price, cost: 0,
     tax_rate: parseFloat(p.tax_rate ?? '0'),
     stock: p.quantity, low_stock_threshold: p.min_stock,
+    image_url: p.image_url ?? undefined,
     is_active: true, has_variants: false, created_at: '',
   }
 }
@@ -322,8 +324,12 @@ export default function PosPage() {
             return (
               <button key={product.id} onClick={() => cart.addItem(product)} disabled={product.stock <= 0}
                 className={clsx('card p-3 text-left transition-all hover:shadow-md hover:border-primary-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed', inCart && 'ring-2 ring-primary-400')}>
-                <div className="w-full h-20 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 mb-2 flex items-center justify-center text-2xl">
-                  {apiProd.category ? apiProd.category.charAt(0) : '📦'}
+                <div className="w-full h-20 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 mb-2 flex items-center justify-center text-2xl overflow-hidden">
+                  {apiProd.image_url ? (
+                    <img src={apiProd.image_url} alt={product.name} className="h-full w-full object-cover" />
+                  ) : (
+                    apiProd.category ? apiProd.category.charAt(0) : '📦'
+                  )}
                 </div>
                 <p className="text-xs font-semibold text-gray-900 dark:text-white line-clamp-2">{product.name}</p>
                 <p className="mt-0.5 text-xs text-gray-400 truncate">{apiProd.barcode ?? apiProd.category ?? ''}</p>

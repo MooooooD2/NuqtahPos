@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import JsBarcode from "jsbarcode";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost, apiPut, apiDelete } from "@/services/api";
+import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from "@/services/api";
 import { usePermission } from "@/hooks/usePermission";
 import Modal from "@/components/common/Modal";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -16,6 +16,7 @@ import {
   Search,
   AlertTriangle,
   ScanLine,
+  ImagePlus,
 } from "lucide-react";
 import { clsx } from "clsx";
 import toast from "react-hot-toast";
@@ -31,6 +32,7 @@ interface ApiProduct {
   min_stock: number;
   low_stock: boolean;
   unit_name?: string | null;
+  image_url?: string | null;
 }
 
 const emptyForm = {
@@ -69,6 +71,15 @@ export default function ProductsPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const barcodeSvgRef = useRef<SVGSVGElement | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
   useEffect(() => {
     if (!barcodeSvgRef.current || !form.barcode) return;
@@ -146,6 +157,8 @@ export default function ProductsPage() {
   const openAdd = () => {
     setForm({ ...emptyForm });
     setEditId(null);
+    setImageFile(null);
+    setImagePreview(null);
     setModal("add");
   };
   const openEdit = (p: ApiProduct) => {
@@ -160,14 +173,22 @@ export default function ProductsPage() {
       quantity: String(p.quantity),
     });
     setEditId(p.id);
+    setImageFile(null);
+    setImagePreview(p.image_url ?? null);
     setModal("edit");
   };
 
   const saveMutation = useMutation({
-    mutationFn: (payload: object) =>
-      modal === "edit" && editId
-        ? apiPut(`/products/${editId}`, payload)
-        : apiPost("/products", payload),
+    mutationFn: async (payload: object) => {
+      const res = await (modal === "edit" && editId
+        ? apiPut<{ product: ApiProduct }>(`/products/${editId}`, payload)
+        : apiPost<{ product: ApiProduct }>("/products", payload));
+      const productId = modal === "edit" ? editId : res.product?.id;
+      if (imageFile && productId) {
+        await apiUpload(`/products/${productId}/image`, imageFile);
+      }
+      return res;
+    },
     onSuccess: () => {
       toast.success(editId ? "Product updated" : "Product created");
       qc.invalidateQueries({ queryKey: ["products"] });
@@ -252,16 +273,25 @@ export default function ProductsPage() {
               <table className="w-full min-w-[700px] text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    {[t('name'), t('barcode'), t('category'), t('selling_price'), t('cost_price'), t('current_stock'), t('status'), ""].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
+                    {["", t('name'), t('barcode'), t('category'), t('selling_price'), t('cost_price'), t('current_stock'), t('status'), ""].map((h, i) => (
+                      <th key={`${h}-${i}`} className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {products.length === 0 ? (
-                    <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
+                    <tr><td colSpan={9} className="px-4 py-12 text-center text-gray-400">{t('no_data')}</td></tr>
                   ) : products.map((p) => (
                     <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3">
+                        <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center shrink-0">
+                          {p.image_url ? (
+                            <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <Package className="h-4 w-4 text-gray-300" />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{p.name}</td>
                       <td className="px-4 py-3 text-gray-400 font-mono text-xs">{p.barcode ?? "—"}</td>
                       <td className="px-4 py-3 text-gray-500">{p.category ?? "—"}</td>
@@ -293,7 +323,16 @@ export default function ProductsPage() {
               ) : products.map((p) => (
                 <div key={p.id} className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{p.name}</p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center shrink-0">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <Package className="h-4 w-4 text-gray-300" />
+                        )}
+                      </div>
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{p.name}</p>
+                    </div>
                     <span className={clsx("badge shrink-0", p.quantity > 0 ? "badge-success" : "badge-danger")}>{p.quantity > 0 ? t('active_status') : t('out_of_stock')}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
@@ -364,6 +403,24 @@ export default function ProductsPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="label">{t('image')}</label>
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-16 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <ImagePlus className="h-6 w-6 text-gray-300" />
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleImageChange}
+                  className="input flex-1 text-sm"
+                />
+              </div>
+            </div>
             <div className="col-span-2">
               <label className="label">{t('name')} *</label>
               <input

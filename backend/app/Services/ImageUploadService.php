@@ -15,7 +15,7 @@ class ImageUploadService
     // #34 الأنواع المسموحة فقط (MIME الحقيقي من محتوى الملف)
     private const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-    private const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+    private const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
     public function uploadProductImage(UploadedFile $file, ?string $oldPath = null): string
     {

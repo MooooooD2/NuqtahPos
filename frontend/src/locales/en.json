@@ -124,6 +124,7 @@
   "status": "Status",
   "date": "Date",
   "name": "Name",
+  "image": "Image",
   "no_data": "No data available",
   "currency": "EGP",
   "app_name": "POS System",

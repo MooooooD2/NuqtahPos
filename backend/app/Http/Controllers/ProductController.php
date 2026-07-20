@@ -6,9 +6,11 @@ use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Http\Requests\AddStockRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\UploadProductImageRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\DynamicPricingService;
+use App\Services\ImageUploadService;
 use App\Services\StockService;
 use App\Traits\ApiResponse;
 use App\Traits\AuditLog;
@@ -28,6 +30,7 @@ class ProductController extends Controller
         private StockService $stockService,
         private ProductRepositoryInterface $productRepo,
         private DynamicPricingService $pricing,
+        private ImageUploadService $imageUpload,
     ) {}
 
     public function index()
@@ -102,6 +105,16 @@ class ProductController extends Controller
         $this->audit('product.updated', Product::class, (int) $updated->id, ['old' => $old, 'new' => $request->validated()]);
 
         return $this->success(['product' => new ProductResource($updated->fresh())]);
+    }
+
+    public function uploadImage(UploadProductImageRequest $request, Product $product)
+    {
+        $this->authorize('update', $product);
+        $path = $this->imageUpload->uploadProductImage($request->file('image'), $product->image);
+        $product->update(['image' => $path]);
+        $this->audit('product.image_updated', Product::class, (int) $product->id, ['name' => $product->name]);
+
+        return $this->success(['product' => new ProductResource($product->fresh())]);
     }
 
     public function destroy(Product $product)

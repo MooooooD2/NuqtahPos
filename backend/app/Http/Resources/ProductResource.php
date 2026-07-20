@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Services\TaxService;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ProductResource extends JsonResource
 {
@@ -13,6 +14,8 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'price' => $this->price,
+            'image' => $this->image,
+            'image_url' => $this->image ? Storage::disk('public')->url($this->image) : null,
             'tax_category_id' => $this->tax_category_id,
             'tax_rate' => app(TaxService::class)->resolveRate($this->resource),
             'cost_price' => $this->when(auth()->user()?->can('view_accounting'), $this->cost_price),

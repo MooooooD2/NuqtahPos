@@ -250,6 +250,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', CheckSubscriptionActive::cla
         Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::post('/products/{product}/add-stock', [ProductController::class, 'addStock'])->middleware('throttle:30,1')->name('products.add-stock');
+        Route::post('/products/{product}/image', [ProductController::class, 'uploadImage'])->middleware('throttle:30,1')->name('products.image.upload');
         Route::get('/products/{product}/recipe', [RecipeController::class, 'show'])->name('products.recipe.show');
         Route::post('/products/{product}/recipe', [RecipeController::class, 'sync'])->name('products.recipe.sync');
         Route::get('/products/{product}/unit-conversion', [UnitConversionController::class, 'show'])->name('products.unit-conversion.show');

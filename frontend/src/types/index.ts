@@ -52,6 +52,7 @@ export interface Product {
   stock: number
   low_stock_threshold: number
   image?: string
+  image_url?: string
   is_active: boolean
   has_variants: boolean
   variants?: ProductVariant[]

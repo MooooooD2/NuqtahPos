@@ -87,6 +87,17 @@ export const apiPatch = <T>(url: string, data?: unknown) =>
 export const apiDelete = <T>(url: string) =>
   api.delete<T>(url).then((r) => r.data)
 
+// Multipart upload — the instance forces Content-Type: application/json by default,
+// which must be removed (not set to multipart/form-data) so the browser can generate
+// the correct multipart boundary itself.
+export const apiUpload = <T>(url: string, file: File, fieldName = 'image') => {
+  const formData = new FormData()
+  formData.append(fieldName, file)
+  return api
+    .post<T>(url, formData, { headers: { 'Content-Type': undefined } })
+    .then((r) => r.data)
+}
+
 // ─── CSRF cookie (needed for Sanctum web guard) ───────────────────────────────
 export const fetchCsrfCookie = () => {
   let base: string
