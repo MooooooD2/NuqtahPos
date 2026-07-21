@@ -1,19 +1,20 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuthStore } from '@/stores/authStore'
+import { useUIStore } from '@/stores/uiStore'
 import { api, fetchCsrfCookie, getBaseUrl, SERVER_URL_KEY } from '@/services/api'
 import { isTauriApp } from '@/lib/tauri'
-import { Store, Eye, EyeOff, Loader2, Building2, Server } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Building2, Server, Home, Globe } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
 const schema = z.object({
-  tenant_code: z.string().min(1, 'Company code required').max(50),
-  username: z.string().min(1, 'Username required'),
-  password: z.string().min(1, 'Password required'),
+  tenant_code: z.string().min(1, 'login_validation_company_code').max(50),
+  username: z.string().min(1, 'login_validation_username'),
+  password: z.string().min(1, 'login_validation_password'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -27,9 +28,16 @@ const builtInServerUrl = (import.meta.env.VITE_API_URL as string | undefined)?.r
 const showServerUrlField = isDesktop && !builtInServerUrl
 
 export default function LoginPage() {
-  const { t } = useTranslation('pos')
+  const { t, i18n } = useTranslation('pos')
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
+  const { language, setLanguage } = useUIStore()
+
+  const toggleLanguage = () => {
+    const next = language === 'en' ? 'ar' : 'en'
+    setLanguage(next)
+    i18n.changeLanguage(next)
+  }
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [serverUrl, setServerUrl] = useState(
@@ -71,14 +79,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900 p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-navy-950 via-navy-800 to-navy-950 p-4">
+      <Link
+        to="/welcome"
+        title={t('back_to_home') ?? 'Back to home'}
+        className="absolute start-4 top-4 flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        <Home className="h-5 w-5" />
+      </Link>
+      <button
+        type="button"
+        onClick={toggleLanguage}
+        title={language === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+        className="absolute end-4 top-4 flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-bold tracking-wide text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        <Globe className="h-4 w-4 shrink-0" />
+        {language === 'en' ? 'AR' : 'EN'}
+      </button>
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-500 shadow-lg">
-            <Store className="h-9 w-9 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white">{t('app_name')}</h1>
+          <img src={`${import.meta.env.BASE_URL}images/nuqtah_logo_transparent_original.png`} alt={t('app_name') ?? 'Nuqtah POS'} className="mx-auto mb-4 h-24 w-auto brightness-0 invert" />
           <p className="mt-1 text-sm text-slate-400">{t('sign_in_to')}</p>
         </div>
 
@@ -90,7 +111,7 @@ export default function LoginPage() {
             {showServerUrlField && (
               <div>
                 <label className="block text-sm font-medium text-slate-200 mb-1.5">
-                  Server URL
+                  {t('login_server_url')}
                 </label>
                 <div className="relative">
                   <Server className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -98,12 +119,12 @@ export default function LoginPage() {
                     type="text"
                     value={serverUrl}
                     onChange={(e) => setServerUrl(e.target.value)}
-                    placeholder="http://192.168.1.100:8000"
+                    placeholder={t('login_server_url_placeholder')}
                     dir="ltr"
                     className={`${inputCls} ps-9`}
                   />
                 </div>
-                <p className="mt-1 text-xs text-slate-500">Your backend server address</p>
+                <p className="mt-1 text-xs text-slate-500">{t('login_server_url_hint')}</p>
               </div>
             )}
 
@@ -123,7 +144,7 @@ export default function LoginPage() {
                   className={`${inputCls} ps-9`}
                 />
               </div>
-              {errors.tenant_code && <p className="mt-1 text-xs text-red-400">{errors.tenant_code.message}</p>}
+              {errors.tenant_code && <p className="mt-1 text-xs text-red-400">{t(errors.tenant_code.message as string)}</p>}
             </div>
 
             {/* Divider */}
@@ -146,7 +167,7 @@ export default function LoginPage() {
                 placeholder="admin"
                 className={inputCls}
               />
-              {errors.username && <p className="mt-1 text-xs text-red-400">{errors.username.message}</p>}
+              {errors.username && <p className="mt-1 text-xs text-red-400">{t(errors.username.message as string)}</p>}
             </div>
 
             {/* Password */}
@@ -168,7 +189,7 @@ export default function LoginPage() {
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>}
+              {errors.password && <p className="mt-1 text-xs text-red-400">{t(errors.password.message as string)}</p>}
             </div>
 
             <button
@@ -182,13 +203,20 @@ export default function LoginPage() {
           </form>
         </div>
 
+        <p className="mt-6 text-center text-sm text-slate-400">
+          {t('login_no_account')}{' '}
+          <Link to="/register" className="font-medium text-primary-400 hover:text-primary-300 underline underline-offset-4">
+            {t('login_register_link')}
+          </Link>
+        </p>
+
         {isDesktop && (
           <p className="mt-4 text-center text-xs text-slate-500 break-all">
             {getBaseUrl()}
           </p>
         )}
         <p className="mt-2 text-center text-xs text-slate-500">
-          © 2025 POS Enterprise. All rights reserved.
+          {t('login_copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

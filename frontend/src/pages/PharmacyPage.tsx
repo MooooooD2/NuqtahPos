@@ -215,12 +215,12 @@ export default function PharmacyPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
         {[
-          { label: t('total_medicines'),    value: dash?.totalMedicines ?? 0,  color: 'bg-blue-50 dark:bg-blue-900/20',    text: 'text-blue-600' },
+          { label: t('total_medicines'),    value: dash?.totalMedicines ?? 0,  color: 'bg-navy-50 dark:bg-navy-900/20',    text: 'text-navy-600' },
           { label: t('low_stock'),          value: dash?.lowStock ?? 0,        color: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600' },
           { label: t('out_of_stock'),       value: dash?.outOfStock ?? 0,      color: 'bg-red-50 dark:bg-red-900/20',      text: 'text-red-600' },
           { label: t('expiring_soon'),      value: dash?.expiringSoon ?? 0,    color: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600' },
           { label: t('expired_batches'),    value: dash?.expiredBatches ?? 0,  color: 'bg-red-50 dark:bg-red-900/20',      text: 'text-red-700' },
-          { label: t('pending_rx'),         value: dash?.pendingRx ?? 0,       color: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600' },
+          { label: t('pending_rx'),         value: dash?.pendingRx ?? 0,       color: 'bg-navy-50 dark:bg-navy-900/20', text: 'text-navy-600' },
           { label: t('rx_today'),           value: dash?.totalRxToday ?? 0,    color: 'bg-green-50 dark:bg-green-900/20',  text: 'text-green-600' },
         ].map(({ label, value, color, text }) => (
           <div key={label} className={clsx('card p-3 text-center', color)}>
@@ -366,7 +366,7 @@ export default function PharmacyPage() {
                         <span className="font-semibold text-gray-900 dark:text-white">{parseFloat(m.selling_price).toFixed(2)}</span>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => openEditMed(m)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100 transition-colors font-medium">
+                        <button onClick={() => openEditMed(m)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-navy-50 text-navy-700 dark:bg-navy-900/20 dark:text-navy-400 hover:bg-navy-100 transition-colors font-medium">
                           <Pencil className="h-3 w-3" /> {isAr ? 'تعديل' : 'Edit'}
                         </button>
                         <button onClick={() => setDelMed(m)} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 transition-colors font-medium">

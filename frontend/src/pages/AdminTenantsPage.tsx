@@ -244,7 +244,7 @@ export default function AdminTenantsPage() {
   const openAddUser = (t: Tenant) => { setAddUserTarget(t); setAddUserForm({ full_name: '', username: '', password: '', role: 'cashier' }); setShowPassword(false) }
 
   const statCards = [
-    { label: isAr ? 'إجمالي' : 'Total', value: stats.total ?? 0, cls: 'text-blue-600' },
+    { label: isAr ? 'إجمالي' : 'Total', value: stats.total ?? 0, cls: 'text-navy-600' },
     { label: isAr ? 'نشط' : 'Active', value: stats.active ?? 0, cls: 'text-green-600' },
     { label: isAr ? 'تجريبي' : 'Trial', value: stats.trial ?? 0, cls: 'text-yellow-600' },
     { label: isAr ? 'منتهي' : 'Expired', value: stats.expired ?? 0, cls: 'text-red-600' },
@@ -330,13 +330,13 @@ export default function AdminTenantsPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <button onClick={() => { if (confirm(isAr ? `الدخول إلى ${t.name}؟ سيتم استبدال جلستك الحالية.` : `Login to ${t.name}? Your current session will be replaced.`)) impersonateMut.mutate(t.id) }} disabled={impersonateMut.isPending} className="p-1.5 rounded hover:bg-amber-100 dark:hover:bg-amber-900/30" title={isAr ? 'الدخول كمستأجر' : 'Login as tenant'}><LogIn className="h-3.5 w-3.5 text-amber-500" /></button>
-                            <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'المستخدمون' : 'Users'}><Users className="h-3.5 w-3.5 text-blue-500" /></button>
+                            <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'المستخدمون' : 'Users'}><Users className="h-3.5 w-3.5 text-navy-500" /></button>
                             <button onClick={() => openAddUser(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'إضافة مستخدم' : 'Add user'}><UserPlus className="h-3.5 w-3.5 text-green-500" /></button>
                             <button onClick={() => openEdit(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'تعديل' : 'Edit'}><Pencil className="h-3.5 w-3.5 text-gray-500" /></button>
                             <button onClick={() => setExtendTarget(t)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'تمديد' : 'Extend'}><CalendarDays className="h-3.5 w-3.5 text-green-500" /></button>
                             <button onClick={() => toggleMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={t.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}>{t.is_active ? <ToggleRight className="h-3.5 w-3.5 text-green-500" /> : <ToggleLeft className="h-3.5 w-3.5 text-gray-400" />}</button>
                             {t.subscription_status !== 'suspended' && <button onClick={() => suspendMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'إيقاف' : 'Suspend'}><Ban className="h-3.5 w-3.5 text-orange-500" /></button>}
-                            <button onClick={() => seedMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'زرع بيانات' : 'Seed data'} disabled={seedMut.isPending}><RefreshCw className={clsx('h-3.5 w-3.5 text-purple-500', seedMut.isPending && 'animate-spin')} /></button>
+                            <button onClick={() => seedMut.mutate(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'زرع بيانات' : 'Seed data'} disabled={seedMut.isPending}><RefreshCw className={clsx('h-3.5 w-3.5 text-navy-500', seedMut.isPending && 'animate-spin')} /></button>
                             <button onClick={() => { if (confirm(isAr ? 'حذف المتجر نهائياً؟' : 'Delete this store permanently?')) deleteMut.mutate(t.id) }} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600" title={isAr ? 'حذف' : 'Delete'} disabled={deleteMut.isPending}><Trash2 className="h-3.5 w-3.5 text-red-500" /></button>
                             <button onClick={() => toggleExpand(t.id)} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600">{expandedId === t.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</button>
                           </div>
@@ -358,7 +358,7 @@ export default function AdminTenantsPage() {
                                     <span className={clsx('w-2 h-2 rounded-full', u.is_active ? 'bg-green-500' : 'bg-gray-300')} />
                                     <span className="font-medium">{u.name || u.username}</span>
                                     <span className="text-gray-400">@{u.username}</span>
-                                    <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-blue-500 hover:underline">{u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
+                                    <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-navy-500 hover:underline">{u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
                                   </div>
                                 ))}
                               </div>
@@ -406,10 +406,10 @@ export default function AdminTenantsPage() {
                     <button onClick={() => { if (confirm(isAr ? `الدخول إلى ${t.name}؟ سيتم استبدال جلستك الحالية.` : `Login to ${t.name}? Your current session will be replaced.`)) impersonateMut.mutate(t.id) }} disabled={impersonateMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-amber-100"><LogIn className="h-3 w-3" />{isAr ? 'دخول' : 'Login'}</button>
                     <button onClick={() => openEdit(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"><Pencil className="h-3 w-3" />{isAr ? 'تعديل' : 'Edit'}</button>
                     <button onClick={() => setExtendTarget(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 hover:bg-green-100"><CalendarDays className="h-3 w-3" />{isAr ? 'تمديد' : 'Extend'}</button>
-                    <button onClick={() => openAddUser(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100"><UserPlus className="h-3 w-3" />{isAr ? 'مستخدم' : 'User'}</button>
+                    <button onClick={() => openAddUser(t)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-navy-50 text-navy-700 dark:bg-navy-900/20 dark:text-navy-400 hover:bg-navy-100"><UserPlus className="h-3 w-3" />{isAr ? 'مستخدم' : 'User'}</button>
                     <button onClick={() => toggleMut.mutate(t.id)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200">{t.is_active ? <ToggleRight className="h-3 w-3 text-green-500" /> : <ToggleLeft className="h-3 w-3 text-gray-400" />}{t.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
                     {t.subscription_status !== 'suspended' && <button onClick={() => suspendMut.mutate(t.id)} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 hover:bg-orange-100"><Ban className="h-3 w-3" />{isAr ? 'إيقاف' : 'Suspend'}</button>}
-                    <button onClick={() => seedMut.mutate(t.id)} disabled={seedMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 hover:bg-purple-100"><RefreshCw className={clsx('h-3 w-3', seedMut.isPending && 'animate-spin')} />{isAr ? 'بيانات' : 'Seed'}</button>
+                    <button onClick={() => seedMut.mutate(t.id)} disabled={seedMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-navy-50 text-navy-700 dark:bg-navy-900/20 dark:text-navy-400 hover:bg-navy-100"><RefreshCw className={clsx('h-3 w-3', seedMut.isPending && 'animate-spin')} />{isAr ? 'بيانات' : 'Seed'}</button>
                     <button onClick={() => { if (confirm(isAr ? 'حذف المتجر نهائياً؟' : 'Delete this store permanently?')) deleteMut.mutate(t.id) }} disabled={deleteMut.isPending} className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100"><Trash2 className="h-3 w-3" />{isAr ? 'حذف' : 'Delete'}</button>
                   </div>
 
@@ -431,7 +431,7 @@ export default function AdminTenantsPage() {
                                 <span className="font-medium truncate">{u.name || u.username}</span>
                                 <span className="text-gray-400 hidden sm:inline">@{u.username}</span>
                               </div>
-                              <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-blue-500 hover:underline flex-shrink-0">{u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
+                              <button onClick={() => toggleUserMut.mutate({ tenantId: t.id, userId: u.id })} className="text-navy-500 hover:underline flex-shrink-0">{u.is_active ? (isAr ? 'تعطيل' : 'Disable') : (isAr ? 'تفعيل' : 'Enable')}</button>
                             </div>
                           ))}
                         </div>

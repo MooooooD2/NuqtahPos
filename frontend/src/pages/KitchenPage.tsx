@@ -281,10 +281,10 @@ export default function KitchenPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('avg_prep_time')}</p>
-              <p className="mt-1 text-2xl font-bold text-blue-600">{stats.avg_prep_min ?? 0}<span className="text-sm font-normal ml-1">{t('min')}</span></p>
+              <p className="mt-1 text-2xl font-bold text-navy-600">{stats.avg_prep_min ?? 0}<span className="text-sm font-normal ml-1">{t('min')}</span></p>
             </div>
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
-              <Clock className="h-6 w-6 text-blue-600" />
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-navy-100 dark:bg-navy-900/30">
+              <Clock className="h-6 w-6 text-navy-600" />
             </div>
           </div>
         </div>

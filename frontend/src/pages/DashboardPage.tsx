@@ -9,7 +9,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import DesktopDownloadBanner from '@/components/common/DesktopDownloadBanner'
 import { useTranslation } from 'react-i18next'
 
-const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b']
+const COLORS = ['#189768', '#8b5cf6', '#132a4c', '#f59e0b']
 
 interface TopProduct { name: string; total_quantity: string | number; total_sales: string | number }
 interface RecentInvoice { invoice_number: string; final_total: string | number; payment_method: string; cashier_name: string; created_at: string }
@@ -86,7 +86,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Area type="monotone" dataKey="amount" stroke="#0ea5e9" fill="#e0f2fe" />
+                <Area type="monotone" dataKey="amount" stroke="#189768" fill="#e0f5ed" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

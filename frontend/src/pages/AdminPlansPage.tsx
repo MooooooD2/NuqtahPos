@@ -212,7 +212,7 @@ export default function AdminPlansPage() {
                 <span>{plan.trial_days}d trial</span>
                 {plan.max_users && <span>· {plan.max_users} users</span>}
                 {plan.max_products && <span>· {plan.max_products} products</span>}
-                <span className="ms-auto font-semibold text-blue-500">{tenantCounts[plan.id] ?? 0} stores</span>
+                <span className="ms-auto font-semibold text-navy-500">{tenantCounts[plan.id] ?? 0} stores</span>
               </div>
 
               {safeFlags.length > 0 && (

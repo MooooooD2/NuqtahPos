@@ -65,7 +65,7 @@ export default function DesktopDownloadBanner({ forceShow = false }: { forceShow
     }
     const a = document.createElement('a')
     a.href = `${apiBase}/desktop-app/download/${platform}`
-    a.download = `POS-Enterprise-Setup.${info.file.split('.').pop()}`
+    a.download = `Nuqtah-POS-Setup.${info.file.split('.').pop()}`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

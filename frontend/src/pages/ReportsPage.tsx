@@ -709,7 +709,7 @@ function NetProfitView({ data }: { data: Record<string, unknown> }) {
     { key: "net_revenue",          label: "Net Revenue" },
     { key: "cogs",                 label: "COGS" },
     { key: "gross_profit",         label: "Gross Profit",
-      color: "text-emerald-600 dark:text-emerald-400" },
+      color: "text-primary-600 dark:text-primary-400" },
     { key: "operating_expenses",   label: "Operating Exp." },
     { key: "net_profit",           label: "Net Profit",
       color: typeof data.net_profit === "number" && (data.net_profit as number) >= 0

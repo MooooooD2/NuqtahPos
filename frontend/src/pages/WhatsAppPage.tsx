@@ -165,7 +165,7 @@ export default function WhatsAppPage() {
               </div>
               <div className="card p-5 space-y-1">
                 <p className="text-xs text-gray-500 uppercase font-semibold">{t('inbound_today')}</p>
-                <p className="text-3xl font-bold text-blue-600">{stats?.inbound_today?.toLocaleString() ?? '—'}</p>
+                <p className="text-3xl font-bold text-navy-600">{stats?.inbound_today?.toLocaleString() ?? '—'}</p>
               </div>
               <div className="card p-5 space-y-1">
                 <p className="text-xs text-gray-500 uppercase font-semibold">{t('failed_today')}</p>
@@ -229,14 +229,14 @@ export default function WhatsAppPage() {
                             <td className="px-4 py-3 font-mono text-xs text-gray-700 dark:text-gray-300">{log.to_phone}</td>
                             <td className="px-4 py-3"><span className={clsx('badge capitalize', typeBadge(log.type))}>{getLogTypeLabel(log.type)}</span></td>
                             <td className="px-4 py-3">
-                              <span className={clsx('badge capitalize', log.status === 'read' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : statusBadge(log.status))}>
+                              <span className={clsx('badge capitalize', log.status === 'read' ? 'bg-navy-100 text-navy-700 dark:bg-navy-900/30 dark:text-navy-400' : statusBadge(log.status))}>
                                 {log.status}
                               </span>
                             </td>
                             <td className="px-4 py-3">
                               {log.direction === 'outbound'
                                 ? <span className="flex items-center gap-1 text-green-600 text-xs"><ArrowUp className="h-3.5 w-3.5" /> {t('direction_out')}</span>
-                                : <span className="flex items-center gap-1 text-blue-600 text-xs"><ArrowDown className="h-3.5 w-3.5" /> {t('direction_in')}</span>}
+                                : <span className="flex items-center gap-1 text-navy-600 text-xs"><ArrowDown className="h-3.5 w-3.5" /> {t('direction_in')}</span>}
                             </td>
                             <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{log.created_at?.slice(0, 16)}</td>
                             <td className="px-4 py-3 text-red-400 text-xs max-w-[200px] truncate" title={log.error_message}>
@@ -255,13 +255,13 @@ export default function WhatsAppPage() {
                           <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{log.to_phone}</span>
                           <div className="flex items-center gap-1 shrink-0">
                             <span className={clsx('badge capitalize text-xs', typeBadge(log.type))}>{getLogTypeLabel(log.type)}</span>
-                            <span className={clsx('badge capitalize text-xs', log.status === 'read' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : statusBadge(log.status))}>{log.status}</span>
+                            <span className={clsx('badge capitalize text-xs', log.status === 'read' ? 'bg-navy-100 text-navy-700 dark:bg-navy-900/30 dark:text-navy-400' : statusBadge(log.status))}>{log.status}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
                           {log.direction === 'outbound'
                             ? <span className="flex items-center gap-1 text-green-600"><ArrowUp className="h-3 w-3" />{t('direction_out')}</span>
-                            : <span className="flex items-center gap-1 text-blue-600"><ArrowDown className="h-3 w-3" />{t('direction_in')}</span>}
+                            : <span className="flex items-center gap-1 text-navy-600"><ArrowDown className="h-3 w-3" />{t('direction_in')}</span>}
                           <span>{log.created_at?.slice(0, 16)}</span>
                         </div>
                         {log.error_message && <p className="text-xs text-red-400 truncate">{log.error_message}</p>}

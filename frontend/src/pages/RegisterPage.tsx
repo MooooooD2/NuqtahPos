@@ -3,11 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/authStore'
+import { useUIStore } from '@/stores/uiStore'
 import { api, fetchCsrfCookie } from '@/services/api'
 import {
-  Store, Eye, EyeOff, Loader2, Building2, User, KeyRound, BadgeCheck,
-  Check, Sparkles, ShoppingCart, UtensilsCrossed, Pill, HardHat, LayoutGrid, ChevronRight, Syringe,
+  Eye, EyeOff, Loader2, Building2, User, KeyRound, BadgeCheck,
+  Check, Sparkles, ShoppingCart, UtensilsCrossed, Pill, HardHat, LayoutGrid, ChevronRight, Syringe, Home, Globe,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -35,7 +37,8 @@ interface BusinessTypeOption {
   color: string
   bg: string
   border: string
-  examples: string
+  examplesEn: string
+  examplesAr: string
 }
 
 const BUSINESS_TYPES: BusinessTypeOption[] = [
@@ -46,10 +49,11 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     descEn: 'Products, inventory, barcode, multi-branch',
     descAr: 'منتجات، مخزون، باركود، فروع متعددة',
     icon: ShoppingCart,
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/15',
-    border: 'border-blue-500/40',
-    examples: 'سوبرماركت · محل تجزئة · هايبر ماركت',
+    color: 'text-navy-400',
+    bg: 'bg-navy-500/15',
+    border: 'border-navy-500/40',
+    examplesEn: 'Supermarket · Retail shop · Hypermarket',
+    examplesAr: 'سوبرماركت · محل تجزئة · هايبر ماركت',
   },
   {
     id: 'restaurant',
@@ -61,7 +65,8 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     color: 'text-orange-400',
     bg: 'bg-orange-500/15',
     border: 'border-orange-500/40',
-    examples: 'مطعم · كافيه · فاست فود · كافتيريا',
+    examplesEn: 'Restaurant · Café · Fast food · Cafeteria',
+    examplesAr: 'مطعم · كافيه · فاست فود · كافتيريا',
   },
   {
     id: 'pharmacy',
@@ -70,10 +75,11 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     descEn: 'Batch tracking, expiry alerts, prescriptions',
     descAr: 'تتبع الدُّفعات، تنبيهات الانتهاء، الوصفات',
     icon: Pill,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/15',
-    border: 'border-emerald-500/40',
-    examples: 'صيدلية · مستودع أدوية',
+    color: 'text-primary-400',
+    bg: 'bg-primary-500/15',
+    border: 'border-primary-500/40',
+    examplesEn: 'Pharmacy · Medicine warehouse',
+    examplesAr: 'صيدلية · مستودع أدوية',
   },
   {
     id: 'medical_supplies',
@@ -82,10 +88,11 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     descEn: 'Batch tracking, expiry alerts, serials',
     descAr: 'تتبع الدُّفعات، تنبيهات الانتهاء، الأرقام التسلسلية',
     icon: Syringe,
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-500/15',
-    border: 'border-cyan-500/40',
-    examples: 'مستلزمات طبية · أجهزة طبية · مستودع أدوات',
+    color: 'text-navy-400',
+    bg: 'bg-navy-500/15',
+    border: 'border-navy-500/40',
+    examplesEn: 'Medical supplies · Medical devices · Equipment warehouse',
+    examplesAr: 'مستلزمات طبية · أجهزة طبية · مستودع أدوات',
   },
   {
     id: 'contracting',
@@ -97,7 +104,8 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     color: 'text-yellow-400',
     bg: 'bg-yellow-500/15',
     border: 'border-yellow-500/40',
-    examples: 'مقاولات · صيانة · شركة خدمات',
+    examplesEn: 'Contracting · Maintenance · Services company',
+    examplesAr: 'مقاولات · صيانة · شركة خدمات',
   },
   {
     id: 'general',
@@ -109,29 +117,30 @@ const BUSINESS_TYPES: BusinessTypeOption[] = [
     color: 'text-slate-400',
     bg: 'bg-slate-500/15',
     border: 'border-slate-500/40',
-    examples: 'أي نوع تجاري آخر',
+    examplesEn: 'Any other kind of business',
+    examplesAr: 'أي نوع تجاري آخر',
   },
 ]
 
 // ─── Form schema ──────────────────────────────────────────────────────────────
 
 const schema = z.object({
-  store_name: z.string().min(2, 'Store name must be at least 2 characters').max(100),
+  store_name: z.string().min(2, 'register.validation_store_name').max(100),
   store_code: z
     .string()
-    .min(2, 'Store code must be at least 2 characters')
+    .min(2, 'register.validation_store_code_length')
     .max(30)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Only letters, numbers, hyphens and underscores'),
-  full_name: z.string().min(2, 'Full name required').max(100),
+    .regex(/^[a-zA-Z0-9_-]+$/, 'register.validation_store_code_format'),
+  full_name: z.string().min(2, 'register.validation_full_name').max(100),
   username: z
     .string()
-    .min(3, 'Username must be at least 3 characters')
+    .min(3, 'register.validation_username_length')
     .max(50)
-    .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers and underscores'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  password_confirmation: z.string().min(1, 'Please confirm your password'),
+    .regex(/^[a-zA-Z0-9_]+$/, 'register.validation_username_format'),
+  password: z.string().min(8, 'register.validation_password'),
+  password_confirmation: z.string().min(1, 'register.validation_password_confirm_required'),
 }).refine((d) => d.password === d.password_confirmation, {
-  message: 'Passwords do not match',
+  message: 'register.validation_password_mismatch',
   path: ['password_confirmation'],
 })
 
@@ -140,8 +149,17 @@ type FormData = z.infer<typeof schema>
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function RegisterPage() {
+  const { t, i18n } = useTranslation()
+  const isAr = i18n.language === 'ar'
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
+  const { language, setLanguage } = useUIStore()
+
+  const toggleLanguage = () => {
+    const next = language === 'en' ? 'ar' : 'en'
+    setLanguage(next)
+    i18n.changeLanguage(next)
+  }
   const [searchParams] = useSearchParams()
   const planId = searchParams.get('plan') ?? 'basic'
 
@@ -181,7 +199,7 @@ export default function RegisterPage() {
       const { user, token } = res.data
       localStorage.setItem(SAVED_CODE_KEY, data.store_code.toLowerCase())
       login(user, token)
-      toast.success(`Welcome, ${user.name}! Your store is ready.`)
+      toast.success(t('register.toast_welcome', { name: user.name }))
       navigate('/')
     } catch (err: unknown) {
       type ApiError = { response?: { status?: number; data?: { message?: string; errors?: Record<string, string[]> } } }
@@ -198,12 +216,12 @@ export default function RegisterPage() {
           }
         }
         if (anySet) {
-          toast.error('Please fix the highlighted fields.')
+          toast.error(t('register.toast_fix_fields'))
         } else {
-          toast.error(apiErr?.response?.data?.message ?? 'Validation failed.')
+          toast.error(apiErr?.response?.data?.message ?? t('register.toast_validation_failed'))
         }
       } else {
-        toast.error(apiErr?.response?.data?.message ?? 'Registration failed. Please try again.')
+        toast.error(apiErr?.response?.data?.message ?? t('register.toast_registration_failed'))
       }
     } finally {
       setLoading(false)
@@ -211,27 +229,40 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900 p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-navy-950 via-navy-800 to-navy-950 p-4">
+      <Link
+        to="/welcome"
+        title={t('back_to_home') ?? 'Back to home'}
+        className="absolute start-4 top-4 flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        <Home className="h-5 w-5" />
+      </Link>
+      <button
+        type="button"
+        onClick={toggleLanguage}
+        title={language === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+        className="absolute end-4 top-4 flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-bold tracking-wide text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        <Globe className="h-4 w-4 shrink-0" />
+        {language === 'en' ? 'AR' : 'EN'}
+      </button>
       <div className="w-full max-w-lg">
 
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-500 shadow-lg">
-            <Store className="h-9 w-9 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white">POS Enterprise</h1>
-          <p className="mt-1 text-sm text-slate-400">Create your store account</p>
+          <img src={`${import.meta.env.BASE_URL}images/nuqtah_logo_transparent_original.png`} alt="Nuqtah POS" className="mx-auto mb-4 h-24 w-auto brightness-0 invert" />
+          <p className="mt-1 text-sm text-slate-400">{t('register.subtitle')}</p>
         </div>
 
         {/* Step indicator */}
         <div className="mb-6 flex items-center justify-center gap-3">
           {/* Step 1 */}
           <div className="flex items-center gap-2">
-            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${step === 1 ? 'bg-primary-500 text-white' : 'bg-emerald-500 text-white'}`}>
+            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${step === 1 ? 'bg-primary-500 text-white' : 'bg-primary-500 text-white'}`}>
               {step === 1 ? '1' : <Check className="h-3.5 w-3.5" />}
             </div>
-            <span className={`text-xs font-medium transition-colors ${step === 1 ? 'text-white' : 'text-emerald-400'}`}>
-              نوع النشاط
+            <span className={`text-xs font-medium transition-colors ${step === 1 ? 'text-white' : 'text-primary-400'}`}>
+              {t('register.step_business')}
             </span>
           </div>
           <div className="h-px w-8 bg-white/20" />
@@ -241,7 +272,7 @@ export default function RegisterPage() {
               2
             </div>
             <span className={`text-xs font-medium ${step === 2 ? 'text-white' : 'text-slate-500'}`}>
-              بيانات المتجر
+              {t('register.step_details')}
             </span>
           </div>
         </div>
@@ -249,8 +280,8 @@ export default function RegisterPage() {
         {/* ── STEP 1: Business type ── */}
         {step === 1 && (
           <div className="rounded-2xl border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur-lg">
-            <p className="mb-1 text-center text-lg font-bold text-white">ما نوع نشاطك التجاري؟</p>
-            <p className="mb-5 text-center text-xs text-slate-400">سيظهر لك النظام المناسب لنشاطك فور تسجيل الدخول</p>
+            <p className="mb-1 text-center text-lg font-bold text-white">{t('register.step1_heading')}</p>
+            <p className="mb-5 text-center text-xs text-slate-400">{t('register.step1_subheading')}</p>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {BUSINESS_TYPES.map((bt) => {
@@ -274,10 +305,10 @@ export default function RegisterPage() {
                     {/* Text */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-semibold ${selected ? 'text-white' : 'text-slate-200'}`}>
-                        {bt.labelAr}
+                        {isAr ? bt.labelAr : bt.labelEn}
                       </p>
-                      <p className="mt-0.5 text-[11px] text-slate-400 leading-relaxed">{bt.descAr}</p>
-                      <p className="mt-1 text-[10px] text-slate-500">{bt.examples}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-400 leading-relaxed">{isAr ? bt.descAr : bt.descEn}</p>
+                      <p className="mt-1 text-[10px] text-slate-500">{isAr ? bt.examplesAr : bt.examplesEn}</p>
                     </div>
 
                     {/* Check mark */}
@@ -297,7 +328,7 @@ export default function RegisterPage() {
               onClick={() => setStep(2)}
               className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              التالي
+              {t('register.next')}
               <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             </button>
           </div>
@@ -312,13 +343,13 @@ export default function RegisterPage() {
               return (
                 <div className={`mb-4 flex items-center gap-2 rounded-xl border ${bt.border} ${bt.bg} px-4 py-2.5`}>
                   <bt.icon className={`h-4 w-4 shrink-0 ${bt.color}`} />
-                  <span className="text-sm text-white font-medium">{bt.labelAr}</span>
+                  <span className="text-sm text-white font-medium">{isAr ? bt.labelAr : bt.labelEn}</span>
                   <button
                     type="button"
                     onClick={() => setStep(1)}
                     className="ms-auto text-xs text-slate-400 underline underline-offset-4 hover:text-white transition-colors"
                   >
-                    تغيير
+                    {t('register.change')}
                   </button>
                 </div>
               )
@@ -326,33 +357,33 @@ export default function RegisterPage() {
 
             {/* Plan summary */}
             {plan && (
-              <div className="mb-6 overflow-hidden rounded-2xl border border-sky-500/25 bg-sky-500/8">
+              <div className="mb-6 overflow-hidden rounded-2xl border border-navy-500/25 bg-navy-500/8">
                 <div className="flex items-start gap-4 p-5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-500/20 text-navy-400">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="mb-1 flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold text-white">{plan.name} Plan</span>
-                      <span className="rounded-full bg-sky-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-sky-300">
-                        {plan.trial_days}-day free trial
+                      <span className="text-sm font-bold text-white">{t('register.plan_name', { name: plan.name })}</span>
+                      <span className="rounded-full bg-navy-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-navy-300">
+                        {t('register.trial_days', { days: plan.trial_days })}
                       </span>
-                      <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
-                        No card needed
+                      <span className="rounded-full bg-primary-500/15 px-2.5 py-0.5 text-[11px] font-medium text-primary-400">
+                        {t('register.no_card_needed')}
                       </span>
                     </div>
                     <p className="text-xs text-slate-400">
-                      ${plan.monthly_price}/month after trial · Cancel anytime
+                      {t('register.price_after_trial', { price: plan.monthly_price })}
                     </p>
                     {plan.features.slice(0, 3).map((f, i) => (
                       <div key={i} className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
-                        <Check className="h-3 w-3 shrink-0 text-sky-400" />
-                        {typeof f === 'object' ? f.en : f}
+                        <Check className="h-3 w-3 shrink-0 text-navy-400" />
+                        {typeof f === 'object' ? (isAr ? f.ar : f.en) : f}
                       </div>
                     ))}
                   </div>
                   <Link to="/welcome#pricing" className="shrink-0 text-xs text-slate-500 underline underline-offset-4 hover:text-white transition-colors">
-                    Change
+                    {t('register.change')}
                   </Link>
                 </div>
               </div>
@@ -364,24 +395,24 @@ export default function RegisterPage() {
 
                 {/* Store info section */}
                 <div className="space-y-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Store Information</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t('register.store_info_heading')}</p>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-200">Store Name</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-200">{t('register.field_store_name')}</label>
                     <div className="relative">
                       <Building2 className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
                         {...register('store_name')}
                         type="text"
-                        placeholder="My Awesome Store"
+                        placeholder={t('register.placeholder_store_name')}
                         className={`${inputCls} ps-9`}
                       />
                     </div>
-                    {errors.store_name && <p className="mt-1 text-xs text-red-400">{errors.store_name.message}</p>}
+                    {errors.store_name && <p className="mt-1 text-xs text-red-400">{t(errors.store_name.message as string)}</p>}
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-200">Store Code</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-200">{t('register.field_store_code')}</label>
                     <div className="relative">
                       <BadgeCheck className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
@@ -392,8 +423,8 @@ export default function RegisterPage() {
                         className={`${inputCls} ps-9`}
                       />
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">Unique identifier used to log in (e.g. my-store)</p>
-                    {errors.store_code && <p className="mt-1 text-xs text-red-400">{errors.store_code.message}</p>}
+                    <p className="mt-1 text-xs text-slate-500">{t('register.store_code_hint')}</p>
+                    {errors.store_code && <p className="mt-1 text-xs text-red-400">{t(errors.store_code.message as string)}</p>}
                   </div>
                 </div>
 
@@ -403,28 +434,28 @@ export default function RegisterPage() {
                     <div className="w-full border-t border-white/10" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-transparent px-2 text-slate-500">Admin Account</span>
+                    <span className="bg-transparent px-2 text-slate-500">{t('register.admin_account_heading')}</span>
                   </div>
                 </div>
 
                 {/* Admin info section */}
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-200">Full Name</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-200">{t('register.field_full_name')}</label>
                     <div className="relative">
                       <User className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
                         {...register('full_name')}
                         type="text"
-                        placeholder="John Smith"
+                        placeholder={t('register.placeholder_full_name')}
                         className={`${inputCls} ps-9`}
                       />
                     </div>
-                    {errors.full_name && <p className="mt-1 text-xs text-red-400">{errors.full_name.message}</p>}
+                    {errors.full_name && <p className="mt-1 text-xs text-red-400">{t(errors.full_name.message as string)}</p>}
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-200">Username</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-200">{t('register.field_username')}</label>
                     <div className="relative">
                       <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">@</span>
                       <input
@@ -435,11 +466,11 @@ export default function RegisterPage() {
                         className={`${inputCls} ps-7`}
                       />
                     </div>
-                    {errors.username && <p className="mt-1 text-xs text-red-400">{errors.username.message}</p>}
+                    {errors.username && <p className="mt-1 text-xs text-red-400">{t(errors.username.message as string)}</p>}
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-200">Password</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-200">{t('register.field_password')}</label>
                     <div className="relative">
                       <KeyRound className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
@@ -456,11 +487,11 @@ export default function RegisterPage() {
                         {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>}
+                    {errors.password && <p className="mt-1 text-xs text-red-400">{t(errors.password.message as string)}</p>}
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-200">Confirm Password</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-200">{t('register.field_password_confirm')}</label>
                     <div className="relative">
                       <KeyRound className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
@@ -478,7 +509,7 @@ export default function RegisterPage() {
                       </button>
                     </div>
                     {errors.password_confirmation && (
-                      <p className="mt-1 text-xs text-red-400">{errors.password_confirmation.message}</p>
+                      <p className="mt-1 text-xs text-red-400">{t(errors.password_confirmation.message as string)}</p>
                     )}
                   </div>
                 </div>
@@ -489,7 +520,7 @@ export default function RegisterPage() {
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-60"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {loading ? 'Setting up your store… (up to 1 min)' : 'Create Store & Account'}
+                  {loading ? t('register.submitting') : t('register.submit')}
                 </button>
               </form>
             </div>
@@ -497,14 +528,14 @@ export default function RegisterPage() {
         )}
 
         <p className="mt-6 text-center text-sm text-slate-400">
-          Already have an account?{' '}
+          {t('register.already_have_account')}{' '}
           <Link to="/login" className="font-medium text-primary-400 hover:text-primary-300 underline underline-offset-4">
-            Sign in
+            {t('register.sign_in')}
           </Link>
         </p>
 
         <p className="mt-3 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} POS Enterprise. All rights reserved.
+          {t('register.copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

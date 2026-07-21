@@ -158,8 +158,8 @@ export default function ExpensesPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('quantity')}</p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{expenses.length}</p>
             </div>
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
-              <Hash className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-navy-100 dark:bg-navy-900/30">
+              <Hash className="h-6 w-6 text-navy-600 dark:text-navy-400" />
             </div>
           </div>
         </div>
@@ -169,8 +169,8 @@ export default function ExpensesPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('expense_date')}</p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{latestDate?.slice(0, 10) || '—'}</p>
             </div>
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-purple-100 dark:bg-purple-900/30">
-              <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-navy-100 dark:bg-navy-900/30">
+              <Calendar className="h-6 w-6 text-navy-600 dark:text-navy-400" />
             </div>
           </div>
         </div>

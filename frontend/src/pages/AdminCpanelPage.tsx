@@ -64,10 +64,10 @@ export default function AdminCpanelPage() {
   const maxGrowth = Math.max(...d.monthly_growth.map((m) => m.count), 1)
 
   const kpis = [
-    { label: isAr ? 'إجمالي المتاجر' : 'Total Stores', value: d.total, icon: Building2, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    { label: isAr ? 'إجمالي المتاجر' : 'Total Stores', value: d.total, icon: Building2, color: 'text-navy-500', bg: 'bg-navy-50 dark:bg-navy-900/20' },
     { label: isAr ? 'إيراد شهري (MRR)' : 'Monthly Revenue', value: `$${d.mrr.toLocaleString()}`, icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
-    { label: isAr ? 'إيراد سنوي (ARR)' : 'Annual Revenue', value: `$${d.arr.toLocaleString()}`, icon: BarChart2, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-    { label: isAr ? 'اشتراكات نشطة' : 'Active', value: d.status_counts.active ?? 0, icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+    { label: isAr ? 'إيراد سنوي (ARR)' : 'Annual Revenue', value: `$${d.arr.toLocaleString()}`, icon: BarChart2, color: 'text-navy-500', bg: 'bg-navy-50 dark:bg-navy-900/20' },
+    { label: isAr ? 'اشتراكات نشطة' : 'Active', value: d.status_counts.active ?? 0, icon: Users, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
     { label: isAr ? 'في فترة التجربة' : 'Trial', value: d.status_counts.trial ?? 0, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
     { label: isAr ? 'منتهية / موقوفة' : 'Inactive', value: (d.status_counts.expired ?? 0) + (d.status_counts.suspended ?? 0) + (d.status_counts.cancelled ?? 0), icon: XCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
   ]

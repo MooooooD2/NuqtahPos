@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Copy, Check, Store, CreditCard, Wallet, Banknote, Smartphone, Landmark } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { ArrowLeft, ArrowRight, Copy, Check, CreditCard, Wallet, Banknote, Smartphone, Landmark, Globe } from 'lucide-react'
 import { api } from '@/services/api'
+import { useUIStore } from '@/stores/uiStore'
 
 interface PaymentMethod {
   id: number
@@ -42,6 +44,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -58,18 +61,26 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/8 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:bg-white/15 active:scale-95"
-      title="Copy account number"
+      title={t('payment_page.copy_account_number')}
     >
-      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-      {copied ? 'Copied!' : 'Copy'}
+      {copied ? <Check className="h-3.5 w-3.5 text-primary-400" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? t('payment_page.copied') : t('payment_page.copy')}
     </button>
   )
 }
 
 export default function PaymentMethodsPage() {
+  const { t, i18n } = useTranslation()
+  const { language, setLanguage } = useUIStore()
   const [methods, setMethods]   = useState<PaymentMethod[]>([])
   const [contact, setContact]   = useState<ContactInfo | null>(null)
   const [loading, setLoading]   = useState(true)
+
+  const toggleLanguage = () => {
+    const next = language === 'en' ? 'ar' : 'en'
+    setLanguage(next)
+    i18n.changeLanguage(next)
+  }
 
   useEffect(() => {
     Promise.all([
@@ -90,7 +101,7 @@ export default function PaymentMethodsPage() {
     : null
 
   return (
-    <div className="min-h-screen bg-[#060b18] text-white antialiased">
+    <div className="min-h-screen bg-[#132a4c] text-white antialiased">
 
       {/* Dot-grid texture */}
       <div
@@ -99,35 +110,42 @@ export default function PaymentMethodsPage() {
       />
 
       {/* ── Nav ─────────────────────────────────────────────────────── */}
-      <nav className="relative z-50 border-b border-white/8 bg-[#060b18]/90 backdrop-blur-xl">
+      <nav className="relative z-50 border-b border-white/8 bg-[#132a4c]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link to="/welcome" className="flex items-center gap-3 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500 shadow-lg shadow-sky-500/30">
-              <Store className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white">POS Enterprise</span>
+            <img src={`${import.meta.env.BASE_URL}images/nuqtah_logo_transparent_original.png`} alt="Nuqtah POS" className="h-11 w-auto brightness-0 invert" />
           </Link>
-          <Link to="/welcome" className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white">
-            <ArrowLeft className="h-4 w-4" /> Back to home
-          </Link>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              title={language === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold tracking-wide text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <Globe className="h-4 w-4 shrink-0" />
+              {language === 'en' ? 'AR' : 'EN'}
+            </button>
+            <Link to="/welcome" className="flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white">
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> {t('payment_page.back_home')}
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
       <section className="relative py-20 text-center">
-        <div className="pointer-events-none absolute inset-0 -top-10 mx-auto h-80 w-80 rounded-full bg-emerald-500/8 blur-3xl" style={{ left: '50%', transform: 'translateX(-50%)' }} />
+        <div className="pointer-events-none absolute inset-0 -top-10 mx-auto h-80 w-80 rounded-full bg-primary-500/10 blur-3xl" style={{ left: '50%', transform: 'translateX(-50%)' }} />
         <div className="relative mx-auto max-w-2xl px-6">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-500/10">
-            <WhatsAppIcon className="h-8 w-8 text-emerald-400" />
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary-500/25 bg-primary-500/10">
+            <WhatsAppIcon className="h-8 w-8 text-primary-400" />
           </div>
           <h1 className="mb-4 text-4xl font-extrabold tracking-tight">
             <span className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              Payment Methods
+              {t('payment_page.hero_title')}
             </span>
           </h1>
           <p className="text-slate-400">
-            Choose your preferred payment method below. After completing the payment,
-            contact us on WhatsApp to activate your subscription.
+            {t('payment_page.hero_subtitle')}
           </p>
         </div>
       </section>
@@ -143,7 +161,7 @@ export default function PaymentMethodsPage() {
             </div>
           ) : methods.length === 0 ? (
             <div className="rounded-2xl border border-white/8 bg-white/3 p-12 text-center text-slate-500">
-              No payment methods configured yet. Contact us to arrange payment.
+              {t('payment_page.empty')}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -154,7 +172,7 @@ export default function PaymentMethodsPage() {
                 >
                   {/* Color accent strip */}
                   <div
-                    className="absolute left-0 top-0 h-1 w-full rounded-t-2xl opacity-80"
+                    className="absolute start-0 top-0 h-1 w-full rounded-t-2xl opacity-80"
                     style={{ backgroundColor: m.color }}
                   />
 
@@ -180,7 +198,7 @@ export default function PaymentMethodsPage() {
                   {/* Account name */}
                   {m.account_name && (
                     <p className="mb-1 text-xs text-slate-400">
-                      <span className="text-slate-600">Name: </span>{m.account_name}
+                      <span className="text-slate-600">{t('payment_page.name_label')} </span>{m.account_name}
                     </p>
                   )}
 
@@ -198,24 +216,24 @@ export default function PaymentMethodsPage() {
       {/* ── Steps ───────────────────────────────────────────────────── */}
       <section className="px-6 py-16">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-10 text-center text-2xl font-bold text-white">How it works</h2>
+          <h2 className="mb-10 text-center text-2xl font-bold text-white">{t('payment_page.how_it_works')}</h2>
           <ol className="space-y-6">
             {[
-              { step: '01', title: 'Choose your plan', desc: 'Select the plan that fits your business from our pricing page.', link: { to: '/welcome#pricing', label: 'View plans' } },
-              { step: '02', title: 'Create your store', desc: 'Register your store — you get a free trial, no payment needed upfront.', link: { to: '/register', label: 'Start free trial' } },
-              { step: '03', title: 'Transfer the subscription fee', desc: 'Send the payment to any of the methods above and keep the receipt.' },
-              { step: '04', title: 'Contact us on WhatsApp', desc: 'Send us your store code, plan name, and payment receipt. We\'ll activate within minutes.' },
-            ].map(({ step, title, desc, link }) => (
+              { step: '01', titleKey: 'step1_title', descKey: 'step1_desc', link: { to: '/welcome#pricing', labelKey: 'step1_link' } },
+              { step: '02', titleKey: 'step2_title', descKey: 'step2_desc', link: { to: '/register', labelKey: 'step2_link' } },
+              { step: '03', titleKey: 'step3_title', descKey: 'step3_desc', link: null },
+              { step: '04', titleKey: 'step4_title', descKey: 'step4_desc', link: null },
+            ].map(({ step, titleKey, descKey, link }) => (
               <li key={step} className="flex gap-5">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-slate-400">
                   {step}
                 </div>
                 <div className="pt-1.5">
-                  <h3 className="mb-1 font-semibold text-white">{title}</h3>
-                  <p className="text-sm text-slate-500">{desc}</p>
+                  <h3 className="mb-1 font-semibold text-white">{t(`payment_page.${titleKey}`)}</h3>
+                  <p className="text-sm text-slate-500">{t(`payment_page.${descKey}`)}</p>
                   {link && (
-                    <Link to={link.to} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors">
-                      {link.label} <ArrowRight className="h-3 w-3" />
+                    <Link to={link.to} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-navy-400 hover:text-navy-300 transition-colors">
+                      {t(`payment_page.${link.labelKey}`)} <ArrowRight className="h-3 w-3 rtl:rotate-180" />
                     </Link>
                   )}
                 </div>
@@ -228,16 +246,15 @@ export default function PaymentMethodsPage() {
       {/* ── WhatsApp CTA ────────────────────────────────────────────── */}
       {waLink && (
         <section className="px-6 pb-20">
-          <div className="relative mx-auto max-w-2xl overflow-hidden rounded-3xl border border-green-500/20 bg-gradient-to-br from-green-950/60 via-slate-900 to-emerald-950/40 p-12 text-center">
+          <div className="relative mx-auto max-w-2xl overflow-hidden rounded-3xl border border-green-500/20 bg-gradient-to-br from-green-950/60 via-[#132a4c] to-primary-950/40 p-12 text-center">
             <div className="pointer-events-none absolute inset-0 -top-10 mx-auto h-48 w-48 rounded-full bg-green-500/10 blur-3xl" style={{ left: '50%', transform: 'translateX(-50%)' }} />
             <div className="relative">
               <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#25D366] shadow-xl shadow-green-500/30">
                 <WhatsAppIcon className="h-7 w-7 text-white" />
               </div>
-              <h2 className="mb-3 text-2xl font-extrabold text-white">Paid? Let us know!</h2>
+              <h2 className="mb-3 text-2xl font-extrabold text-white">{t('payment_page.cta_title')}</h2>
               <p className="mb-7 text-slate-400">
-                Send us a message with your store code and payment screenshot.
-                We'll activate your subscription immediately.
+                {t('payment_page.cta_subtitle')}
               </p>
               <a
                 href={waLink}
@@ -246,11 +263,11 @@ export default function PaymentMethodsPage() {
                 className="inline-flex items-center gap-2.5 rounded-xl bg-[#25D366] px-8 py-3.5 font-semibold text-white shadow-lg shadow-green-500/25 transition-all hover:bg-[#1fb559] hover:shadow-green-500/40"
               >
                 <WhatsAppIcon className="h-5 w-5" />
-                Contact us on WhatsApp
+                {t('payment_page.cta_button')}
               </a>
               {contact?.email && (
                 <p className="mt-5 text-sm text-slate-500">
-                  Or email us at{' '}
+                  {t('payment_page.footer_email_prefix')}{' '}
                   <a href={`mailto:${contact.email}`} className="text-slate-400 underline underline-offset-4 hover:text-white transition-colors">
                     {contact.email}
                   </a>
@@ -264,13 +281,13 @@ export default function PaymentMethodsPage() {
       {/* ── Footer CTA ──────────────────────────────────────────────── */}
       <div className="border-t border-white/8 px-6 py-8 text-center text-sm text-slate-500">
         <p>
-          Ready to start?{' '}
-          <Link to="/register" className="font-medium text-sky-400 underline underline-offset-4 hover:text-sky-300 transition-colors">
-            Create your free store
+          {t('payment_page.footer_ready')}{' '}
+          <Link to="/register" className="font-medium text-navy-400 underline underline-offset-4 hover:text-navy-300 transition-colors">
+            {t('payment_page.footer_create_store')}
           </Link>
           {' '}·{' '}
           <Link to="/welcome#pricing" className="font-medium text-slate-400 underline underline-offset-4 hover:text-white transition-colors">
-            View pricing
+            {t('payment_page.footer_view_pricing')}
           </Link>
         </p>
       </div>
@@ -282,7 +299,7 @@ export default function PaymentMethodsPage() {
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-xl shadow-green-500/30 transition-transform hover:scale-110"
-          title="Chat on WhatsApp"
+          title={t('payment_page.chat_whatsapp')}
         >
           <WhatsAppIcon className="h-7 w-7 text-white" />
         </a>

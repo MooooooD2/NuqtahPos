@@ -182,8 +182,8 @@ export default function CashRegisterPage() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">{t('card')}</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{Number(session.card_sales ?? 0).toFixed(2)}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
-                <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-navy-100 dark:bg-navy-900/30">
+                <CreditCard className="h-6 w-6 text-navy-600 dark:text-navy-400" />
               </div>
             </div>
           </div>

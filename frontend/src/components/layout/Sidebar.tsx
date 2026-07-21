@@ -9,7 +9,7 @@ import { clsx } from 'clsx'
 import {
   LayoutDashboard, ShoppingCart, Package, Boxes, Users, Truck,
   ShoppingBag, FileText, BarChart3, Settings, UserCog, BookOpen,
-  Heart, Users2, Warehouse, ChevronLeft, ChevronRight, Store,
+  Heart, Users2, Warehouse, ChevronLeft, ChevronRight,
   DollarSign, RotateCcw, Banknote, Tag, PackageX, Zap, Gift,
   CreditCard, Receipt, TrendingUp, GitBranch, LineChart,
   Monitor, MessageCircle, Coins, Trash2, PieChart,
@@ -162,7 +162,7 @@ export default function Sidebar() {
       <aside
         className={clsx(
           'fixed inset-y-0 z-30 flex flex-col bg-sidebar-bg transition-all duration-300',
-          sidebarCollapsed ? 'w-16' : 'w-64',
+          sidebarCollapsed ? 'w-20' : 'w-64',
           isRTL ? 'right-0' : 'left-0',
           sidebarMobileOpen
             ? 'translate-x-0'
@@ -172,17 +172,23 @@ export default function Sidebar() {
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-700 flex-shrink-0">
+        <div
+          className={clsx(
+            'flex items-center border-b border-navy-700 flex-shrink-0',
+            sidebarCollapsed ? 'flex-col justify-center gap-1.5 px-2 py-3' : 'h-16 justify-between px-4',
+          )}
+        >
           {!sidebarCollapsed && (
             <div className="flex items-center gap-2 min-w-0">
-              <Store className="h-7 w-7 text-primary-400 flex-shrink-0" />
-              <span className="text-lg font-bold text-white truncate">{t('app_name')}</span>
+              <img src={`${import.meta.env.BASE_URL}images/nuqtah_logo_transparent_original.png`} alt={t('app_name')} className="h-10 w-auto brightness-0 invert flex-shrink-0" />
             </div>
           )}
-          {sidebarCollapsed && <Store className="h-7 w-7 text-primary-400 mx-auto" />}
+          {sidebarCollapsed && (
+            <img src={`${import.meta.env.BASE_URL}images/nuqtah_logo_64x64.png`} alt={t('app_name')} className="h-9 w-9 shrink-0 rounded-md brightness-0 invert" />
+          )}
           <button
             onClick={toggleSidebar}
-            className="hidden lg:flex items-center justify-center h-7 w-7 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors flex-shrink-0"
+            className="hidden lg:flex items-center justify-center h-6 w-6 shrink-0 rounded-md text-slate-400 hover:text-white hover:bg-navy-700 transition-colors"
           >
             {sidebarCollapsed
               ? <ChevronRight className="h-4 w-4 rtl:rotate-180" />
@@ -247,7 +253,7 @@ export default function Sidebar() {
                   </p>
                 )}
                 {sidebarCollapsed && (
-                  <div className="border-t border-slate-700/60 mx-2 mb-1" />
+                  <div className="border-t border-navy-700/60 mx-2 mb-1" />
                 )}
                 <div className="space-y-0.5">
                   {visibleItems.map((item) => {
@@ -264,7 +270,7 @@ export default function Sidebar() {
                           'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                           isActive
                             ? 'bg-primary-600 text-white shadow-sm'
-                            : 'text-slate-400 hover:bg-slate-800 hover:text-white',
+                            : 'text-slate-400 hover:bg-navy-700 hover:text-white',
                           sidebarCollapsed && 'justify-center',
                         )}
                         title={sidebarCollapsed ? label : undefined}
@@ -282,7 +288,7 @@ export default function Sidebar() {
 
         {/* User info */}
         {!sidebarCollapsed && user && (
-          <div className="p-3 border-t border-slate-700 flex-shrink-0">
+          <div className="p-3 border-t border-navy-700 flex-shrink-0">
             <div className="flex items-center gap-3 px-1">
               <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                 {user.name.charAt(0).toUpperCase()}
@@ -295,7 +301,7 @@ export default function Sidebar() {
           </div>
         )}
         {sidebarCollapsed && user && (
-          <div className="p-3 border-t border-slate-700 flex justify-center flex-shrink-0">
+          <div className="p-3 border-t border-navy-700 flex justify-center flex-shrink-0">
             <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold" title={user.name}>
               {user.name.charAt(0).toUpperCase()}
             </div>

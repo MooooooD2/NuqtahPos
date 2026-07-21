@@ -392,8 +392,8 @@ export default function HrPage() {
               <div><p className="text-xs text-gray-500">في استراحة</p><p className="text-2xl font-bold text-yellow-600">{shifts.filter((s) => s.on_break).length}</p></div>
             </div>
             <div className="card p-4 flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Clock className="h-5 w-5 text-blue-600" /></div>
-              <div><p className="text-xs text-gray-500">إجمالي الاستراحات</p><p className="text-2xl font-bold text-blue-600">{shifts.reduce((sum, s) => sum + (s.breaks?.length ?? 0), 0)}</p></div>
+              <div className="p-2 bg-navy-100 dark:bg-navy-900/30 rounded-lg"><Clock className="h-5 w-5 text-navy-600" /></div>
+              <div><p className="text-xs text-gray-500">إجمالي الاستراحات</p><p className="text-2xl font-bold text-navy-600">{shifts.reduce((sum, s) => sum + (s.breaks?.length ?? 0), 0)}</p></div>
             </div>
           </div>
 
@@ -525,8 +525,8 @@ export default function HrPage() {
               <div><p className="text-xs text-gray-500">{t('working_now')}</p><p className="text-2xl font-bold text-green-600">{attSummary.working}</p></div>
             </div>
             <div className="card p-4 flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Clock className="h-5 w-5 text-blue-600" /></div>
-              <div><p className="text-xs text-gray-500">{t('checked_out')}</p><p className="text-2xl font-bold text-blue-600">{attSummary.checked_out}</p></div>
+              <div className="p-2 bg-navy-100 dark:bg-navy-900/30 rounded-lg"><Clock className="h-5 w-5 text-navy-600" /></div>
+              <div><p className="text-xs text-gray-500">{t('checked_out')}</p><p className="text-2xl font-bold text-navy-600">{attSummary.checked_out}</p></div>
             </div>
             <div className="card p-4 flex items-center gap-3">
               <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg"><XCircle className="h-5 w-5 text-red-600" /></div>

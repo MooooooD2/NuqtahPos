@@ -125,8 +125,8 @@ export default function ProfitReportsPage() {
 
       {displayTotals && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card p-4 border-l-4 border-blue-500">
-            <div className="flex items-center gap-2 mb-1"><ShoppingCart className="h-4 w-4 text-blue-500" /><p className="text-xs text-gray-500 uppercase font-semibold">{t('total_revenue')}</p></div>
+          <div className="card p-4 border-l-4 border-navy-500">
+            <div className="flex items-center gap-2 mb-1"><ShoppingCart className="h-4 w-4 text-navy-500" /><p className="text-xs text-gray-500 uppercase font-semibold">{t('total_revenue')}</p></div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{displayTotals.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
           </div>
           <div className="card p-4 border-l-4 border-red-500">

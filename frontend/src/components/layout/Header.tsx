@@ -38,21 +38,21 @@ function notifIcon(type: string, data?: Record<string, unknown>) {
   if (t.includes('return') || msg.includes('return'))
     return <RotateCcw className="h-4 w-4 text-orange-500" />
   if (t.includes('purchase') || t.includes('purchaseorder') || msg.startsWith('new po'))
-    return <ShoppingBag className="h-4 w-4 text-indigo-500" />
+    return <ShoppingBag className="h-4 w-4 text-navy-500" />
   if (t.includes('expense') || msg.startsWith('expense'))
     return <DollarSign className="h-4 w-4 text-red-500" />
   if (t.includes('payment'))
-    return <DollarSign className="h-4 w-4 text-blue-500" />
+    return <DollarSign className="h-4 w-4 text-navy-500" />
   if (t.includes('leave') || msg.includes('leave request'))
-    return <Calendar className="h-4 w-4 text-purple-500" />
+    return <Calendar className="h-4 w-4 text-navy-500" />
   if (t.includes('user') || t.includes('employee'))
-    return <UserCheck className="h-4 w-4 text-purple-500" />
+    return <UserCheck className="h-4 w-4 text-navy-500" />
   if (t.includes('expir') || t.includes('waste'))
     return <TrendingDown className="h-4 w-4 text-red-500" />
   if (t.includes('alert') || t.includes('warn'))
     return <AlertTriangle className="h-4 w-4 text-orange-500" />
   if (t.includes('shift') || t.includes('clock'))
-    return <Clock className="h-4 w-4 text-teal-500" />
+    return <Clock className="h-4 w-4 text-primary-500" />
   if (t.includes('sync') || t.includes('backup'))
     return <RefreshCw className="h-4 w-4 text-gray-500" />
   return <Info className="h-4 w-4 text-primary-500" />

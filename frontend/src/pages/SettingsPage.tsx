@@ -303,7 +303,7 @@ export default function SettingsPage() {
                     </h2>
                   )}
                   {section.key === 'accounting_link' && (
-                    <div className="flex gap-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 text-sm text-blue-700 dark:text-blue-300">
+                    <div className="flex gap-2 rounded-lg bg-navy-50 dark:bg-navy-900/20 border border-navy-200 dark:border-navy-800 p-3 text-sm text-navy-700 dark:text-navy-300">
                       <Info className="h-4 w-4 shrink-0 mt-0.5" />
                       <span>{t('accounting_link_info')}</span>
                     </div>

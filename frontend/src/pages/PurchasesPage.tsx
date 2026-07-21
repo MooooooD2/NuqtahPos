@@ -149,7 +149,7 @@ export default function PurchasesPage() {
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
                             <button onClick={() => { setSelectedPO(po); setModal('view') }} className="p-1 text-gray-400 hover:text-primary-600 rounded"><Eye className="h-4 w-4" /></button>
-                            {canCreate && po.status === 'draft' && <button onClick={() => actionMutation.mutate({ id: po.id, action: 'submit' })} title="Submit" className="p-1 text-gray-400 hover:text-blue-600 rounded"><Send className="h-4 w-4" /></button>}
+                            {canCreate && po.status === 'draft' && <button onClick={() => actionMutation.mutate({ id: po.id, action: 'submit' })} title="Submit" className="p-1 text-gray-400 hover:text-navy-600 rounded"><Send className="h-4 w-4" /></button>}
                             {canApprove && po.status === 'pending' && <>
                               <button onClick={() => actionMutation.mutate({ id: po.id, action: 'approve' })} title="Approve" className="p-1 text-gray-400 hover:text-green-600 rounded"><CheckCircle className="h-4 w-4" /></button>
                               <button onClick={() => actionMutation.mutate({ id: po.id, action: 'reject' })} title="Reject" className="p-1 text-gray-400 hover:text-red-600 rounded"><XCircle className="h-4 w-4" /></button>
@@ -184,7 +184,7 @@ export default function PurchasesPage() {
                       <Eye className="h-3.5 w-3.5" />{isAr ? 'عرض' : 'View'}
                     </button>
                     {canCreate && po.status === 'draft' && (
-                      <button onClick={() => actionMutation.mutate({ id: po.id, action: 'submit' })} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100 transition-colors font-medium">
+                      <button onClick={() => actionMutation.mutate({ id: po.id, action: 'submit' })} className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg bg-navy-50 text-navy-700 dark:bg-navy-900/20 dark:text-navy-400 hover:bg-navy-100 transition-colors font-medium">
                         <Send className="h-3.5 w-3.5" />{isAr ? 'إرسال' : 'Submit'}
                       </button>
                     )}

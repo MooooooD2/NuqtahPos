@@ -114,7 +114,7 @@ export default function CrmPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card overflow-hidden">
             <div className="px-4 py-3 border-b dark:border-gray-700 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-purple-500" />
+              <Activity className="h-4 w-4 text-navy-500" />
               <h2 className="font-semibold text-gray-900 dark:text-white">{t('activity_log')}</h2>
             </div>
             {actLoading ? <div className="flex h-32 items-center justify-center"><LoadingSpinner /></div> : (

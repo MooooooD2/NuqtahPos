@@ -138,8 +138,8 @@ export default function SupplierPaymentsPage() {
           <div><p className="text-xs text-gray-500">{t('total_paid')}</p><p className="text-xl font-bold text-gray-900 dark:text-white">{totalPaid.toFixed(2)}</p></div>
         </div>
         <div className="card p-4 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30">
-            <Hash className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-navy-100 dark:bg-navy-900/30">
+            <Hash className="h-5 w-5 text-navy-600 dark:text-navy-400" />
           </div>
           <div><p className="text-xs text-gray-500">{t('total_payment_count')}</p><p className="text-xl font-bold text-gray-900 dark:text-white">{data?.total ?? payments.length}</p></div>
         </div>

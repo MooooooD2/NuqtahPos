@@ -19,8 +19,8 @@ export default function AppLayout() {
         className={clsx(
           'flex flex-1 flex-col min-h-0 transition-all duration-300',
           isRTL
-            ? sidebarCollapsed ? 'lg:mr-16' : 'lg:mr-64'
-            : sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64',
+            ? sidebarCollapsed ? 'lg:mr-20' : 'lg:mr-64'
+            : sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64',
         )}
       >
         <Header />

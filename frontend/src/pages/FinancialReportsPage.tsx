@@ -177,9 +177,9 @@ export default function FinancialReportsPage() {
           {!incomeLoading && incomeData && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="card p-5 border-l-4 border-blue-500">
+                <div className="card p-5 border-l-4 border-navy-500">
                   <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="h-4 w-4 text-blue-500" />
+                    <TrendingUp className="h-4 w-4 text-navy-500" />
                     <p className="text-xs text-gray-500 uppercase font-semibold">{t('total_assets')}</p>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{incomeTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
@@ -204,8 +204,8 @@ export default function FinancialReportsPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="card overflow-hidden">
-                  <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b dark:border-gray-700">
-                    <h3 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2"><TrendingUp className="h-4 w-4" /> {t('revenue')}</h3>
+                  <div className="px-4 py-3 bg-navy-50 dark:bg-navy-900/20 border-b dark:border-gray-700">
+                    <h3 className="font-semibold text-navy-700 dark:text-navy-300 flex items-center gap-2"><TrendingUp className="h-4 w-4" /> {t('revenue')}</h3>
                   </div>
                   <>
                     <div className="hidden lg:block overflow-x-auto">
@@ -328,7 +328,7 @@ export default function FinancialReportsPage() {
               {([
                 { label: t('assets'), rows: balanceData.assets, total: balanceData.total_assets, color: 'text-green-600 dark:text-green-400', border: 'border-green-500', bg: 'bg-green-50 dark:bg-green-900/20', hdr: 'text-green-700 dark:text-green-300' },
                 { label: t('liabilities'), rows: balanceData.liabilities, total: null, color: 'text-red-600 dark:text-red-400', border: 'border-red-500', bg: 'bg-red-50 dark:bg-red-900/20', hdr: 'text-red-700 dark:text-red-300' },
-                { label: t('equity'), rows: balanceData.equity, total: balanceData.total_liabilities_equity, color: 'text-blue-600 dark:text-blue-400', border: 'border-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', hdr: 'text-blue-700 dark:text-blue-300' },
+                { label: t('equity'), rows: balanceData.equity, total: balanceData.total_liabilities_equity, color: 'text-navy-600 dark:text-navy-400', border: 'border-navy-500', bg: 'bg-navy-50 dark:bg-navy-900/20', hdr: 'text-navy-700 dark:text-navy-300' },
               ]).map(({ label, rows, total, color, border, bg, hdr }) => (
                 <div key={label} className={clsx('card overflow-hidden border-l-4', border)}>
                   <div className={clsx('px-4 py-3 border-b dark:border-gray-700', bg)}>
